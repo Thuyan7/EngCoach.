@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EngCoach — Interactive Prototype (Concept C)</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background:#F1EFE8; margin:0; padding:2rem; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  input, button { font-family: inherit; font-size: 14px; }
+  input[type=email], input[type=password] { height:36px; border:1px solid #D3D1C7; border-radius:8px; padding:0 10px; }
+  button { cursor: pointer; }
+  .nav-btn { padding:8px 14px; border-radius:8px; border:1px solid #D3D1C7; background:#fff; }
+  table { border-collapse: collapse; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h2 style="font-size:16px;font-weight:500;">EngCoach — Prototype (Concept C: Blue + Green)</h2>
+<div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;">
+<button class="nav-btn" data-screen="login">Login</button>
+<button class="nav-btn" data-screen="dashboard">Dashboard</button>
+<button class="nav-btn" data-screen="test">Mock test</button>
+<button class="nav-btn" data-screen="result">Result</button>
+<button class="nav-btn" data-screen="progress">Progress</button>
+</div>
+
+<div id="login" style="background:#fff;border-radius:12px;padding:1.5rem;max-width:360px;">
+<p style="font-size:18px;font-weight:500;margin:0 0 1rem;">Log in to EngCoach</p>
+<label style="font-size:13px;color:#5F5E5A;">Email</label>
+<input type="email" placeholder="name@example.com" style="width:100%;margin:4px 0 12px;" />
+<label style="font-size:13px;color:#5F5E5A;">Password</label>
+<input type="password" style="width:100%;margin:4px 0 12px;" />
+<p id="login-error" style="display:none;font-size:13px;color:#A32D2D;margin:0 0 12px;">Email or password is incorrect.</p>
+<button id="login-btn" style="width:100%;background:#378ADD;color:#fff;border:none;border-radius:8px;height:40px;font-weight:500;">Log in</button>
+<button id="login-toggle-err" style="width:100%;margin-top:8px;background:transparent;border:1px solid #D3D1C7;border-radius:8px;height:32px;font-size:12px;">Simulate wrong credentials</button>
+</div>
+
+<div id="dashboard" style="display:none;background:#fff;border-radius:12px;padding:1.5rem;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+<div><p style="font-size:18px;font-weight:500;margin:0;">Welcome back, An</p><p style="font-size:13px;color:#5F5E5A;margin:2px 0 0;">Ready for today's practice?</p></div>
+<div style="width:36px;height:36px;border-radius:50%;background:#85B7EB;display:flex;align-items:center;justify-content:center;color:#042C53;font-weight:500;">A</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.25rem;">
+<div style="background:#EAF3DE;border-radius:8px;padding:1rem;"><p style="font-size:13px;color:#3B6D11;margin:0;">Avg score</p><p style="font-size:24px;font-weight:500;color:#173404;margin:4px 0 0;">720</p></div>
+<div style="background:#F1EFE8;border:1px solid #D3D1C7;border-radius:8px;padding:1rem;"><p style="font-size:13px;color:#5F5E5A;margin:0;">Attempts</p><p style="font-size:24px;font-weight:500;margin:4px 0 0;">14</p></div>
+<div style="background:#F1EFE8;border:1px solid #D3D1C7;border-radius:8px;padding:1rem;"><p style="font-size:13px;color:#5F5E5A;margin:0;">Last attempt</p><p style="font-size:24px;font-weight:500;margin:4px 0 0;">2d ago</p></div>
+</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;">
+<button class="go-test" style="flex:1;min-width:160px;background:#378ADD;color:#fff;border:none;border-radius:8px;height:44px;font-size:14px;font-weight:500;">Practice by Part</button>
+<button class="go-test" style="flex:1;min-width:160px;background:transparent;border:1px solid #888780;border-radius:8px;height:44px;font-size:14px;font-weight:500;">Take mock test</button>
+</div>
+</div>
+
+<div id="test" style="display:none;background:#fff;border-radius:12px;padding:1.5rem;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+<p style="font-size:15px;font-weight:500;margin:0;">Question 42 of 200</p>
+<span id="timer" style="font-size:18px;font-weight:500;color:#378ADD;">28:00</span>
+</div>
+<input type="range" id="time-sim" min="0" max="30" value="28" style="width:100%;margin-bottom:16px;" />
+<p style="font-size:13px;color:#5F5E5A;margin:0 0 1rem;">Drag to simulate time remaining — timer turns amber under 5 min, red under 1 min.</p>
+<p style="font-size:15px;margin:0 0 12px;">Which word best completes the sentence: "The manager asked the team to ___ the report by Friday."</p>
+<div style="display:flex;flex-direction:column;gap:8px;">
+<button class="answer-opt" style="text-align:left;padding:10px 12px;border:1px solid #D3D1C7;border-radius:8px;background:#F1EFE8;">A. complete</button>
+<button class="answer-opt" style="text-align:left;padding:10px 12px;border:1px solid #D3D1C7;border-radius:8px;background:#F1EFE8;">B. completion</button>
+<button class="answer-opt" style="text-align:left;padding:10px 12px;border:1px solid #D3D1C7;border-radius:8px;background:#F1EFE8;">C. completing</button>
+</div>
+</div>
+
+<div id="result" style="display:none;background:#fff;border-radius:12px;padding:1.5rem;">
+<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:1rem;">
+<span style="font-size:24px;font-weight:500;">165 / 200</span>
+<span style="font-size:13px;color:#5F5E5A;">Reading & Listening mock test</span>
+</div>
+<div style="background:#FCEBEB;border-radius:8px;padding:12px;margin-bottom:8px;">
+<p style="font-size:13px;font-weight:500;color:#791F1F;margin:0 0 4px;">Q42 — Incorrect (you chose B)</p>
+<p style="font-size:13px;color:#5F5E5A;margin:0;">Correct answer: A, complete. The sentence needs a base verb after "asked the team to", not a noun or gerund form.</p>
+</div>
+<div style="background:#FCEBEB;border-radius:8px;padding:12px;">
+<p style="font-size:13px;font-weight:500;color:#791F1F;margin:0 0 4px;">Q57 — Incorrect (you chose C)</p>
+<p style="font-size:13px;color:#5F5E5A;margin:0;">Explanation temporarily unavailable, please refresh.</p>
+</div>
+</div>
+
+<div id="progress" style="display:none;background:#fff;border-radius:12px;padding:1.5rem;">
+<p style="font-size:15px;font-weight:500;margin:0 0 12px;">Score history</p>
+<div style="display:flex;align-items:flex-end;gap:12px;height:100px;margin-bottom:1rem;">
+<div style="flex:1;background:#97C459;height:60%;border-radius:4px 4px 0 0;"></div>
+<div style="flex:1;background:#97C459;height:75%;border-radius:4px 4px 0 0;"></div>
+<div style="flex:1;background:#639922;height:82%;border-radius:4px 4px 0 0;"></div>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:#5F5E5A;margin-bottom:1rem;">
+<span>Sep 1</span><span>Sep 5</span><span>Sep 12</span>
+</div>
+<table style="width:100%;font-size:13px;">
+<tr><td style="padding:6px 0;color:#5F5E5A;">Sep 12 — Mock test</td><td style="text-align:right;">720</td><td style="width:30px;text-align:right;">🗑</td></tr>
+<tr><td style="padding:6px 0;color:#5F5E5A;">Sep 5 — Part 5 practice</td><td style="text-align:right;">660</td><td style="width:30px;text-align:right;">🗑</td></tr>
+</table>
+</div>
+</div>
+
+<script>
+const buttons = document.querySelectorAll('.nav-btn');
+const screens = ['login','dashboard','test','result','progress'];
+function showScreen(name){
+  screens.forEach(s => { document.getElementById(s).style.display = s === name ? 'block' : 'none'; });
+  buttons.forEach(b => { b.style.borderColor = b.dataset.screen === name ? '#378ADD' : '#D3D1C7'; });
+}
+buttons.forEach(b => b.addEventListener('click', () => showScreen(b.dataset.screen)));
+document.querySelectorAll('.go-test').forEach(b => b.addEventListener('click', () => showScreen('test')));
+document.getElementById('login-toggle-err').addEventListener('click', () => {
+  document.getElementById('login-error').style.display = 'block';
+});
+document.getElementById('login-btn').addEventListener('click', () => showScreen('dashboard'));
+document.querySelectorAll('.answer-opt').forEach(b => b.addEventListener('click', () => showScreen('result')));
+const timeSim = document.getElementById('time-sim');
+const timerEl = document.getElementById('timer');
+function updateTimer(){
+  const mins = parseInt(timeSim.value, 10);
+  timerEl.textContent = mins + ':00';
+  if (mins < 1) timerEl.style.color = '#E24B4A';
+  else if (mins < 5) timerEl.style.color = '#BA7517';
+  else timerEl.style.color = '#378ADD';
+}
+timeSim.addEventListener('input', updateTimer);
+updateTimer();
+showScreen('login');
+</script>
+</body>
+</html>
