@@ -29,6 +29,11 @@ Users practice consistently, clearly see what they got wrong and why, and see th
 - A separate mobile app (web only).
 - AI-personalized adaptive learning paths — deferred to a later version.
 
+## Anti-goals (what success does NOT mean)
+- Not trying to become a full LMS (no course content, no teacher-managed classes).
+- Not trying to compete with human tutors — AI explanation supplements, does not replace, personalized instruction.
+- Not trying to gamify learning with streaks/leaderboards in this version — success is measured by score improvement, not engagement metrics.
+
 ## Constraints
 - Academic project, team of 2–3 people, built to the course's weekly/chapter schedule.
 - No mandated technology/stack — a stack will be proposed in Chapter 5 (Architecture).
