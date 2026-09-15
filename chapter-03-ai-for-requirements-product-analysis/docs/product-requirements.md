@@ -20,6 +20,21 @@ The main goals of the product are to help learners:
 
 ---
 
+---
+
+## 1.5 Jobs to Be Done (JTBD)
+
+| Priority | Job Statement |
+|---|---|
+| 1 | When I have limited study time before a TOEIC exam, I want to practice targeted question types, so I can improve my weakest skill efficiently. |
+| 2 | When I finish a practice attempt, I want to immediately understand why I got a question wrong, so I can avoid repeating the same mistake. |
+| 3 | When I've been studying for weeks, I want to see whether my score is actually improving, so I know if my study approach is working. |
+| 4 | When I'm close to my real exam date, I want to simulate the exact exam conditions, so I'm not surprised by the format or time pressure on test day. |
+
+> JTBD gives the reason each Functional Requirement exists. FR-003 (Part Practice) serves Job 1; FR-006 (AI Explanation) serves Job 2; FR-007 (Progress Tracking) serves Job 3; FR-004 (Mock Test) serves Job 4.
+
+---
+
 ## 2. Target Users
 
 ### Primary User
@@ -96,6 +111,19 @@ The following features are **not included in the MVP**:
 - A separate mobile application.
 - AI-personalized adaptive learning paths.
 - Score/result sharing.
+
+---
+
+---
+
+## 5.3 Anti-goals
+
+What success for EngCoach explicitly does **not** mean:
+
+- Not trying to become a full LMS — no course content, no teacher-managed classes.
+- Not trying to compete with human tutors — AI explanation supplements, does not replace, personalized instruction.
+- Not trying to gamify learning with streaks or leaderboards in this version — success is measured by score improvement, not engagement metrics.
+- Not trying to serve TOEIC exclusively forever — other exams (IELTS, TOEFL) are out of scope for this version only, not permanently ruled out.
 
 ---
 
@@ -543,6 +571,8 @@ Epic E-04 — Progress
 | Success Signals | Approved |
 | Assumptions | Approved |
 | Exclusions | Approved |
+| Jobs to Be Done (JTBD) | Approved |
+| Anti-goals | Approved |
 | TOEIC Question Bank Source | Open Question |
 | Retake Limit | Open Question |
 | Mock Test Timeout Behavior | Open Question |
