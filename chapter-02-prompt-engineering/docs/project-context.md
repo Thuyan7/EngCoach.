@@ -4,33 +4,41 @@
 **Source:** chapter-01-ai-in-software-engineering/docs/project-brief.md
 
 ## Product Boundary
-EngCoach is a web platform for TOEIC exam preparation, focused on the Reading and Listening skills. Users practice through small per-part exercises or full-length mock tests, submit their work to get automatic grading plus AI-generated explanations of mistakes, and track their progress over time.
+EngCoach is a web platform for TOEIC exam preparation, focused on the Reading and Listening skills.
+
+Users practice through per-Part exercises or full-length timed mock tests, submit their work to receive automatic grading plus AI-generated explanations for mistakes, and track their progress over time.
 
 ## Standard Vocabulary
+
 | Term | Meaning |
 |---|---|
-| Practice exercise | A single attempt at an exercise (per-part or full mock test) |
-| Mock test | A full 200-question, timed test set that mirrors the real exam |
-| Part practice | A practice exercise limited to a single TOEIC question type (Part) |
-| Grading | The result after submission: score + AI explanation for each wrong answer |
-| Progress | A user's score history + chart over time |
+| Practice exercise | A single attempt at an exercise, either a Part exercise or a full mock test |
+| Part exercise | A practice exercise limited to a single TOEIC Part |
+| Mock test | A full 200-question, timed test set |
+| Grading | The result after submission: score plus an AI explanation for each wrong answer |
+| Progress | A user's score history and trend over time |
 
 ## Constraints (inherited from the brief)
-- Reading & Listening only in the MVP — no Speaking/Writing.
-- Account (registration/login) is required to store per-user data.
-- No mandated technology/stack (to be decided in Chapter 5).
-- Team project of 2–3 people, following the course's weekly/chapter schedule.
+
+- Reading and Listening only in the MVP, no Speaking or Writing.
+- Account registration and login required to store per-user data.
+- No mandated technology stack at this stage; a stack is proposed in Chapter 5.
+- Academic project for CS2028, built by a team of two, following the course's weekly/chapter schedule.
 
 ## Exclusions (inherited, unchanged)
-Speaking, Writing, group classes, human-graded feedback, payments, a separate mobile app, personalized adaptive learning.
+
+Speaking, Writing, group classes, human-graded feedback, payments, a separate mobile application, personalized adaptive learning.
 
 ## Source Precedence
+
+When later chapters conflict, resolve in this order:
+
 1. The newest approved decision.
 2. Project context (this file).
 3. Project brief (Chapter 1).
 4. AI suggestions.
 
 ## Current Boundary / Open Items
-- TOEIC question bank source: self-authored / existing dataset / AI-generated — not yet decided.
-- Retake limit per test — not yet decided.
-- Score/result-sharing feature — not yet decided; treated as out of MVP scope unless confirmed otherwise.
+
+- TOEIC question bank source: self-authored, existing dataset, or AI-generated.
+- Whether a retake limit applies.
