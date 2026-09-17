@@ -3,61 +3,48 @@
 **Status:** Approved
 
 ## Problem Hypothesis
-Self-learners preparing for the TOEIC exam (both first-timers and those with an existing score aiming to improve quickly) lack a focused practice tool that grades their work immediately, explains mistakes clearly, and lets them track their own progress — without needing a class or a teacher.
+Self-learners preparing for the TOEIC exam lack a focused practice tool that grades their work immediately, explains mistakes clearly, and lets them track their own progress over time, without needing a class or a teacher.
 
 ## Primary User
-Self-learners preparing for TOEIC in general — no distinction between beginners and those with an existing score. (Assumption: both groups share the same experience flow in the MVP; no skill-level personalization yet.)
+Self-learners preparing for TOEIC in general, no distinction by skill level.
 
 ## Desired Outcome
-Users practice consistently, clearly see what they got wrong and why, and see their score/progress improve over time.
+Users practice consistently, understand their mistakes clearly, and see their score improve over time.
 
 ## In-Scope Behavior (MVP)
-- Account registration/login (stores per-user data separately).
-- Practice covering 2 skills: Reading and Listening.
-- Two practice formats:
-  - Practice by individual question type (per TOEIC Part).
-  - Full-length mock tests (200 questions, timed).
-- Submit → grading:
-  - Automatic answer-key scoring (multiple choice).
-  - AI-generated explanation for each wrong answer.
-- Progress view: score history + progress chart over time.
+- Account registration and login, with data stored separately per user.
+- Practice covering two skills: Reading and Listening.
+- Two practice formats: practice by individual TOEIC Part, and full-length timed mock tests (200 questions).
+- Automatic grading against the answer key.
+- AI-generated explanation for each incorrect answer.
+- Progress view: score history and progress trend over time.
 
-## Exclusions (not in this first version)
+## Exclusions (not in this version)
 - Speaking and Writing practice.
-- Group classes, human-graded feedback.
-- Payments/paid plans.
-- A separate mobile app (web only).
-- AI-personalized adaptive learning paths — deferred to a later version.
-
-## Anti-goals (what success does NOT mean)
-- Not trying to become a full LMS (no course content, no teacher-managed classes).
-- Not trying to compete with human tutors — AI explanation supplements, does not replace, personalized instruction.
-- Not trying to gamify learning with streaks/leaderboards in this version — success is measured by score improvement, not engagement metrics.
+- Group classes and human-graded feedback.
+- Payments or paid plans.
+- A separate mobile application (web only).
+- AI-personalized adaptive learning paths.
 
 ## Constraints
-- Academic project, team of 2–3 people, built to the course's weekly/chapter schedule.
-- No mandated technology/stack — a stack will be proposed in Chapter 5 (Architecture).
-- Timeline: follows the course schedule.
+- Academic project for CS2028, built by a team of two, following the course's weekly/chapter schedule.
+- No mandated technology stack at this stage; a stack will be proposed in Chapter 5.
 
 ## AI Working Rules
-- AI assists each phase (requirements, design, coding, testing, documentation) following the course's prompt templates.
-- Every scope/product decision must be explicitly approved by the team before being saved as a canonical document.
+- AI assists each phase of the lifecycle following the course's prompt templates.
+- Every scope or product decision must be explicitly approved before being saved as canonical.
 - No feature is added beyond approved scope.
 
 ## Decision Log
 | Decision | Choice |
 |---|---|
 | Target exam | TOEIC |
-| MVP skills | Reading & Listening |
-| Grading approach | Automatic + AI explanation |
-| Primary user | Shared for beginners & existing-score learners |
-| Practice format | Both per-part practice and full mock tests |
-| Progress tracking | Yes (history + chart) |
-| Account | Registration/login required |
-| Stack | Not yet decided — to be proposed in Chapter 5 |
-| Team size | 2–3 people |
+| MVP skills | Reading and Listening |
+| Practice format | Per-Part practice and full mock tests |
+| Grading | Automatic scoring with AI explanation for wrong answers |
+| Primary user | General self-learner, no skill-level distinction |
+| Success signal | Consistent practice, clear understanding of mistakes, improving score over time |
 
 ## Open Assumptions
-- Where does the TOEIC question bank come from (self-authored, an existing dataset, or AI-generated questions)?
-- Is there a limit on how many times a test can be retaken?
-- Is a score/result-sharing feature needed?
+- The source of the TOEIC question bank has not yet been decided.
+- Whether a retake limit applies has not yet been decided.
