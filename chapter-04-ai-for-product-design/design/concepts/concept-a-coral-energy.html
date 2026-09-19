@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EngCoach - Concept A: Coral Energy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#D85A30; --primary-dark:#B8451F; --primary-tint:#F0997B;
+    --primary-bg:#FBEDE7; --primary-text:#993C1D;
+    --surface:#FFFFFF; --bg:#FAF3EF; --border:#EEDFD6; --text:#2A211D; --text-secondary:#8A796F;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);}
+  .note{background:#2A211D;color:#F0997B;font-size:12px;padding:9px 24px;letter-spacing:0.02em;}
+
+  .shell{display:flex;min-height:100vh;}
+  .sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;padding:26px 18px;}
+  .wordmark{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:800;letter-spacing:-0.01em;margin:0 0 30px 6px;}
+  .wordmark .dot{width:9px;height:9px;border-radius:50%;background:var(--primary);}
+  .navlist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:3px;}
+  .navlist li{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--text-secondary);}
+  .navlist li.active{background:var(--primary-bg);color:var(--primary-text);}
+  .navlist svg{width:16px;height:16px;}
+  .sidebar-foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 10px;border-top:1px solid var(--border);}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(150deg,var(--primary-tint),var(--primary));
+    color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+  .main{flex:1;padding:0 48px 48px;max-width:900px;}
+
+  /* Hero band — the average score, treated as the page's one bold moment */
+  .hero{padding:46px 0 34px;border-bottom:1px solid var(--border);margin-bottom:32px;}
+  .hero-eyebrow{font-size:13px;color:var(--text-secondary);margin:0 0 2px;}
+  .hero-number{
+    font-size:120px;font-weight:900;line-height:0.9;letter-spacing:-0.045em;margin:0;
+    background:linear-gradient(160deg,var(--primary) 20%,var(--primary-dark) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero-sub{display:flex;align-items:baseline;gap:10px;margin-top:6px;}
+  .hero-sub .name{font-size:15px;color:var(--text-secondary);}
+  .hero-sub .delta{font-size:13px;font-weight:700;color:var(--primary-dark);}
+
+  .head-row{display:flex;justify-content:space-between;align-items:flex-start;padding-top:34px;}
+  .head-row h1{font-size:19px;font-weight:700;margin:0;letter-spacing:-0.01em;}
+  .head-row p{margin:4px 0 0;font-size:13.5px;color:var(--text-secondary);}
+  .avatar-lg{width:38px;height:38px;border-radius:50%;background:linear-gradient(150deg,var(--primary-tint),var(--primary));
+    color:#fff;font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 8px rgba(216,90,48,0.28);}
+
+  .stats-row{display:flex;gap:34px;margin:26px 0 32px;padding-top:20px;border-top:1px solid var(--border);}
+  .stat-min{flex:1;}
+  .stat-min .label{font-size:12px;color:var(--text-secondary);margin:0 0 4px;font-weight:600;}
+  .stat-min .value{font-size:19px;font-weight:700;margin:0;}
+
+  .actions{display:flex;gap:14px;}
+  .btn{flex:1;height:52px;border-radius:15px;font-size:14.5px;font-weight:700;border:none;cursor:default;
+    display:flex;align-items:center;justify-content:center;gap:9px;}
+  .btn.primary{background:linear-gradient(150deg,var(--primary),var(--primary-dark));color:#fff;
+    box-shadow:0 8px 20px rgba(184,69,31,0.32);}
+  .btn.secondary{background:var(--surface);border:1px solid #E0CFC4;color:var(--text);}
+  .btn svg{width:17px;height:17px;}
+</style>
+</head>
+<body>
+<div class="note">Concept A - Coral Energy. Static exploration mockup for P4.2, not interactive. Hero treatment applied to the average-score figure; all other information and actions unchanged from the approved contract.</div>
+<div class="shell">
+  <nav class="sidebar">
+    <div class="wordmark"><span class="dot"></span>EngCoach</div>
+    <ul class="navlist">
+      <li class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Dashboard</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4h13M9 12h13M9 20h13M4 4h.01M4 12h.01M4 20h.01"/></svg>Practice</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/></svg>Progress</li>
+    </ul>
+    <div class="sidebar-foot"><div class="avatar">A</div><span style="font-size:13px;font-weight:600;">An Nguyen</span></div>
+  </nav>
+
+  <main class="main">
+    <div class="head-row">
+      <div><h1>Welcome back, An</h1><p>Ready for today's practice?</p></div>
+      <div class="avatar-lg">A</div>
+    </div>
+
+    <div class="hero">
+      <p class="hero-eyebrow">Average score</p>
+      <p class="hero-number">720</p>
+      <div class="hero-sub">
+        <span class="name">across 14 completed attempts</span>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-min"><p class="label">Attempts</p><p class="value">14</p></div>
+      <div class="stat-min"><p class="label">Last attempt</p><p class="value">2 days ago</p></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4h13M9 12h13M9 20h13M4 4h.01M4 12h.01M4 20h.01"/></svg>
+        Practice by Part
+      </button>
+      <button class="btn secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        Take mock test
+      </button>
+    </div>
+  </main>
+</div>
+</body>
+</html>

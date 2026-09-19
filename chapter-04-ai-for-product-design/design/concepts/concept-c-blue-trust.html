@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EngCoach - Concept C: Blue Trust</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#1B5FA0; --primary-tint:#85B7EB;
+    --success-bg:#EAF3DE; --success-text:#3B6D11; --success-strong:#173404;
+    --surface:#FFFFFF; --bg:#F1EFE8; --border:#DEDBCF; --text:#22201B; --text-secondary:#5F5E5A;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);}
+  .note{background:#0B2E4F;color:#85B7EB;font-size:12px;padding:9px 24px;letter-spacing:0.02em;}
+
+  .shell{display:flex;min-height:100vh;}
+  .sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;padding:26px 18px;}
+  .wordmark{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:800;letter-spacing:-0.01em;margin:0 0 30px 6px;}
+  .wordmark svg{width:20px;height:20px;color:var(--primary);}
+  .navlist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px;}
+  .navlist li{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13.5px;font-weight:600;color:var(--text-secondary);}
+  .navlist li.active{background:#EAF1F8;color:var(--primary);}
+  .navlist svg{width:16px;height:16px;}
+  .sidebar-foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 10px;border-top:1px solid var(--border);}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--primary-tint);color:#0B2E4F;font-weight:700;font-size:12.5px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid #fff;box-shadow:0 0 0 1px var(--border);}
+
+  .main{flex:1;padding:44px 48px;max-width:860px;}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}
+  .head h1{font-size:21px;font-weight:700;margin:0;letter-spacing:-0.01em;}
+  .head p{margin:5px 0 0;font-size:13.5px;color:var(--text-secondary);}
+
+  /* Score report panel — grounded in an official TOEIC-style proficiency band */
+  .report{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px 28px;margin-bottom:22px;
+    box-shadow:0 2px 6px rgba(34,32,27,0.05);}
+  .report-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;}
+  .report-label{font-size:12.5px;font-weight:600;color:var(--text-secondary);margin:0;}
+  .report-value{font-size:40px;font-weight:800;margin:0;letter-spacing:-0.01em;}
+  .report-sub{font-size:12.5px;color:var(--text-secondary);}
+
+  .band{position:relative;height:10px;border-radius:5px;
+    background:linear-gradient(90deg,#E3D9C6 0%,#D9CBA3 25%,var(--primary-tint) 55%,var(--primary) 100%);
+    margin-bottom:10px;}
+  .band-marker{position:absolute;top:-5px;width:2px;height:20px;background:var(--text);left:68%;}
+  .band-marker::after{content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+    width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--text);}
+  .band-zones{display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);}
+
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px;}
+  .stat{padding:16px 18px;border-radius:12px;background:var(--surface);border:1px solid var(--border);}
+  .stat .label{font-size:12px;margin:0 0 4px;font-weight:600;color:var(--text-secondary);}
+  .stat .value{font-size:19px;font-weight:700;margin:0;}
+
+  .actions{display:flex;gap:12px;}
+  .btn{flex:1;height:48px;border-radius:11px;font-size:14px;font-weight:700;border:1px solid transparent;cursor:default;
+    display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn.primary{background:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(27,95,160,0.25);}
+  .btn.secondary{background:var(--surface);border-color:var(--border);color:var(--text);}
+  .btn svg{width:16px;height:16px;}
+</style>
+</head>
+<body>
+<div class="note">Concept C - Blue Trust. Static exploration mockup for P4.2, not interactive. Proficiency band is qualitative only (Developing to Advanced) and does not assert a numeric scale, since score representation (OQ-004) is still an open product decision.</div>
+<div class="shell">
+  <nav class="sidebar">
+    <div class="wordmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>EngCoach</div>
+    <ul class="navlist">
+      <li class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Dashboard</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4h13M9 12h13M9 20h13M4 4h.01M4 12h.01M4 20h.01"/></svg>Practice</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/></svg>Progress</li>
+    </ul>
+    <div class="sidebar-foot"><div class="avatar">A</div><span style="font-size:13px;font-weight:600;">An Nguyen</span></div>
+  </nav>
+
+  <main class="main">
+    <div class="head">
+      <div><h1>Welcome back, An</h1><p>Ready for today's practice?</p></div>
+      <div class="avatar" style="width:38px;height:38px;font-size:13.5px;">A</div>
+    </div>
+
+    <div class="report">
+      <div class="report-top">
+        <div>
+          <p class="report-label">Average score</p>
+          <p class="report-value">720</p>
+        </div>
+        <span class="report-sub">across 14 completed attempts</span>
+      </div>
+      <div class="band"><div class="band-marker"></div></div>
+      <div class="band-zones"><span>Developing</span><span>Improving</span><span>Proficient</span><span>Advanced</span></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><p class="label">Attempts</p><p class="value">14</p></div>
+      <div class="stat"><p class="label">Last attempt</p><p class="value">2 days ago</p></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4h13M9 12h13M9 20h13M4 4h.01M4 12h.01M4 20h.01"/></svg>
+        Practice by Part
+      </button>
+      <button class="btn secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        Take mock test
+      </button>
+    </div>
+  </main>
+</div>
+</body>
+</html>
