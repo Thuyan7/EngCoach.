@@ -1,0 +1,144 @@
+openapi: 3.0.3
+info:
+  title: EngCoach API
+  version: "1.0"
+  description: >
+    API for EngCoach, a TOEIC Reading & Listening practice platform.
+    All endpoints except auth require a Bearer JWT.
+servers:
+  - url: /api
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        "201": { description: Account created, session token returned }
+        "422": { description: Validation failure (RFC 9457 problem) }
+        "409": { description: Email already registered (RFC 9457 problem) }
+
+  /auth/login:
+    post:
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        "200": { description: JWT access token returned }
+        "401": { description: Invalid credentials, generic message (RFC 9457 problem) }
+
+  /auth/forgot-password:
+    post:
+      summary: Request a password reset link
+      responses:
+        "200": { description: Generic confirmation regardless of whether the email exists }
+
+  /auth/reset-password:
+    post:
+      summary: Set a new password using a reset token
+      responses:
+        "200": { description: Password updated }
+        "410": { description: Token expired or already used (RFC 9457 problem) }
+
+  /parts:
+    get:
+      summary: List TOEIC Parts available for practice
+      security: [ { bearerAuth: [] } ]
+      responses:
+        "200": { description: List of Parts }
+
+  /attempts:
+    post:
+      summary: Start a Part practice or mock test attempt
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type: { type: string, enum: [PART_PRACTICE, MOCK_TEST] }
+                part: { type: string, nullable: true }
+      responses:
+        "201": { description: Attempt created (or existing in-progress attempt resumed) }
+    get:
+      summary: List the authenticated user's attempt history
+      security: [ { bearerAuth: [] } ]
+      responses:
+        "200": { description: List of attempts, most recent first }
+
+  /attempts/{id}:
+    get:
+      summary: Resume or inspect an in-progress attempt
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Attempt with saved answers and remaining time }
+        "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+
+  /attempts/{id}/answers/{questionId}:
+    put:
+      summary: Auto-save one answer during an in-progress attempt
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+        - { name: questionId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Answer saved }
+        "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+
+  /attempts/{id}/submit:
+    post:
+      summary: Submit an attempt for grading
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Score and explanations returned (double-submission is a no-op success) }
+        "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+
+  /attempts/{id}/result:
+    get:
+      summary: Get the graded result and per-question explanations
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Score plus explanations; unavailable explanations flagged, not omitted }
+
+  /attempts/{id}:
+    delete:
+      summary: Permanently delete an attempt
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+        "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
