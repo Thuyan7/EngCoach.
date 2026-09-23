@@ -1,0 +1,38 @@
+erDiagram
+    USER ||--o{ ATTEMPT : has
+    QUESTION ||--o{ ANSWER : "answered in"
+    ATTEMPT ||--o{ ANSWER : contains
+
+    USER {
+        bigint id PK
+        string email
+        string password_hash
+        datetime created_at
+    }
+    QUESTION {
+        bigint id PK
+        string part
+        text prompt
+        json options
+        string correct_option
+    }
+    ATTEMPT {
+        bigint id PK
+        bigint user_id FK
+        string type
+        string part
+        string status
+        datetime started_at
+        int time_limit_seconds
+        int score
+        datetime created_at
+    }
+    ANSWER {
+        bigint id PK
+        bigint attempt_id FK
+        bigint question_id FK
+        string chosen_option
+        boolean is_correct
+        text explanation_text
+        string explanation_status
+    }
