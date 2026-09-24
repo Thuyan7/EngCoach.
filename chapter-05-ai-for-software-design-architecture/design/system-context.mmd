@@ -1,0 +1,22 @@
+flowchart LR
+    USER["TOEIC Self-Learner"]
+
+    SYSTEM["EngCoach<br/>TOEIC English Practice System"]
+
+    DB[(("Relational Database"))]
+
+    AI["AI Explanation Service/API"]
+
+    USER -->|"Register / Login"| SYSTEM
+    USER -->|"Practice Reading / Listening"| SYSTEM
+    USER -->|"Practice by TOEIC Part"| SYSTEM
+    USER -->|"Take 200-question Mock Test"| SYSTEM
+    USER -->|"Submit Answers"| SYSTEM
+    USER -->|"View Results"| SYSTEM
+    USER -->|"View Progress / History"| SYSTEM
+
+    SYSTEM -->|"Store / retrieve account and practice data"| DB
+    SYSTEM -->|"Store / retrieve attempts, results and progress"| DB
+
+    SYSTEM -->|"Request explanation for wrong answers"| AI
+    AI -->|"Return AI-generated explanations"| SYSTEM
