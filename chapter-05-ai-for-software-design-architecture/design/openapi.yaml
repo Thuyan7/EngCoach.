@@ -23,7 +23,7 @@ paths:
                 email: { type: string, format: email }
                 password: { type: string, minLength: 8 }
       responses:
-        "201": { description: Account created, session token returned }
+        "201": { description: Account created, session token returned (auto-login) }
         "422": { description: Validation failure (RFC 9457 problem) }
         "409": { description: Email already registered (RFC 9457 problem) }
 
@@ -93,7 +93,15 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        "200": { description: Attempt with saved answers and remaining time }
+        "200": { description: Attempt with saved answers and remaining time, restoring exact in-progress state }
+        "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+    delete:
+      summary: Permanently delete an attempt
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
         "403": { description: Attempt belongs to another user (RFC 9457 problem) }
 
   /attempts/{id}/answers/{questionId}:
@@ -125,16 +133,6 @@ paths:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
         "200": { description: Score plus explanations; unavailable explanations flagged, not omitted }
-
-  /attempts/{id}:
-    delete:
-      summary: Permanently delete an attempt
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: integer } }
-      responses:
-        "204": { description: Deleted }
-        "403": { description: Attempt belongs to another user (RFC 9457 problem) }
 
 components:
   securitySchemes:
