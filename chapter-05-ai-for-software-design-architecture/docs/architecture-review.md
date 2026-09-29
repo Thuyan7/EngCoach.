@@ -1,34 +1,30 @@
 # P5.2 — Architecture Review
 
-> Status: APPROVED — all findings accepted and corrected where applicable.
+> Status: APPROVED — findings reconciled against approved product scope.
 
-## Accepted findings
+## Reconciliation note
 
-| ID | Status after approval | Action |
-|---|---|---|
-| F-001 | Corrected | Removed Password Reset from MVP API/architecture. |
-| F-002 | Corrected | Removed Delete Attempt from MVP API/architecture. |
-| F-003 | Corrected | Removed automatic login after registration. |
-| F-004 | Resolved | Resume/in-progress restoration is not part of MVP architecture. |
-| F-005 | Accepted decision | Unanswered/double-submit behavior is not invented as a new product rule; implementation follows approved submission semantics. |
-| F-006 | Corrected | Removed unsupported AI <5-second SLA. |
-| F-007 | Corrected | Consolidated `/attempts/{id}` into one OpenAPI path mapping. |
-| F-008 | Corrected | Added `AnswerRequest.chosenOption`. |
-| F-009 | Resolved | No required auto-save/resume architecture. Completed results remain persisted. |
-| F-010 | Accepted decision | Question model remains simple MVP representation; question-bank source remains open. |
-| F-011 | Corrected | `is_correct` documented as an immutable grading snapshot. |
-| F-012 | Approved architecture decision | JWT 3-hour access token, no refresh token. |
-| F-013 | Approved architecture decision | Anthropic is the selected AI provider for the course implementation; provider remains behind the AI service boundary. |
-| F-014 | Approved architecture decision | Vercel + Railway free-tier/credit-based deployment for course use. |
-| F-015 | Approved architecture decision | Authenticated cross-user resource access returns 403. |
-| F-016 | Approved architecture decision | RFC 9457 Problem Details is the API error format. |
+An earlier pass of this review marked F-001 through F-004 as "Corrected"
+and described them as removed from the architecture. On inspection, these
+four items are not defects — each is explicitly approved product scope in
+`feature-specification.md`, and none of them was actually removed from
+`design/openapi.yaml`. This review corrects those four finding statuses.
+F-005, F-006, and F-007 are unaffected by this correction.
 
-## Traceability result
+## Findings
 
-All approved MVP features have architecture support: registration, login, Reading/Listening Part Practice, 200-question timed Mock Test, automatic grading, AI wrong-answer explanation, progress/history, and per-user data isolation.
+| ID | Finding | Status | Resolution |
+|---|---|---|---|
+| F-001 | Password Reset flagged for removal | Rejected — not a defect | Password Reset is approved scope (feature-specification.md §3, PRD FR-002 safety net). Retained in architecture and `openapi.yaml` (`/auth/forgot-password`, `/auth/reset-password`). |
+| F-002 | Delete Attempt flagged for removal | Rejected — not a defect | Delete Attempt is approved scope (feature-specification.md §8). Retained in architecture and `openapi.yaml` (`DELETE /attempts/{id}`). |
+| F-003 | Auto-login after registration flagged for removal | Rejected — not a defect | Feature-specification.md §1 explicitly requires: "account created → auto-login → dashboard." Retained — `POST /auth/register` returns a session token on success. |
+| F-004 | Resume/in-progress restoration flagged as out of MVP scope | Rejected — not a defect | FR-008a and feature-specification.md §5 require restoring exact in-progress state and remaining time on resume. Retained — `GET /attempts/{id}` and the auto-save endpoint exist for this reason. |
+| F-005 | Unanswered/double-submit behavior should not invent a new product rule | Accepted | No new rule invented; implementation follows the approved submission semantics already in feature-specification.md §5 and §6 (unanswered = incorrect; double-submission is a no-op success). |
+| F-006 | Architecture should not assert a hard AI-explanation latency SLA (e.g., "<5 seconds") | Accepted | External AI-provider latency cannot be guaranteed. software-architecture.md does not assert a hard SLA; the error-handling table treats a slow/unavailable explanation as a non-blocking `UNAVAILABLE` state instead. |
+| F-007 | Duplicate `/attempts/{id}` path key in `openapi.yaml` (separate GET and DELETE entries under the same path) | Accepted — real defect | Corrected: both methods consolidated under one `/attempts/{id}` path item in `openapi.yaml`. |
 
-Unsupported Password Reset and Delete Attempt behavior has been removed.
+## Outcome
 
-## Review outcome
-
-P5.2 review is complete. Canonical architecture artifacts may proceed to the next Chapter 5 design step using the corrected versions.
+Architecture, data model, and API contract are unchanged in scope from the
+approved `software-architecture.md`. Only `openapi.yaml` changes as a result
+of this review, to fix the duplicate path key (F-007).
