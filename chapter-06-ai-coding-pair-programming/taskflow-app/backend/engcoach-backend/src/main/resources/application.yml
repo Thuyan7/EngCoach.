@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: engcoach-backend
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/engcoach}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
+  jpa:
+    hibernate:
+      # update is fine for an academic MVP with a single small team; revisit
+      # (e.g. Flyway/Liquibase) only if this needs to survive past the course.
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+engcoach:
+  jwt:
+    # MUST be overridden via the JWT_SECRET env var in Railway (ADR-001).
+    # This default is for local dev only — do not deploy with it.
+    secret: ${JWT_SECRET:dev-only-secret-change-me-before-any-real-deploy-32chars}
+
+server:
+  port: ${PORT:8080}
