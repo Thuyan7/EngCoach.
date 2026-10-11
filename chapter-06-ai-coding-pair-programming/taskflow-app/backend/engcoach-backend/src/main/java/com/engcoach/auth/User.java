@@ -59,4 +59,13 @@ public class User {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+    /**
+     * S4: used by AuthService.resetPassword() to replace the hash after a
+     * successful reset. The only mutator on this entity — every other
+     * field is set once at construction and never changes in MVP scope.
+     */
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
 }

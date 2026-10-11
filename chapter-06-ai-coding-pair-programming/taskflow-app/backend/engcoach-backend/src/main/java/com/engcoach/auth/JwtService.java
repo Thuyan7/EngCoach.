@@ -1,7 +1,6 @@
 package com.engcoach.auth;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -83,7 +82,7 @@ public class JwtService {
                     .parseSignedClaims(token)
                     .getPayload();
             return Optional.of(Long.parseLong(claims.getSubject()));
-        } catch (ExpiredJwtException | JwtException | NumberFormatException | IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
         }
     }

@@ -16,8 +16,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 /**
  * S1 + S2 + S3 scope.
  *
- * - /auth/register and /auth/login are public (feature-specification.md
- *   §1, §2: both are "no auth required" actions).
+ * - /auth/register, /auth/login, /auth/forgot-password, and
+ *   /auth/reset-password are public (feature-specification.md §1, §2, §3:
+ *   none of these require an existing session — reset-password is proven
+ *   by possessing a valid token, not by being logged in).
  * - Everything else default-denies (authenticated()) — enforced for real as
  *   of S3 by JwtAuthenticationFilter, registered below ahead of Spring
  *   Security's own UsernamePasswordAuthenticationFilter so a valid Bearer
@@ -75,7 +77,8 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new RestAuthenticationEntryPoint(objectMapper)))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/login").permitAll()
+                        .requestMatchers("/auth/register", "/auth/login",
+                                "/auth/forgot-password", "/auth/reset-password").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

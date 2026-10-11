@@ -18,9 +18,10 @@ import java.util.Map;
  * formatting its own error body.
  *
  * S1 added the first two failure cases (409 duplicate email, 422
- * validation). S2 adds a third (401 invalid credentials). More exception
- * mappings are added here, not duplicated elsewhere, as later slices
- * introduce new failure cases.
+ * validation). S2 adds a third (401 invalid credentials). S4 adds a fourth
+ * (410 invalid/expired reset token). More exception mappings are added
+ * here, not duplicated elsewhere, as later slices introduce new failure
+ * cases.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -43,6 +44,16 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
         problem.setType(URI.create(PROBLEM_BASE + "invalid-credentials"));
         problem.setTitle("Invalid credentials");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidOrExpiredResetTokenException.class)
+    public ProblemDetail handleInvalidOrExpiredResetToken(InvalidOrExpiredResetTokenException ex,
+                                                            HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.GONE, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "invalid-or-expired-reset-token"));
+        problem.setTitle("Invalid or expired reset token");
         problem.setInstance(URI.create(request.getRequestURI()));
         return problem;
     }
