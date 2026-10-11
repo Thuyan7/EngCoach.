@@ -1,84 +1,85 @@
 # EngCoach
 
-EngCoach là ứng dụng luyện thi TOEIC dành cho người tự học: luyện tập theo
-từng Part, làm bài thi thử đầy đủ có tính giờ, chấm điểm tự động và giải
-thích lỗi sai bằng AI, đồng thời theo dõi tiến độ của riêng từng người dùng.
+EngCoach is a TOEIC practice app for self-learners: practice by Part, take a
+full timed mock test, get automatic scoring with AI-generated explanations
+for wrong answers, and track your own progress over time.
 
-Repo này là đồ án môn học, được tổ chức theo đúng trình tự các chương học —
-mỗi chương tương ứng với một giai đoạn trong quy trình phát triển phần mềm
-có hỗ trợ của AI, từ ý tưởng ban đầu đến code thực thi được.
+This repo is a course project, organized to follow the course's chapter
+sequence — each chapter maps to one stage of an AI-assisted software
+development workflow, from the initial idea through to running code.
 
-## Vấn đề & người dùng mục tiêu
+## Problem & target user
 
-Người tự học TOEIC hiện thiếu một công cụ luyện tập tập trung, có thể chấm
-điểm ngay lập tức, giải thích lỗi rõ ràng, và theo dõi tiến độ theo thời
-gian — mà không cần đến lớp học hay giáo viên. Mục tiêu là giúp người dùng
-luyện tập đều đặn, hiểu rõ lỗi sai và thấy điểm số cải thiện dần.
+Self-learners preparing for TOEIC currently lack a focused practice tool
+that grades their work immediately, explains mistakes clearly, and tracks
+progress over time — without needing a class or a teacher. The goal is to
+help users practice consistently, understand their mistakes, and see their
+score improve.
 
-## Cấu trúc repo
+## Repo structure
 
 ```
 engcoach/
-├── chapter-01-ai-in-software-engineering/       Xác định ý tưởng & phạm vi dự án
-├── chapter-02-prompt-engineering/                Xây dựng project context cho AI
-├── chapter-03-ai-for-requirements-product-analysis/   PRD & đặc tả tính năng
-├── chapter-04-ai-for-product-design/             Thiết kế giao diện & prototype tương tác
-├── chapter-05-ai-for-software-design-architecture/    Kiến trúc hệ thống, ADR, data model, OpenAPI
-├── chapter-06-ai-coding-pair-programming/        Kế hoạch triển khai & code backend/frontend
-└── CONTRIBUTORS.md                               Nhật ký đóng góp theo tuần/chương (nếu có)
+├── chapter-01-ai-in-software-engineering/       Define the project idea & scope
+├── chapter-02-prompt-engineering/                Build project context for the AI
+├── chapter-03-ai-for-requirements-product-analysis/   PRD & feature specification
+├── chapter-04-ai-for-product-design/             UI design directions & interactive prototype
+├── chapter-05-ai-for-software-design-architecture/    System architecture, ADRs, data model, OpenAPI
+├── chapter-06-ai-coding-pair-programming/        Implementation plan & backend/frontend code
+└── CONTRIBUTORS.md                               Weekly/chapter contribution log (if present)
 ```
 
-Mỗi chương đều có hai thư mục con theo cùng một quy ước:
-- `docs/` — tài liệu đầu ra đã được approve của chương đó (brief, PRD, đặc tả,
-  thiết kế, kiến trúc, kế hoạch triển khai...).
-- `prompts/` — các prompt dùng để tạo ra tài liệu/code trong `docs/`, để tái
-  lập hoặc xem lại quy trình làm việc với AI.
+Each chapter follows the same two-folder convention:
+- `docs/` — the chapter's approved output documents (brief, PRD, spec,
+  design, architecture, implementation plan, etc.).
+- `prompts/` — the prompts used to produce what's in `docs/`, so the AI
+  workflow can be replayed or reviewed.
 
-### Chi tiết từng chương
+### Chapter breakdown
 
-| Chương | Nội dung chính | Tài liệu đầu ra |
+| Chapter | What it covers | Output documents |
 |---|---|---|
-| 01 — AI in Software Engineering | Làm rõ ý tưởng sản phẩm, vấn đề, người dùng, phạm vi MVP | `project-brief.md` |
-| 02 — Prompt Engineering | Xây dựng context dự án để AI hiểu đúng bài toán xuyên suốt các chương sau | `project-context.md` |
-| 03 — AI for Requirements & Product Analysis | Viết và review Product Requirements Document (PRD), đặc tả tính năng chi tiết | `product-requirements.md`, `feature-specification.md` |
-| 04 — AI for Product Design | Khám phá 3 hướng thiết kế giao diện, chọn hướng, dựng prototype HTML/JS tương tác | `product-design-brief.md`, `product-design.md`, `design/concepts/`, `prototype/` |
-| 05 — AI for Software Design & Architecture | Kiến trúc hệ thống, system context, data model, hợp đồng API, các ADR | `software-architecture.md`, `architecture-review.md`, `design/data-model.mmd`, `design/openapi.yaml`, `docs/decisions/ADR-00x-*.md` |
-| 06 — AI Coding & Pair Programming | Lập kế hoạch triển khai theo slice, code backend (Spring Boot) theo từng slice | `implementation-plan.md`, `taskflow-app/backend/engcoach-backend/` |
+| 01 — AI in Software Engineering | Clarify the product idea, problem, users, and MVP scope | `project-brief.md` |
+| 02 — Prompt Engineering | Build the project context so the AI understands the problem consistently across later chapters | `project-context.md` |
+| 03 — AI for Requirements & Product Analysis | Write and review the Product Requirements Document (PRD) and a detailed feature specification | `product-requirements.md`, `feature-specification.md` |
+| 04 — AI for Product Design | Explore 3 UI design directions, select one, build an interactive HTML/JS prototype | `product-design-brief.md`, `product-design.md`, `design/concepts/`, `prototype/` |
+| 05 — AI for Software Design & Architecture | System architecture, system context, data model, API contract, ADRs | `software-architecture.md`, `architecture-review.md`, `design/data-model.mmd`, `design/openapi.yaml`, `docs/decisions/ADR-00x-*.md` |
+| 06 — AI Coding & Pair Programming | Slice-based implementation plan, backend code (Spring Boot) built slice by slice | `implementation-plan.md`, `taskflow-app/backend/engcoach-backend/` |
 
-## Kiến trúc & công nghệ
+## Architecture & stack
 
 - **Backend:** Spring Boot (Java), JPA/Hibernate, Spring Security + JWT,
-  RFC 9457 Problem Details cho response lỗi. Code nằm tại
+  RFC 9457 Problem Details for error responses. Code lives under
   `chapter-06-ai-coding-pair-programming/taskflow-app/backend/engcoach-backend/`.
-- **Database:** theo quyết định tại `ADR-001-database-choice.md` (MySQL cho
-  production, H2 in-memory cho test).
-- **Xác thực:** JWT, chiến lược hết hạn token theo `ADR-003-jwt-expiry-strategy.md`.
-- **AI provider:** theo `ADR-004-ai-provider.md`, dùng để sinh giải thích cho
-  từng câu trả lời sai.
-- **API contract:** định nghĩa đầy đủ trong
-  `chapter-05-ai-for-software-design-architecture/design/openapi.yaml`,
-  được implement đúng theo hợp đồng ở chương 06, không tự ý thay đổi khi
-  code.
+- **Database:** per `ADR-001-database-choice.md` (MySQL in production, H2
+  in-memory for tests).
+- **Auth:** JWT, token expiry strategy per `ADR-003-jwt-expiry-strategy.md`.
+- **AI provider:** per `ADR-004-ai-provider.md`, used to generate an
+  explanation for each incorrect answer.
+- **API contract:** fully defined in
+  `chapter-05-ai-for-software-design-architecture/design/openapi.yaml`;
+  chapter 06 implements exactly this contract rather than changing it
+  on the fly.
 
-## Quy trình triển khai (Chapter 06)
+## Implementation workflow (Chapter 06)
 
-Việc build backend/frontend được chia thành các **slice** nhỏ, mỗi slice là
-một hành vi hoàn chỉnh có thể kiểm chứng được, theo đúng thứ tự phụ thuộc
-trong `implementation-plan.md`:
+Backend/frontend work is split into small **slices**, each one a complete,
+verifiable piece of behavior, built in the dependency order laid out in
+`implementation-plan.md`:
 
-1. **Auth trước tiên** (S1 đăng ký → S2 đăng nhập → S3 bảo vệ route bằng JWT
-   → S4 quên/đặt lại mật khẩu) — vì mọi slice sau đều cần JWT hoạt động để
-   test với dữ liệu người dùng thật.
-2. Sau khi Auth hoàn chỉnh, tách thành 2 track chạy song song: **Backend**
-   (Part list → attempt → resume → chấm điểm → giải thích AI → lịch sử →
-   mock test) và **Frontend** (màn hình tương ứng lấy dữ liệu thật thay vì
-   mock data).
+1. **Auth first** (S1 registration → S2 login → S3 JWT route protection →
+   S4 forgot/reset password) — because every later slice needs a working
+   JWT to test against real user data.
+2. Once Auth is complete, the work splits into two parallel tracks:
+   **Backend** (Part list → attempt → resume → scoring → AI explanations →
+   history → mock test) and **Frontend** (the matching screens wired to
+   real data instead of mock data).
 
-Mỗi slice khi hoàn thành có file ghi chú riêng (ví dụ
-`SLICE-S1-NOTES.md` trong thư mục backend) mô tả phạm vi đã làm, phạm vi cố
-tình chưa làm, và trạng thái xác minh (đã chạy test thật hay chưa).
+Each finished slice has its own notes file (e.g. `SLICE-S1-NOTES.md` in the
+backend module) describing what was built, what was deliberately left out,
+and its verification status (whether tests were actually run).
 
-## Chạy backend cục bộ
+## Running the backend locally
 
 ```bash
 cd chapter-06-ai-coding-pair-programming/taskflow-app/backend/engcoach-backend
@@ -91,14 +92,14 @@ export JWT_SECRET=replace-with-a-real-32-plus-character-secret
 mvn spring-boot:run
 ```
 
-Chạy test:
+Run tests:
 
 ```bash
 mvn test
 ```
 
-## Quy ước làm việc nhóm
+## Team workflow
 
-Quy ước đặt tên branch/commit, cách mở Pull Request và checklist cuối mỗi
-tuần được mô tả trong tài liệu hướng dẫn quy trình nhóm đi kèm (xem
-`CONTRIBUTORS.md` để biết ai làm phần nào ở mỗi tuần/chương).
+Branch/commit naming conventions, how to open a Pull Request, and the
+end-of-week checklist are described in the accompanying team workflow guide
+(see `CONTRIBUTORS.md` for who worked on what each week/chapter).
