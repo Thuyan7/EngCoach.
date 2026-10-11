@@ -10,10 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * S1 scope only.
+ * S1 + S2 scope.
  *
- * - /auth/register is public (feature-specification.md §1: "public action,
- *   no auth required").
+ * - /auth/register and /auth/login are public (feature-specification.md
+ *   §1, §2: both are "no auth required" actions).
  * - Everything else default-denies (authenticated()) even though no other
  *   endpoint exists yet in this slice — this is deliberate so S5a/S6a etc.
  *   don't need to remember to add authorization later; they inherit
@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register").permitAll()
+                        .requestMatchers("/auth/register", "/auth/login").permitAll()
                         .anyRequest().authenticated()
                 );
 

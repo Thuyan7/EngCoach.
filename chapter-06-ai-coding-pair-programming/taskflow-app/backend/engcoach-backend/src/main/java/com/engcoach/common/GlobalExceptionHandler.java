@@ -17,9 +17,10 @@ import java.util.Map;
  * type/title/status/detail/instance shape, instead of each controller
  * formatting its own error body.
  *
- * S1 scope: only the two failure cases Slice S1 introduces (409 duplicate
- * email, 422 validation). More exception mappings are added here, not
- * duplicated elsewhere, as later slices introduce new failure cases.
+ * S1 added the first two failure cases (409 duplicate email, 422
+ * validation). S2 adds a third (401 invalid credentials). More exception
+ * mappings are added here, not duplicated elsewhere, as later slices
+ * introduce new failure cases.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -32,6 +33,16 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setType(URI.create(PROBLEM_BASE + "email-already-registered"));
         problem.setTitle("Email already registered");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex,
+                                                    HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "invalid-credentials"));
+        problem.setTitle("Invalid credentials");
         problem.setInstance(URI.create(request.getRequestURI()));
         return problem;
     }
