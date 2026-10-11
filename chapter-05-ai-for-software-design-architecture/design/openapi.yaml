@@ -47,15 +47,35 @@ paths:
   /auth/forgot-password:
     post:
       summary: Request a password reset link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
       responses:
         "200": { description: Generic confirmation regardless of whether the email exists }
 
   /auth/reset-password:
     post:
       summary: Set a new password using a reset token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token: { type: string }
+                newPassword: { type: string, minLength: 8 }
       responses:
         "200": { description: Password updated }
         "410": { description: Token expired or already used (RFC 9457 problem) }
+        "422": { description: Validation failure, e.g. newPassword too short (RFC 9457 problem) }
 
   /parts:
     get:

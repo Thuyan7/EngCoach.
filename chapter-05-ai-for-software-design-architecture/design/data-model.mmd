@@ -1,5 +1,6 @@
 erDiagram
     USER ||--o{ ATTEMPT : has
+    USER ||--o{ PASSWORD_RESET_TOKEN : requests
     QUESTION ||--o{ ANSWER : "answered in"
     ATTEMPT ||--o{ ANSWER : contains
 
@@ -7,6 +8,14 @@ erDiagram
         bigint id PK
         string email
         string password_hash
+        datetime created_at
+    }
+    PASSWORD_RESET_TOKEN {
+        bigint id PK
+        bigint user_id FK
+        string token_hash
+        datetime expires_at
+        datetime used_at
         datetime created_at
     }
     QUESTION {
