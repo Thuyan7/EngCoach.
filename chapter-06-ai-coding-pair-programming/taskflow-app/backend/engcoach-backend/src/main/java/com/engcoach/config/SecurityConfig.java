@@ -1,5 +1,8 @@
 package com.engcoach.config;
 
+import com.engcoach.auth.JwtService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -8,23 +11,25 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * S1 + S2 scope.
+ * S1 + S2 + S3 scope.
  *
  * - /auth/register and /auth/login are public (feature-specification.md
  *   §1, §2: both are "no auth required" actions).
- * - Everything else default-denies (authenticated()) even though no other
- *   endpoint exists yet in this slice — this is deliberate so S5a/S6a etc.
- *   don't need to remember to add authorization later; they inherit
- *   default-deny by just being added to the app.
+ * - Everything else default-denies (authenticated()) — enforced for real as
+ *   of S3 by JwtAuthenticationFilter, registered below ahead of Spring
+ *   Security's own UsernamePasswordAuthenticationFilter so a valid Bearer
+ *   token is recognized before the chain's authorization check runs.
  * - Stateless (no HTTP session) because auth is JWT-based (ADR-003).
- * - The actual JwtAuthenticationFilter that validates a Bearer token on
- *   protected routes is Slice S3 — not built yet. Until S3 exists, any
- *   non-/auth/** endpoint added by a future slice will correctly return 401
- *   for every request (including valid ones) because nothing yet populates
- *   the SecurityContext — that is expected and should not be "fixed" inside
- *   a later slice without first doing S3.
+ * - RestAuthenticationEntryPoint overrides Spring Security's default
+ *   (403 Forbidden on missing/invalid auth) with the 401 RFC 9457 body the
+ *   API contract requires. 403 is reserved for "valid JWT, wrong owner" —
+ *   that per-resource ownership check is enforced in each endpoint's own
+ *   service/controller starting with the slices that add owned resources
+ *   (e.g. /attempts/*, S6a+), not here; this filter only answers "is there
+ *   a valid token at all."
  */
 @Configuration
 @EnableWebSecurity
@@ -36,17 +41,44 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService) {
+        return new JwtAuthenticationFilter(jwtService);
+    }
+
+    /**
+     * Spring Boot auto-registers any {@code Filter} bean as a global servlet
+     * filter on top of whatever Spring Security's own chain does with it via
+     * {@code addFilterBefore} below — which would run this filter twice per
+     * request. Disabling the auto-registration here means
+     * {@code addFilterBefore} in {@link #filterChain} is the only place this
+     * filter is wired in.
+     */
+    @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter> disableAutoRegistration(
+            JwtAuthenticationFilter jwtAuthenticationFilter) {
+        FilterRegistrationBean<JwtAuthenticationFilter> registration =
+                new FilterRegistrationBean<>(jwtAuthenticationFilter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                            JwtAuthenticationFilter jwtAuthenticationFilter,
+                                            ObjectMapper objectMapper) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(new RestAuthenticationEntryPoint(objectMapper)))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/register", "/auth/login").permitAll()
                         .anyRequest().authenticated()
-                );
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

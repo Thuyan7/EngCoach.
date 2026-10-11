@@ -1,5 +1,8 @@
 package com.engcoach.auth;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,15 +13,18 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 
 /**
- * Issues access tokens per ADR-003 (JWT Expiry Strategy):
+ * Issues and validates access tokens per ADR-003 (JWT Expiry Strategy):
  *  - single access token, 3-hour expiry, no refresh token for this MVP.
  *  - subject = user id ONLY (software-architecture.md §2: "No email or other
  *    personal data embedded in the token payload").
  *
- * S1 scope: token issuance only. Validating this token on protected routes
- * (JwtAuthenticationFilter) is S3 in implementation-plan.md — not built yet.
+ * S1: token issuance (issueAccessToken). S2 reuses it for login. S3 adds
+ * validateAndGetUserId() — the JwtAuthenticationFilter is what actually
+ * applies this on protected routes; this service only verifies the token
+ * itself and extracts the subject.
  */
 @Service
 public class JwtService {
@@ -54,6 +60,32 @@ public class JwtService {
                 .compact();
 
         return new IssuedToken(token, expiresAt);
+    }
+
+    /**
+     * Verifies the token's signature and expiry, and extracts the user id
+     * from the subject claim.
+     *
+     * @return the user id if the token is structurally valid, correctly
+     *         signed with this server's key, and not expired; empty for
+     *         any other reason (malformed, wrong signature, expired, or a
+     *         non-numeric subject). Deliberately returns Optional rather
+     *         than throwing — JwtAuthenticationFilter treats every failure
+     *         reason identically (skip authentication, let Spring Security's
+     *         401 entry point handle it), so the distinction isn't needed
+     *         by the only caller.
+     */
+    public Optional<Long> validateAndGetUserId(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(signingKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return Optional.of(Long.parseLong(claims.getSubject()));
+        } catch (ExpiredJwtException | JwtException | NumberFormatException | IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
     public record IssuedToken(String token, Instant expiresAt) {
