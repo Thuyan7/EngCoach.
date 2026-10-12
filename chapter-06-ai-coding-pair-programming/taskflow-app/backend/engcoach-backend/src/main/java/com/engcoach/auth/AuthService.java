@@ -14,10 +14,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.HexFormat;
 import java.util.Optional;
 
 /**
@@ -103,19 +107,22 @@ public class AuthService {
             return;
         }
 
-        String token = generateResetToken();
+        String rawToken = generateResetToken();
         Instant expiresAt = Instant.now().plus(RESET_TOKEN_TTL);
         passwordResetTokenRepository.save(
-                new PasswordResetToken(token, user.get().getId(), expiresAt));
+                new PasswordResetToken(hashToken(rawToken), user.get().getId(), expiresAt));
 
         // KNOWN GAP (see SLICE-S4-NOTES.md): no email provider is approved
         // in any ADR, so there is no real delivery mechanism yet. Logging
-        // the link is a deliberate, clearly-flagged stand-in, not a
-        // silent decision to skip delivery.
+        // the raw token is a deliberate, clearly-flagged stand-in, not a
+        // silent decision to skip delivery. Only the token's hash is ever
+        // persisted (see PasswordResetToken) — this log line is the one
+        // place the raw value is exposed at all, and only to whoever can
+        // read the application log in this dev/local setup.
         log.info("Password reset requested for user id {}. DEV-ONLY STAND-IN "
                         + "(no email provider approved yet, see SLICE-S4-NOTES.md): "
                         + "reset token = {}",
-                user.get().getId(), token);
+                user.get().getId(), rawToken);
     }
 
     /**
@@ -128,7 +135,7 @@ public class AuthService {
         Instant now = Instant.now();
 
         PasswordResetToken resetToken = passwordResetTokenRepository
-                .findByToken(request.token())
+                .findByTokenHash(hashToken(request.token()))
                 .filter(t -> t.isUsable(now))
                 .orElseThrow(InvalidOrExpiredResetTokenException::new);
 
@@ -146,5 +153,23 @@ public class AuthService {
         byte[] randomBytes = new byte[32];
         secureRandom.nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+    }
+
+    /**
+     * SHA-256, not BCrypt: this token is already 256 bits of high-entropy
+     * random data (unlike a user-chosen password), so a fast cryptographic
+     * hash is enough to make the stored value useless on its own — BCrypt's
+     * deliberate slowness defends against guessing a low-entropy human
+     * password, which doesn't apply here.
+     */
+    private String hashToken(String rawToken) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            // SHA-256 is a mandatory JDK algorithm; this can't happen.
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
     }
 }

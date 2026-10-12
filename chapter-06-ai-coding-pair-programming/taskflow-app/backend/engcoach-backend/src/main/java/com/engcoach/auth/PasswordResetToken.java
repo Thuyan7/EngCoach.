@@ -10,11 +10,15 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 /**
- * S4: supports "Password Reset" (feature-specification.md §3). Not in
- * data-model.mmd because that diagram predates this slice's details being
- * decided at the architecture level — see SLICE-S4-NOTES.md for why this
- * is flagged as a deviation needing confirmation, not silently added as if
- * it were already architecture-approved.
+ * S4: supports "Password Reset" (feature-specification.md §3). Maps 1:1 to
+ * the {@code PASSWORD_RESET_TOKEN} entity in
+ * chapter-05-ai-for-software-design-architecture/design/data-model.mmd.
+ *
+ * Only {@code tokenHash} is persisted, never the raw token — same reasoning
+ * as {@code User.passwordHash}: a DB read/leak must not hand out a token
+ * that still works. (An earlier version of this class stored the raw token
+ * directly; corrected to match the approved data model's {@code token_hash}
+ * column before this was merged — see SLICE-S4-NOTES.md.)
  *
  * "tokens single-use, time-limited" (feature-spec §3, Persistence) is
  * enforced by {@code usedAt} (null until consumed, then immutable) and
@@ -28,8 +32,8 @@ public class PasswordResetToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String token;
+    @Column(name = "token_hash", nullable = false, unique = true)
+    private String tokenHash;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -47,8 +51,8 @@ public class PasswordResetToken {
         // required by JPA
     }
 
-    public PasswordResetToken(String token, Long userId, Instant expiresAt) {
-        this.token = token;
+    public PasswordResetToken(String tokenHash, Long userId, Instant expiresAt) {
+        this.tokenHash = tokenHash;
         this.userId = userId;
         this.expiresAt = expiresAt;
         this.createdAt = Instant.now();
@@ -66,8 +70,8 @@ public class PasswordResetToken {
         return id;
     }
 
-    public String getToken() {
-        return token;
+    public String getTokenHash() {
+        return tokenHash;
     }
 
     public Long getUserId() {

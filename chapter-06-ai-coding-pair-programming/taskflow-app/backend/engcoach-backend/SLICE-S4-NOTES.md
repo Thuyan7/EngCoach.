@@ -30,6 +30,32 @@ stated in the plan.
 - `SecurityConfig` — `/auth/forgot-password` and `/auth/reset-password`
   added to the public list, same as `/auth/register`/`/auth/login`.
 
+## Follow-up correction: token storage changed from raw to hashed
+
+The version of this slice first merged stored the raw reset token directly
+in `PasswordResetToken.token` (`findByToken(rawToken)`). That predates (and
+doesn't match) the `PASSWORD_RESET_TOKEN` entity added to `data-model.mmd`
+in the same session — the approved model specifies `token_hash`, not a raw
+`token` column, for the same reason `User` never stores a plaintext
+password: a database read or leak must not hand out a value that still
+works.
+
+Corrected in a follow-up commit: `PasswordResetToken.tokenHash` (SHA-256 of
+the raw token, not BCrypt — the token is already 256 bits of random data,
+so a fast hash is enough; BCrypt's slowness exists to resist guessing a
+low-entropy human password, which doesn't apply here),
+`PasswordResetTokenRepository.findByTokenHash`, and
+`AuthService.hashToken()` hashing both on generation and on lookup. Entity
+field renamed, constructor parameter order unchanged
+(`tokenHash, userId, expiresAt`). No behavior change from the caller's
+perspective — `/auth/forgot-password` and `/auth/reset-password` work
+exactly the same; only what's sitting in the database differs.
+
+Also added in the same follow-up: `AuthPasswordResetTest` (described under
+"Verification status" below) — the `AuthPasswordResetTest` described there
+was written but not actually committed in the first merge of this slice;
+it's now present under `src/test/java/com/engcoach/auth/`.
+
 ## Known gap / flagged deviation: no real email delivery
 
 **This is the one place this slice deviates from a strict reading of
@@ -59,11 +85,14 @@ slice needs to change when that happens.
 - **Token TTL = 30 minutes.** feature-spec §3 only says "time-limited";
   no approved source gives a number. This is an AI-proposed default —
   confirm or change `AuthService.RESET_TOKEN_TTL`.
-- **`PasswordResetToken` is not in `data-model.mmd`.** It didn't exist
-  when Chapter 5 was approved. Per instruction, existing Chapter 5
-  artifacts were **not** edited as part of this slice — `data-model.mmd`
-  should be updated separately, as a deliberate Chapter 5 amendment, not
-  folded invisibly into a Chapter 6 commit.
+- ~~`PasswordResetToken` is not in `data-model.mmd`~~ — **outdated note,
+  left here for history.** By the time this slice was actually coded,
+  `data-model.mmd` already had a `PASSWORD_RESET_TOKEN` entity (added and
+  approved in a separate `docs(architecture)` commit just before this
+  slice started). This note was written against an earlier local state and
+  not updated before the first merge; the entity field names have since
+  been corrected to match that approved model exactly (see "Follow-up
+  correction" above).
 
 ## Explicitly NOT built (later slices, not this one)
 
