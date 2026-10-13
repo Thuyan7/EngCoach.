@@ -82,7 +82,15 @@ paths:
       summary: List TOEIC Parts available for practice
       security: [ { bearerAuth: [] } ]
       responses:
-        "200": { description: List of Parts }
+        "200":
+          description: >
+            Distinct Parts with at least one question available. Empty
+            array if no questions have been added yet — not an error.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
 
   /attempts:
     post:
