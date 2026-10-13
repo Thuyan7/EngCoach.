@@ -71,15 +71,14 @@ within the class.
 questions yet" state, not an error — a clarification of what was already
 implied, not a behavior change.
 
-## Verification status — NOT executed, network-blocked in this sandbox
+## Verification status — CONFIRMED
 
-Same blocker as S1–S4: `repo.maven.apache.org` is not reachable from this
-sandbox (403 from the egress proxy), so `mvn test` could not be run here.
-Please run, locally:
-
-```bash
-mvn test
-```
+Verified by running `mvn test` locally on 2026-10-13: full suite
+`Tests run: 28, Failures: 0, Errors: 0, Skipped: 0` — `BUILD SUCCESS`.
+This slice's own file, `PartsControllerTest`: `Tests run: 3, Failures: 0,
+Errors: 0, Skipped: 0` — including the `@BeforeEach` cleanup fix (see
+above) actually taking effect, since the three tests ran in one class
+context and the "empty" case still passed.
 
 `PartsControllerTest` covers:
 1. No `Authorization` header → `401` (reuses S3's filter chain, no
