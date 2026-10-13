@@ -14,7 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * S1 + S2 + S3 scope.
+ * S1 + S2 + S3 + S4 scope.
  *
  * - /auth/register, /auth/login, /auth/forgot-password, and
  *   /auth/reset-password are public (feature-specification.md §1, §2, §3:
