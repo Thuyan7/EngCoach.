@@ -55,27 +55,17 @@ No change was made to `design/openapi.yaml`. The existing `/auth/login`
 entry (`200`/`401`) already described this exact behavior; this slice
 implements it rather than extending or changing it.
 
-## Verification status — NOT executed, network-blocked in this sandbox
+## Verification status — CONFIRMED
 
-Unlike S1 (confirmed by running `mvn test` locally on 2026-10-08), this
-slice's tests have **not been run** yet. `mvn test` was attempted here and
-failed before compiling anything:
+Verified by running `mvn test` locally on 2026-10-13 (full suite, all
+slices through S4): `Tests run: 25, Failures: 0, Errors: 0, Skipped: 0` —
+`BUILD SUCCESS`. `AuthLoginTest` itself: `Tests run: 4, Failures: 0, Errors:
+0, Skipped: 0`.
 
-```
-[FATAL] Non-resolvable parent POM for com.engcoach:engcoach-backend:0.1.0-S1:
-... Could not transfer artifact org.springframework.boot:spring-boot-starter-parent:pom:3.3.4
-... status code: 403, reason phrase: Forbidden
-```
-
-`repo.maven.apache.org` is not on this sandbox's network allowlist (a 403
-from the egress proxy, not a transient error), so Maven can't even download
-the parent POM, let alone compile or run anything. This is a sandbox
-limitation, not a code issue, so S2 is **not** marked verified. Please run,
-locally:
-
-```bash
-mvn test
-```
+(Earlier attempts to run this from the agent sandbox failed with a 403 from
+the egress proxy — `repo.maven.apache.org` isn't on that sandbox's network
+allowlist, so Maven couldn't even download the parent POM. That was a
+sandbox limitation, not a code issue; resolved by running locally instead.)
 
 `AuthLoginTest` covers:
 1. Correct credentials → `200`, JWT returned, same `AuthResponse` shape as

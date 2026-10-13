@@ -105,13 +105,17 @@ No change to `openapi.yaml` — `/auth/forgot-password` and
 `/auth/reset-password` were already fully specified there; this slice
 only implements what was already contracted.
 
-## Verification status — NOT executed, network-blocked in this sandbox
+## Verification status — CONFIRMED
 
-Same blocker as S1–S3: `repo.maven.apache.org` is not reachable from this
-sandbox, so `mvn test` could not be run here. Please run, locally:
+Verified by running `mvn test` locally on 2026-10-13: full suite
+`Tests run: 25, Failures: 0, Errors: 0, Skipped: 0` — `BUILD SUCCESS`.
+This slice's own file, `AuthPasswordResetTest`: `Tests run: 7, Failures:
+0, Errors: 0, Skipped: 0`. The dev-only log line was observed firing
+correctly during the run, e.g.:
 
-```bash
-mvn test
+```
+Password reset requested for user id 3. DEV-ONLY STAND-IN (no email
+provider approved yet, see SLICE-S4-NOTES.md): reset token = AMcYuw...
 ```
 
 New in this slice: `AuthPasswordResetTest` (`@SpringBootTest` + MockMvc)

@@ -62,23 +62,19 @@ No change was made to `design/openapi.yaml`. This slice only enforces
 authentication the contract already implies (`security: [bearerAuth]` on
 every non-auth operation already in the spec); no endpoint shape changed.
 
-## Verification status — NOT executed, network-blocked in this sandbox
+## Verification status — CONFIRMED
 
-Same blocker as S2: `mvn test` was attempted and failed before compiling
-anything, because `repo.maven.apache.org` is not on this sandbox's network
-allowlist (403 from the egress proxy):
+Verified by running `mvn test` locally on 2026-10-13 (full suite, all
+slices through S4): `Tests run: 25, Failures: 0, Errors: 0, Skipped: 0` —
+`BUILD SUCCESS`. This slice's own files: `JwtServiceTest` 5/5 passed,
+`JwtProtectionTest` 5/5 passed.
 
-```
-[FATAL] Non-resolvable parent POM for com.engcoach:engcoach-backend:0.1.0-S1:
-... Could not transfer artifact org.springframework.boot:spring-boot-starter-parent:pom:3.3.4
-```
-
-This is a sandbox limitation, not a code issue, so S3 is **not** marked
-verified. Please run, locally:
-
-```bash
-mvn test
-```
+Note: the 403-half of this slice's definition of done ("another user's
+attempt returns 403, not 404") is still not covered by any test — that
+remains correctly blocked on an owned resource not existing until
+S6a/S7a (see "Known gap" above). CONFIRMED here means the tests that
+exist and were written for this slice actually pass, not that the full
+definition of done is complete.
 
 New in this slice:
 
