@@ -19,9 +19,10 @@ import java.util.Map;
  *
  * S1 added the first two failure cases (409 duplicate email, 422
  * validation). S2 adds a third (401 invalid credentials). S4 adds a fourth
- * (410 invalid/expired reset token). More exception mappings are added
- * here, not duplicated elsewhere, as later slices introduce new failure
- * cases.
+ * (410 invalid/expired reset token). S6a adds three more (404 attempt not
+ * found, 403 attempt belongs to another user, 422 Part has no questions).
+ * More exception mappings are added here, not duplicated elsewhere, as
+ * later slices introduce new failure cases.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -54,6 +55,37 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.GONE, ex.getMessage());
         problem.setType(URI.create(PROBLEM_BASE + "invalid-or-expired-reset-token"));
         problem.setTitle("Invalid or expired reset token");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
+    @ExceptionHandler(AttemptNotFoundException.class)
+    public ProblemDetail handleAttemptNotFound(AttemptNotFoundException ex,
+                                                 HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "attempt-not-found"));
+        problem.setTitle("Attempt not found");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
+    @ExceptionHandler(AttemptAccessDeniedException.class)
+    public ProblemDetail handleAttemptAccessDenied(AttemptAccessDeniedException ex,
+                                                     HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "attempt-access-denied"));
+        problem.setTitle("Attempt belongs to another user");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
+    @ExceptionHandler(PartHasNoQuestionsException.class)
+    public ProblemDetail handlePartHasNoQuestions(PartHasNoQuestionsException ex,
+                                                    HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "part-has-no-questions"));
+        problem.setTitle("Part has no questions");
         problem.setInstance(URI.create(request.getRequestURI()));
         return problem;
     }

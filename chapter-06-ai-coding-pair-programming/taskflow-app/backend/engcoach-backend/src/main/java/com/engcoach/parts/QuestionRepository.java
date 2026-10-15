@@ -15,4 +15,12 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
      */
     @Query("SELECT DISTINCT q.part FROM Question q ORDER BY q.part")
     List<String> findDistinctParts();
+
+    /**
+     * Backs S6a's {@code POST /attempts} validation (approved design
+     * decision #3): a Part practice attempt can't be started for a
+     * {@code part} with zero questions — checked before creating the
+     * {@code Attempt} row, not after.
+     */
+    boolean existsByPart(String part);
 }

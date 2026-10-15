@@ -95,6 +95,11 @@ paths:
   /attempts:
     post:
       summary: Start a Part practice or mock test attempt
+      description: >
+        If an IN_PROGRESS attempt already exists for this user scoped by
+        (type, part), that attempt is returned instead of creating a new
+        one (resume semantics, S6a). `part` is required for
+        PART_PRACTICE and ignored for MOCK_TEST.
       security: [ { bearerAuth: [] } ]
       requestBody:
         required: true
@@ -108,6 +113,7 @@ paths:
                 part: { type: string, nullable: true }
       responses:
         "201": { description: Attempt created (or existing in-progress attempt resumed) }
+        "422": { description: "PART_PRACTICE requested for a Part with no questions available yet (RFC 9457 problem)" }
     get:
       summary: List the authenticated user's attempt history
       security: [ { bearerAuth: [] } ]
@@ -139,9 +145,19 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
         - { name: questionId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [chosenOption]
+              properties:
+                chosenOption: { type: string }
       responses:
-        "200": { description: Answer saved }
+        "200": { description: Answer saved (re-answering the same question overwrites the prior value) }
         "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+        "404": { description: Attempt does not exist (RFC 9457 problem) }
 
   /attempts/{id}/submit:
     post:
