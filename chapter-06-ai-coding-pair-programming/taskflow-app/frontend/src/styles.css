@@ -1,0 +1,86 @@
+/* EngCoach frontend — Concept C (Blue Trust), per product-design.md.
+   Tokens and the login/field/button/error rules are copied from the approved
+   prototype (chapter-04 .../prototype/styles.css) so the visual direction is
+   preserved, not reinterpreted. Colors verified WCAG AA there. */
+
+:root{
+  --tint-primary:#85B7EB;
+  --tint-danger-bg:#FCEBEB;
+
+  --primary:#1B5FA0;
+  --primary-hover:#164C82;
+  --danger:#A32D2D;
+
+  --surface:#FFFFFF;
+  --bg:#F1EFE8;
+  --border:#D9D6CB;
+  --border-strong:#A9A692;
+  --text:#22201B;
+  --text-secondary:#5F5E5A;
+
+  --radius-card:12px;
+  --radius-control:8px;
+
+  --font-display:'Fraunces','Manrope',serif;
+  --shadow-soft:0 1px 2px rgba(27,95,160,0.04), 0 8px 24px -12px rgba(27,95,160,0.14);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Manrope',-apple-system,'Segoe UI',sans-serif;color:var(--text);
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(133,183,235,0.16), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 0%, rgba(59,109,17,0.07), transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+}
+button, input{font-family:inherit;}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important;transition-duration:0.001ms !important;}}
+
+.btn{transition:transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;}
+.btn:hover:not(:disabled){transform:translateY(-1px);}
+.btn-primary:hover:not(:disabled){box-shadow:0 6px 16px rgba(27,95,160,0.28);}
+.btn:active:not(:disabled){transform:translateY(0px) scale(0.98);}
+
+.wordmark{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:800;letter-spacing:-0.01em;margin:0 0 30px 6px;}
+.wordmark svg{width:20px;height:20px;color:var(--primary);}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 18px;border-radius:var(--radius-control);font-size:14px;font-weight:700;cursor:pointer;border:1px solid transparent;}
+.btn:disabled{opacity:0.7;cursor:progress;}
+.btn-primary{background:linear-gradient(165deg,#2670B8,var(--primary) 55%,#154D85);color:#fff;box-shadow:var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,0.14);}
+.btn-primary:hover:not(:disabled){background:var(--primary-hover);}
+.btn-secondary{background:transparent;border-color:var(--border-strong);color:var(--text);}
+.btn-secondary:hover{background:#F4F2EC;}
+.btn-block{width:100%;}
+
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
+.field input{width:100%;height:40px;border:1px solid var(--border-strong);border-radius:var(--radius-control);padding:0 12px;font-size:14px;}
+.field input[aria-invalid="true"]{border-color:var(--danger);}
+.field-error{font-size:12.5px;color:var(--danger);margin:5px 0 0;}
+.error-msg{display:flex;gap:8px;font-size:13px;color:var(--danger);background:var(--tint-danger-bg);border-radius:var(--radius-control);padding:9px 10px;margin-bottom:14px;}
+
+.login-split{display:grid;grid-template-columns:1.1fr 1fr;min-height:100vh;}
+.login-brandside{background:linear-gradient(155deg,#0B2E4F,#1B5FA0 60%,#2A79C4);display:flex;align-items:center;padding:56px 60px;}
+.brand-inner{max-width:420px;}
+.wordmark.light{color:#fff;margin-bottom:34px;}
+.wordmark.light svg{color:#85B7EB;}
+.brand-title{font-family:var(--font-display);font-size:34px;line-height:1.22;font-weight:600;font-optical-sizing:auto;color:#fff;margin:0 0 28px;letter-spacing:-0.01em;}
+.brand-points{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:13px;}
+.brand-points li{position:relative;padding-left:26px;color:#D3E4F5;font-size:14.5px;}
+.brand-points li::before{content:"";position:absolute;left:0;top:7px;width:9px;height:9px;border-radius:50%;background:#85B7EB;}
+.login-formside{display:flex;align-items:center;justify-content:center;padding:40px;background:var(--bg);}
+.login-card{width:340px;max-width:100%;}
+.login-title{font-family:var(--font-display);font-size:30px;font-weight:600;margin:0 0 4px;letter-spacing:-0.01em;}
+.login-sub{font-size:13.5px;color:var(--text-secondary);margin:0 0 22px;}
+.login-foot{font-size:13px;color:var(--primary);font-weight:600;margin:16px 0 0;text-align:center;}
+.login-foot a{color:var(--primary);}
+
+@media (max-width:820px){
+  .login-split{grid-template-columns:1fr;}
+  .login-brandside{display:none;}
+}
+
+/* Dashboard placeholder (S5b only; replaced by the real screen in S6b) */
+.placeholder{max-width:520px;margin:12vh auto;padding:0 24px;}
