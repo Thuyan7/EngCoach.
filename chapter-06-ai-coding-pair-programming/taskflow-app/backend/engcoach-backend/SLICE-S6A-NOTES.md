@@ -105,27 +105,46 @@ that `implementation-plan.md` left open at the slice-description level.
   enum/validation pass would be a reasonable follow-up, but wasn't part
   of the 5 approved decisions for this slice.
 
-## Verification status — NOT executed, network-blocked in this sandbox
+## Verification status — CONFIRMED by real `mvn test` run
 
-`mvn test` was attempted and failed before any test ran, with the same
-confirmed, non-transient sandbox limitation documented in every prior
-slice's notes:
+Two local runs happened, in this order:
 
-```
-[FATAL] Non-resolvable parent POM for com.engcoach:engcoach-backend:...:
-Could not transfer artifact org.springframework.boot:spring-boot-starter-parent:pom:3.3.4
-... status code: 403, reason phrase: Forbidden
-```
+1. **First run (reported by the user):** `mvn test` against the commit as
+   originally pushed. Result: `Tests run: 36, Failures: 1, Errors: 0,
+   Skipped: 0`. `AttemptsControllerTest` itself passed clean —
+   `Tests run: 8, Failures: 0, Errors: 0, Skipped: 0` — confirming all 8
+   S6a cases (no-token → 401 on both endpoints, empty-Part → 422,
+   successful start → 201 with `IN_PROGRESS`, resume-by-(user,type,part) →
+   same attempt id on a second call, successful answer save → 200 with
+   overwrite-on-re-answer, nonexistent attempt → 404, another user's
+   attempt → 403). The one failure was in a *different* slice's test —
+   `JwtProtectionTest.protectedRouteWithValidBearerToken_...` expected
+   `404` and got `405` — a real regression this slice caused: that test
+   used `GET /attempts` as a stand-in "deliberately unmapped" path, and
+   S6a mapped `POST /attempts` for real, so the path now matches (wrong
+   verb → 405) instead of not matching at all (→ 404). Not a sandbox
+   network issue — a genuine side effect of this slice's own routes on a
+   different slice's test, caught only because the full suite was run for
+   real. See `JwtProtectionTest`'s Javadoc and `SLICE-S3-NOTES.md`'s
+   addendum for the fix: that test now targets a dedicated
+   `NEVER_MAPPED_PATH` constant instead of a real resource path.
 
-This sandbox's egress proxy does not allow `repo.maven.apache.org`; this
-is a network restriction, not a code defect, and is unrelated to
-anything written in this slice. `AttemptsControllerTest` adds 8 tests
-covering: no-token → 401 (both endpoints), empty-Part → 422,
-successful start → 201 with `IN_PROGRESS`, resume-by-(user,type,part) →
-same attempt id on a second call, successful answer save → 200 with
-overwrite-on-re-answer, nonexistent attempt → 404, another user's
-attempt → 403.
+2. **This sandbox attempted `mvn test` again** after the fix, to sanity
+   check the fix compiles against the rest of the suite — still blocked
+   by the same confirmed, non-transient network restriction documented in
+   every prior slice's notes (this time surfacing as a DNS failure rather
+   than a 403, same root cause: `repo.maven.apache.org` is unreachable
+   from this sandbox):
+   ```
+   [FATAL] Non-resolvable parent POM for com.engcoach:engcoach-backend:...:
+   repo.maven.apache.org: Name or service not known
+   ```
+   This is a network restriction, not a code defect, and build never got
+   past dependency resolution to run any test.
 
-This file will be updated to CONFIRMED, with the exact `mvn test` output
-(total test count and this slice's own count), once the user runs the
-full suite locally and reports the real result — not before.
+**Net status: S6a's own 8 tests are CONFIRMED passing (8/8) by a real
+local run.** The regression the run also surfaced was in `JwtProtectionTest`
+(S3), not in any S6a test, and has been fixed here; that fix itself still
+needs a local `mvn test` run to confirm the full suite is green again
+(expected: 36/36, since the fix only changes which path `JwtProtectionTest`
+targets, not what it asserts).

@@ -102,3 +102,17 @@ stand-in protected path since it's not built yet) covers:
 
 If any of these fail, treat it as a real defect, not a false expectation to
 relax in the test.
+
+## Addendum (post-S6a)
+
+Point 4 above is now historical: once S6a mapped `POST /attempts` for
+real, `GET /attempts` with a valid token started returning `405` (path
+matched, verb didn't) instead of `404`, breaking the test's assumption
+that `/attempts` would stay unmapped. Caught by the user's first real
+`mvn test` run after S6a. Fixed in `JwtProtectionTest` by switching every
+request in that file to a dedicated `NEVER_MAPPED_PATH` constant
+(`/no-such-protected-route`) instead of a real resource path that later
+slices keep extending — see that file's own Javadoc for the full
+explanation. This file's narrative above is left as written (it correctly
+describes what S3 did and why, at the time), not rewritten to pretend
+`/attempts` was never used.

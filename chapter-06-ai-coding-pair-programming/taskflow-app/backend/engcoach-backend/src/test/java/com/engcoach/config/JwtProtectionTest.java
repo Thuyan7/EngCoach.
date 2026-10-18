@@ -17,13 +17,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Slice S3: proves JwtAuthenticationFilter + RestAuthenticationEntryPoint
- * actually gate every non-/auth route, using /attempts as the stand-in
- * protected path — that resource doesn't exist until S6a, so a request
- * that gets past authentication correctly 404s (no controller mapped yet)
- * instead of ever reaching real business logic. That 404-instead-of-401 is
- * exactly what proves the filter let an authenticated request through; it
- * is not itself part of this slice's contract and will naturally become a
- * real 2xx/4xx once /attempts is implemented.
+ * actually gate every non-/auth route.
+ *
+ * Originally used {@code /attempts} itself as the stand-in "deliberately
+ * unmapped" protected path, on the assumption that it wouldn't be
+ * implemented until S6a. S6a mapped {@code POST /attempts} for real, which
+ * broke that assumption: {@code GET /attempts} with a valid token started
+ * returning 405 (method not allowed — the path matches, the verb doesn't)
+ * instead of the expected 404. Found by running the full suite locally
+ * after S6a (see SLICE-S6A-NOTES.md) — a real regression this slice's own
+ * work caused, not a flaky test.
+ *
+ * Fixed by switching every request here to {@link #NEVER_MAPPED_PATH}, a
+ * path no controller in this project will ever map, instead of a real
+ * resource path that later slices keep extending. The 401 tests (no
+ * token, malformed token, non-Bearer scheme) never depended on routing in
+ * the first place — the filter rejects those before the DispatcherServlet
+ * resolves a handler — so this change only affects which path is used, not
+ * what any test asserts.
  *
  * The one thing this slice's definition of done does NOT cover yet: "a
  * request for another user's attempt returns 403, not 404." That requires
@@ -33,6 +44,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class JwtProtectionTest {
+
+    private static final String NEVER_MAPPED_PATH = "/no-such-protected-route";
 
     @Autowired
     private MockMvc mockMvc;
@@ -52,7 +65,7 @@ class JwtProtectionTest {
 
     @Test
     void protectedRouteWithNoAuthorizationHeader_returns401GenericProblemDetail() throws Exception {
-        mockMvc.perform(get("/attempts"))
+        mockMvc.perform(get(NEVER_MAPPED_PATH))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
                 .andExpect(jsonPath("$.title").value("Authentication required"))
@@ -61,7 +74,7 @@ class JwtProtectionTest {
 
     @Test
     void protectedRouteWithMalformedBearerToken_returns401() throws Exception {
-        mockMvc.perform(get("/attempts").header("Authorization", "Bearer not-a-real-jwt"))
+        mockMvc.perform(get(NEVER_MAPPED_PATH).header("Authorization", "Bearer not-a-real-jwt"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.title").value("Authentication required"));
     }
@@ -70,7 +83,7 @@ class JwtProtectionTest {
     void protectedRouteWithNonBearerAuthorizationHeader_returns401() throws Exception {
         // e.g. Basic auth, or any scheme other than Bearer — must not be
         // treated as a token to try to parse.
-        mockMvc.perform(get("/attempts").header("Authorization", "Basic dXNlcjpwYXNz"))
+        mockMvc.perform(get(NEVER_MAPPED_PATH).header("Authorization", "Basic dXNlcjpwYXNz"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -80,9 +93,10 @@ class JwtProtectionTest {
 
         // 404, not 401/403: the token was valid and authentication
         // succeeded, so the request reached the DispatcherServlet — it
-        // just has nowhere to go yet, because /attempts isn't built until
-        // S6a. This is the evidence that a valid token actually works.
-        mockMvc.perform(get("/attempts").header("Authorization", "Bearer " + token))
+        // just has nowhere to go, because NEVER_MAPPED_PATH is deliberately
+        // not mapped by any controller. This is the evidence that a valid
+        // token actually works.
+        mockMvc.perform(get(NEVER_MAPPED_PATH).header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound());
     }
 
