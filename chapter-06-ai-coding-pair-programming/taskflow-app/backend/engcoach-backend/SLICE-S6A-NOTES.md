@@ -142,9 +142,16 @@ Two local runs happened, in this order:
    This is a network restriction, not a code defect, and build never got
    past dependency resolution to run any test.
 
-**Net status: S6a's own 8 tests are CONFIRMED passing (8/8) by a real
-local run.** The regression the run also surfaced was in `JwtProtectionTest`
-(S3), not in any S6a test, and has been fixed here; that fix itself still
-needs a local `mvn test` run to confirm the full suite is green again
-(expected: 36/36, since the fix only changes which path `JwtProtectionTest`
-targets, not what it asserts).
+3. **Third run (reported by the user, after the `JwtProtectionTest` fix
+   was pushed):** `mvn test` — `Tests run: 36, Failures: 0, Errors: 0,
+   Skipped: 0`, `BUILD SUCCESS`. `AttemptsControllerTest`: 8/8.
+   `JwtProtectionTest`: 5/5 (the fixed test included, now targeting
+   `NEVER_MAPPED_PATH` instead of `/attempts`). Full class-by-class
+   breakdown: `AttemptsControllerTest` 8, `AuthLoginTest` 4,
+   `AuthPasswordResetTest` 7, `AuthRegistrationTest` 4, `JwtServiceTest` 5,
+   `JwtProtectionTest` 5, `PartsControllerTest` 3 — sums to 36.
+
+**Net status: CONFIRMED. S6a's own 8 tests pass, and the one regression
+the first run surfaced (in a different slice's test, caused by S6a's own
+new routes) is fixed and now also confirmed passing by a second real
+local run. Full suite: 36/36, BUILD SUCCESS.**

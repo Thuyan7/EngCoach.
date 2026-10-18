@@ -116,3 +116,7 @@ slices keep extending — see that file's own Javadoc for the full
 explanation. This file's narrative above is left as written (it correctly
 describes what S3 did and why, at the time), not rewritten to pretend
 `/attempts` was never used.
+
+Confirmed fixed by a real `mvn test` run reported by the user: full suite
+`Tests run: 36, Failures: 0, Errors: 0, Skipped: 0`, with `JwtProtectionTest`
+itself at 5/5.
