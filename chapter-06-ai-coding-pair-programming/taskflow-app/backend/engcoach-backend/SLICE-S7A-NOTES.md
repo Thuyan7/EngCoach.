@@ -61,12 +61,13 @@ Proposed and approved ("duyệt") before coding. Each is a real design gap
   Reuses the existing `403` response already documented for this path
   (added when S6a/S7a's shared ownership-check convention was first
   written up).
-- `AttemptsControllerTest` — adds 6 new test cases for `GET
+- `AttemptsControllerTest` — adds 5 new test cases for `GET
   /attempts/{id}`: no-token → 401, nonexistent attempt → 404, another
   user's attempt → 403, own attempt with a saved answer → 200 with the
   answer in `answers` and `remainingSeconds` null, own attempt with no
   saved answers yet → 200 with an empty `answers` array. Total test
-  count in this class: 8 (S6a) + 6 (S7a) = 14.
+  count in this class: 8 (S6a) + 5 (S7a) = 13 — confirmed by the real run
+  below.
 
 ## Explicitly NOT built (later slices, not this one)
 
@@ -81,14 +82,28 @@ Proposed and approved ("duyệt") before coding. Each is a real design gap
   this scale, and mock test's larger question count is S11's problem to
   revisit if it turns out to matter.
 
-## Verification status — NOT executed, network-blocked in this sandbox
+## Verification status — CONFIRMED by real `mvn test` run
 
-`mvn test` could not be run in this sandbox: the egress proxy does not
-allow `repo.maven.apache.org` (confirmed, non-transient — the same
-limitation documented in every prior slice's notes, most recently
-S6a/S3's regression fix). This is a network restriction, not a code
-defect, and is unrelated to anything written in this slice.
+This sandbox attempted `mvn test` first, as always, and it failed before
+any test ran — the egress proxy does not allow `repo.maven.apache.org`
+(confirmed, non-transient, the same limitation documented in every prior
+slice's notes). Not a code defect.
 
-This file will be updated to CONFIRMED, with the exact `mvn test` output
-(total test count and this slice's own count), once the user runs the
-full suite locally and reports the real result — not before.
+The user then ran the full suite locally:
+
+```
+Tests run: 41, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+`AttemptsControllerTest`: **13/13** — all 8 S6a cases plus all 5 S7a cases
+(no-token → 401, nonexistent attempt → 404, another user's attempt →
+403, own attempt with a saved answer → 200 with the answer and null
+`remainingSeconds`, own attempt with none yet → 200 with an empty
+`answers` array). Full class-by-class breakdown: `AttemptsControllerTest`
+13, `AuthLoginTest` 4, `AuthPasswordResetTest` 7, `AuthRegistrationTest`
+4, `JwtServiceTest` 5, `JwtProtectionTest` 5, `PartsControllerTest` 3 —
+sums to 41.
+
+**Net status: CONFIRMED. S7a's own 5 tests pass, and the full suite
+(including every prior slice) is green at 41/41.**
