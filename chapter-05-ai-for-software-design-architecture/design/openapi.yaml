@@ -122,13 +122,39 @@ paths:
 
   /attempts/{id}:
     get:
-      summary: Resume or inspect an in-progress attempt
+      summary: Resume or inspect an attempt
+      description: >
+        Not restricted to IN_PROGRESS attempts (S7a) — works for any
+        attempt the caller owns. `remainingSeconds` is null when the
+        attempt has no time limit (every PART_PRACTICE attempt, and every
+        MOCK_TEST attempt until S11 sets timeLimitSeconds); null means
+        "untimed," not "0 seconds left."
       security: [ { bearerAuth: [] } ]
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        "200": { description: Attempt with saved answers and remaining time, restoring exact in-progress state }
+        "200":
+          description: Attempt with saved answers and server-computed remaining time, restoring exact in-progress state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  type: { type: string, enum: [PART_PRACTICE, MOCK_TEST] }
+                  part: { type: string, nullable: true }
+                  status: { type: string }
+                  startedAt: { type: string, format: date-time }
+                  remainingSeconds: { type: integer, nullable: true }
+                  answers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        questionId: { type: integer }
+                        chosenOption: { type: string }
         "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+        "404": { description: Attempt does not exist (RFC 9457 problem) }
     delete:
       summary: Permanently delete an attempt
       security: [ { bearerAuth: [] } ]

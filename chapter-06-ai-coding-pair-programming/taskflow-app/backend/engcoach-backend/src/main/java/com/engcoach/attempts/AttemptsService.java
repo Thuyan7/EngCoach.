@@ -1,6 +1,7 @@
 package com.engcoach.attempts;
 
 import com.engcoach.attempts.dto.AnswerResponse;
+import com.engcoach.attempts.dto.AttemptDetailResponse;
 import com.engcoach.attempts.dto.AttemptResponse;
 import com.engcoach.attempts.dto.SaveAnswerRequest;
 import com.engcoach.attempts.dto.StartAttemptRequest;
@@ -11,7 +12,9 @@ import com.engcoach.parts.QuestionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Slice S6a: starting a Part practice (or mock test) attempt, and
@@ -30,6 +33,10 @@ import java.time.Instant;
  * 5. {@code Attempt.status} is the plain string {@code "IN_PROGRESS"} for
  *    now; no enum until a second status value ({@code SUBMITTED}, S8a)
  *    actually exists.
+ *
+ * Slice S7a adds {@link #getAttemptDetail}: resuming/inspecting an attempt
+ * with its saved answers and server-computed remaining time (see
+ * SLICE-S7A-NOTES.md for that slice's approved design decisions).
  */
 @Service
 public class AttemptsService {
@@ -85,5 +92,44 @@ public class AttemptsService {
         answer = answerRepository.save(answer);
 
         return AnswerResponse.from(answer);
+    }
+
+    /**
+     * S7a: {@code GET /attempts/{id}}. Not gated on {@code status} —
+     * approved design decision #3 — so it works for any attempt the caller
+     * owns, not only {@code IN_PROGRESS} ones; limiting it to in-progress
+     * attempts only, or to viewing submitted ones, is a later slice's call
+     * (S10a), not a rule invented here.
+     */
+    @Transactional(readOnly = true)
+    public AttemptDetailResponse getAttemptDetail(Long userId, Long attemptId) {
+        Attempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(AttemptNotFoundException::new);
+        if (!attempt.getUserId().equals(userId)) {
+            throw new AttemptAccessDeniedException();
+        }
+
+        List<Answer> answers = answerRepository.findByAttemptId(attemptId);
+        Long remainingSeconds = computeRemainingSeconds(attempt);
+
+        return AttemptDetailResponse.from(attempt, remainingSeconds, answers);
+    }
+
+    /**
+     * Approved S7a design decision #2: {@code null} when the attempt has no
+     * {@code timeLimitSeconds} (every {@code PART_PRACTICE} attempt, and
+     * every {@code MOCK_TEST} attempt until S11 starts setting it) — "no
+     * limit" is not the same as "0 seconds left." When a limit does exist,
+     * remaining time is always computed server-side from
+     * {@code startedAt}, per ADR-003: the client's own clock is never
+     * trusted.
+     */
+    private Long computeRemainingSeconds(Attempt attempt) {
+        Integer timeLimitSeconds = attempt.getTimeLimitSeconds();
+        if (timeLimitSeconds == null) {
+            return null;
+        }
+        long elapsedSeconds = Duration.between(attempt.getStartedAt(), Instant.now()).getSeconds();
+        return Math.max(0L, timeLimitSeconds - elapsedSeconds);
     }
 }

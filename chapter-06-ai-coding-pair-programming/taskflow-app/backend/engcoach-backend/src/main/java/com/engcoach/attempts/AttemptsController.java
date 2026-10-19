@@ -1,6 +1,7 @@
 package com.engcoach.attempts;
 
 import com.engcoach.attempts.dto.AnswerResponse;
+import com.engcoach.attempts.dto.AttemptDetailResponse;
 import com.engcoach.attempts.dto.AttemptResponse;
 import com.engcoach.attempts.dto.SaveAnswerRequest;
 import com.engcoach.attempts.dto.StartAttemptRequest;
@@ -8,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,13 +18,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Slice S6a scope: {@code POST /attempts} and
- * {@code PUT /attempts/{id}/answers/{questionId}}, both declared in
+ * S6a: {@code POST /attempts} and
+ * {@code PUT /attempts/{id}/answers/{questionId}}. S7a adds
+ * {@code GET /attempts/{id}}. All three declared in
  * chapter-05-ai-for-software-design-architecture/design/openapi.yaml.
- * {@code GET /attempts}, {@code GET /attempts/{id}}, {@code DELETE
- * /attempts/{id}}, {@code POST /attempts/{id}/submit}, and
- * {@code GET /attempts/{id}/result} are later slices (S7a, S8a, S10a) —
- * not implemented here.
+ * {@code GET /attempts}, {@code DELETE /attempts/{id}},
+ * {@code POST /attempts/{id}/submit}, and {@code GET
+ * /attempts/{id}/result} are later slices (S8a, S10a) — not implemented
+ * here.
  *
  * No {@code permitAll()} entry needed in SecurityConfig — protected by the
  * existing {@code anyRequest().authenticated()} default plus
@@ -56,6 +59,14 @@ public class AttemptsController {
                                                        Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         AnswerResponse response = attemptsService.saveAnswer(userId, id, questionId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AttemptDetailResponse> getAttempt(@PathVariable Long id,
+                                                               Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        AttemptDetailResponse response = attemptsService.getAttemptDetail(userId, id);
         return ResponseEntity.ok(response);
     }
 }

@@ -2,6 +2,7 @@ package com.engcoach.attempts;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AnswerRepository extends JpaRepository<Answer, Long> {
@@ -12,4 +13,10 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
      * created on first answer.
      */
     Optional<Answer> findByAttemptIdAndQuestionId(Long attemptId, Long questionId);
+
+    /**
+     * Backs S7a's {@code GET /attempts/{id}}: every previously saved answer
+     * for an attempt, restoring exact in-progress state on resume.
+     */
+    List<Answer> findByAttemptId(Long attemptId);
 }
