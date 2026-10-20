@@ -118,14 +118,28 @@ consequence of decision #4.
   auto-save on a SUBMITTED attempt wasn't part of the 6 approved
   decisions and isn't decided here.
 
-## Verification status — NOT executed, network-blocked in this sandbox
+## Verification status — CONFIRMED by real `mvn test` run
 
-This sandbox's `mvn test`/`mvn compile` cannot reach
-`repo.maven.apache.org` (confirmed, non-transient — the same limitation
-documented in every prior slice's notes), so no build was attempted here
-beyond visual review of every changed/added file against the 6 approved
-decisions.
+This sandbox attempted `mvn compile` first, as always, and it failed
+before any test ran — the egress proxy does not allow
+`repo.maven.apache.org` (confirmed, non-transient, the same limitation
+documented in every prior slice's notes). Not a code defect.
 
-**Net status: NOT CONFIRMED yet.** Awaiting a real local `mvn test` run
-and its exact output, same as every prior slice, before this file is
-updated to CONFIRMED.
+The user then ran the full suite locally:
+
+```
+Tests run: 47, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+`AttemptsControllerTest`: **19/19** — all 13 prior cases (8 S6a + 5 S7a)
+plus all 6 new S8a cases (no-token → 401, nonexistent attempt → 404,
+another user's attempt → 403, fully-answered PART_PRACTICE scores
+correctly, an unanswered question counts as incorrect, double-submission
+is idempotent and ignores an answer saved after the first submit). Full
+class-by-class breakdown: `AttemptsControllerTest` 19, `AuthLoginTest` 4,
+`AuthPasswordResetTest` 7, `AuthRegistrationTest` 4, `JwtServiceTest` 5,
+`JwtProtectionTest` 5, `PartsControllerTest` 3 — sums to 47.
+
+**Net status: CONFIRMED. S8a's own 6 tests pass, and the full suite
+(including every prior slice) is green at 47/47.**
