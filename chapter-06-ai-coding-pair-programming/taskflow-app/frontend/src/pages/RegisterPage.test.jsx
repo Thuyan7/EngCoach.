@@ -19,7 +19,7 @@ describe("Register screen (S5b)", () => {
 
     await fillAndSubmit(user, "new@example.com", "correct-horse-battery");
 
-    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
     expect(fetchMock.mock.calls[0][0]).toBe("/auth/register");
     expect(window.localStorage.getItem("engcoach.session")).toContain("jwt-from-server");
   });

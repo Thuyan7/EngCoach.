@@ -1,11 +1,14 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
-import { renderApp } from "../test/helpers.jsx";
+import { mockFetch, renderApp } from "../test/helpers.jsx";
 
 const KEY = "engcoach.session";
 
-beforeEach(() => window.localStorage.clear());
+beforeEach(() => {
+  window.localStorage.clear();
+  mockFetch(); // Dashboard loads /parts; never hit the real network
+});
 
 describe("Session handling (S5b)", () => {
   it("unauthenticated visit to /dashboard is redirected to Login", () => {
@@ -19,7 +22,7 @@ describe("Session handling (S5b)", () => {
       JSON.stringify({ accessToken: "t", expiresAt: new Date(Date.now() + 60_000).toISOString() }),
     );
     renderApp("/login");
-    expect(screen.getByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
   });
 
   it("an expired stored session (ADR-003, 3h) is discarded", () => {

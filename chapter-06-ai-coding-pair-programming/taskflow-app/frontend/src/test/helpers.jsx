@@ -22,8 +22,10 @@ export function jsonResponse(status, body) {
 }
 
 // Queue of canned responses; each fetch call consumes the next one.
+// After the queue is used up, further calls (e.g. the Dashboard loading
+// /parts after a login) get an empty 200 list instead of undefined.
 export function mockFetch(...responses) {
-  const fn = vi.fn();
+  const fn = vi.fn(async () => jsonResponse(200, []));
   responses.forEach((r) =>
     r instanceof Error ? fn.mockRejectedValueOnce(r) : fn.mockResolvedValueOnce(r),
   );
@@ -36,3 +38,37 @@ export const AUTH_OK = {
   tokenType: "Bearer",
   expiresAt: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
 };
+
+// Route-based fetch mock: { "GET /attempts/7": () => jsonResponse(...) }.
+// Handlers are functions so every call gets a fresh Response (a body can only
+// be read once). An unmocked route fails the test loudly.
+export function routeFetch(routes) {
+  const fn = vi.fn(async (url, init = {}) => {
+    const key = `${init.method ?? "GET"} ${url}`;
+    const handler = routes[key];
+    if (!handler) throw new Error(`Unmocked request: ${key}`);
+    const result = handler(init);
+    if (result instanceof Error) throw result;
+    return result;
+  });
+  globalThis.fetch = fn;
+  return fn;
+}
+
+export function signIn() {
+  window.localStorage.setItem(
+    "engcoach.session",
+    JSON.stringify({ accessToken: "jwt-abc", expiresAt: new Date(Date.now() + 60_000).toISOString() }),
+  );
+}
+
+export const attemptDetail = (overrides = {}) => ({
+  id: 7,
+  type: "PART_PRACTICE",
+  part: "Part 5",
+  status: "IN_PROGRESS",
+  startedAt: "2026-10-17T08:00:00Z",
+  remainingSeconds: null,
+  answers: [],
+  ...overrides,
+});
