@@ -5,16 +5,20 @@ import com.engcoach.attempts.dto.AttemptDetailResponse;
 import com.engcoach.attempts.dto.AttemptResponse;
 import com.engcoach.attempts.dto.SaveAnswerRequest;
 import com.engcoach.attempts.dto.StartAttemptRequest;
+import com.engcoach.attempts.dto.SubmitAttemptResponse;
 import com.engcoach.common.AttemptAccessDeniedException;
 import com.engcoach.common.AttemptNotFoundException;
 import com.engcoach.common.PartHasNoQuestionsException;
+import com.engcoach.parts.Question;
 import com.engcoach.parts.QuestionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Slice S6a: starting a Part practice (or mock test) attempt, and
@@ -37,6 +41,11 @@ import java.util.List;
  * Slice S7a adds {@link #getAttemptDetail}: resuming/inspecting an attempt
  * with its saved answers and server-computed remaining time (see
  * SLICE-S7A-NOTES.md for that slice's approved design decisions).
+ *
+ * Slice S8a adds {@link #submitAttempt}: grading. See SLICE-S8A-NOTES.md
+ * for that slice's approved design decisions (raw-count score plus a
+ * persisted totalQuestions, unanswered-counts-as-incorrect, idempotent
+ * resubmission, MOCK_TEST's known limitation until S11).
  */
 @Service
 public class AttemptsService {
@@ -131,5 +140,84 @@ public class AttemptsService {
         }
         long elapsedSeconds = Duration.between(attempt.getStartedAt(), Instant.now()).getSeconds();
         return Math.max(0L, timeLimitSeconds - elapsedSeconds);
+    }
+
+    /**
+     * S8a: {@code POST /attempts/{id}/submit}. Approved design decision #4
+     * (idempotent resubmission): once {@code status} is
+     * {@code SUBMITTED}, this method never regrades — it returns exactly
+     * the {@code score}/{@code totalQuestions} {@link Attempt#markSubmitted}
+     * persisted the first time, built from the {@code Answer} rows as they
+     * stand now (an answer saved after submission, via the still-open
+     * auto-save endpoint, shows up in the list but was never counted
+     * toward {@code score} and never will be by this method).
+     */
+    @Transactional
+    public SubmitAttemptResponse submitAttempt(Long userId, Long attemptId) {
+        Attempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(AttemptNotFoundException::new);
+        if (!attempt.getUserId().equals(userId)) {
+            throw new AttemptAccessDeniedException();
+        }
+
+        if (Attempt.STATUS_SUBMITTED.equals(attempt.getStatus())) {
+            return SubmitAttemptResponse.from(attempt, answerRepository.findByAttemptId(attemptId));
+        }
+
+        List<Answer> answers = answerRepository.findByAttemptId(attemptId);
+        Map<Long, String> correctOptionsByQuestionId = loadCorrectOptions(attempt, answers);
+
+        int correctCount = 0;
+        for (Answer answer : answers) {
+            String correctOption = correctOptionsByQuestionId.get(answer.getQuestionId());
+            boolean isCorrect = correctOption != null && correctOption.equals(answer.getChosenOption());
+            answer.setIsCorrect(isCorrect);
+            answerRepository.save(answer);
+            if (isCorrect) {
+                correctCount++;
+            }
+        }
+
+        // Approved decision #2: totalQuestions for PART_PRACTICE is every
+        // Question in the Part, not just the ones answered — an unanswered
+        // question has no Answer row at all, so it simply never
+        // contributes to correctCount, which is how "unanswered counts as
+        // incorrect" falls out naturally without a sentinel row.
+        //
+        // Approved decision #3 (flagged limitation): MOCK_TEST has no real
+        // assigned question set until S11, so totalQuestions there is the
+        // count of answers actually saved — the best this slice can do,
+        // not a claim that it's the true size of a mock test.
+        int totalQuestions = "PART_PRACTICE".equals(attempt.getType())
+                ? correctOptionsByQuestionId.size()
+                : answers.size();
+
+        attempt.markSubmitted(correctCount, totalQuestions);
+        attempt = attemptRepository.save(attempt);
+
+        return SubmitAttemptResponse.from(attempt, answers);
+    }
+
+    /**
+     * Builds the questionId -> correctOption lookup used to grade
+     * {@code answers}. For {@code PART_PRACTICE} this is every Question in
+     * the attempt's Part (so unanswered ones are still represented, for
+     * {@code totalQuestions}); for {@code MOCK_TEST} it's only the
+     * questions actually answered, looked up individually, since no full
+     * question set exists yet (S11).
+     */
+    private Map<Long, String> loadCorrectOptions(Attempt attempt, List<Answer> answers) {
+        Map<Long, String> correctOptionsByQuestionId = new HashMap<>();
+        if ("PART_PRACTICE".equals(attempt.getType())) {
+            for (Question question : questionRepository.findByPart(attempt.getPart())) {
+                correctOptionsByQuestionId.put(question.getId(), question.getCorrectOption());
+            }
+        } else {
+            for (Answer answer : answers) {
+                questionRepository.findById(answer.getQuestionId())
+                        .ifPresent(question -> correctOptionsByQuestionId.put(question.getId(), question.getCorrectOption()));
+            }
+        }
+        return correctOptionsByQuestionId;
     }
 }

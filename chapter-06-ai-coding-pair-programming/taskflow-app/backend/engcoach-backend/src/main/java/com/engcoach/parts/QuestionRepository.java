@@ -23,4 +23,12 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
      * {@code Attempt} row, not after.
      */
     boolean existsByPart(String part);
+
+    /**
+     * Backs S8a's grading (approved design decision #2): every question in
+     * a Part, used to compute {@code totalQuestions} and to find which
+     * ones were never answered ("unanswered = incorrect") — not just the
+     * ones the caller happened to save an `Answer` for.
+     */
+    List<Question> findByPart(String part);
 }

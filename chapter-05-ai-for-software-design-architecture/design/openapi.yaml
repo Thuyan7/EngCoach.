@@ -188,12 +188,43 @@ paths:
   /attempts/{id}/submit:
     post:
       summary: Submit an attempt for grading
+      description: >
+        Grades every saved Answer against the question's correctOption and
+        persists score/totalQuestions on the Attempt (S8a). Idempotent:
+        resubmitting an already-SUBMITTED attempt returns the exact score
+        persisted the first time rather than regrading — an answer saved
+        after submission is never counted. For PART_PRACTICE,
+        totalQuestions is every Question in the Part, so an unanswered
+        question counts as incorrect (no Answer row exists for it). For
+        MOCK_TEST, totalQuestions is currently only the count of answers
+        actually saved, a known limitation until S11 assigns a real
+        question set. Per-question AI explanations are S8b's scope, not
+        returned here.
       security: [ { bearerAuth: [] } ]
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
-        "200": { description: Score and explanations returned (double-submission is a no-op success) }
+        "200":
+          description: Score returned (double-submission is a no-op success, same persisted score)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  status: { type: string, enum: [SUBMITTED] }
+                  score: { type: integer }
+                  totalQuestions: { type: integer }
+                  answers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        questionId: { type: integer }
+                        chosenOption: { type: string, nullable: true }
+                        isCorrect: { type: boolean }
         "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+        "404": { description: Attempt does not exist (RFC 9457 problem) }
 
   /attempts/{id}/result:
     get:

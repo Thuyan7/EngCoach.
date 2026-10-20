@@ -83,6 +83,11 @@ public class Answer {
         return isCorrect;
     }
 
+    /** S8a: set once, at grading time, by {@code AttemptsService.submitAttempt}. */
+    public void setIsCorrect(Boolean isCorrect) {
+        this.isCorrect = isCorrect;
+    }
+
     public String getExplanationText() {
         return explanationText;
     }

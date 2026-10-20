@@ -5,6 +5,7 @@ import com.engcoach.attempts.dto.AttemptDetailResponse;
 import com.engcoach.attempts.dto.AttemptResponse;
 import com.engcoach.attempts.dto.SaveAnswerRequest;
 import com.engcoach.attempts.dto.StartAttemptRequest;
+import com.engcoach.attempts.dto.SubmitAttemptResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * S6a: {@code POST /attempts} and
  * {@code PUT /attempts/{id}/answers/{questionId}}. S7a adds
- * {@code GET /attempts/{id}}. All three declared in
+ * {@code GET /attempts/{id}}. S8a adds
+ * {@code POST /attempts/{id}/submit}. All four declared in
  * chapter-05-ai-for-software-design-architecture/design/openapi.yaml.
- * {@code GET /attempts}, {@code DELETE /attempts/{id}},
- * {@code POST /attempts/{id}/submit}, and {@code GET
- * /attempts/{id}/result} are later slices (S8a, S10a) — not implemented
- * here.
+ * {@code GET /attempts} and {@code DELETE /attempts/{id}} are later
+ * slices (S10a) — not implemented here.
  *
  * No {@code permitAll()} entry needed in SecurityConfig — protected by the
  * existing {@code anyRequest().authenticated()} default plus
@@ -67,6 +67,14 @@ public class AttemptsController {
                                                                Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         AttemptDetailResponse response = attemptsService.getAttemptDetail(userId, id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/submit")
+    public ResponseEntity<SubmitAttemptResponse> submitAttempt(@PathVariable Long id,
+                                                                  Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        SubmitAttemptResponse response = attemptsService.submitAttempt(userId, id);
         return ResponseEntity.ok(response);
     }
 }

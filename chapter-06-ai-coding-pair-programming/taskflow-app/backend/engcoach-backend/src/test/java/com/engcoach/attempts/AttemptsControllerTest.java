@@ -33,6 +33,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * approved design decisions (not status-gated, null
  * {@code remainingSeconds} for untimed attempts, 404-then-403 ordering).
  *
+ * Also covers Slice S8a: {@code POST /attempts/{id}/submit} grading. See
+ * SLICE-S8A-NOTES.md for S8a's approved design decisions (raw-count
+ * score plus persisted totalQuestions, unanswered-as-incorrect,
+ * idempotent resubmission). Every {@link #seedQuestion} in this class
+ * uses {@code correctOption = "A"}, so tests control correctness simply
+ * by choosing whether to answer "A" (correct) or anything else
+ * (incorrect) or not at all (unanswered, per decision #2).
+ *
  * Same pattern as PartsControllerTest: clears the questions table before
  * every test (Spring caches the ApplicationContext/H2 instance across test
  * classes in one Maven run) and seeds Question rows directly via the
@@ -264,5 +272,125 @@ class AttemptsControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.answers").isArray())
                 .andExpect(jsonPath("$.answers").isEmpty());
+    }
+
+    @Test
+    void submitAttempt_withoutToken_returns401() throws Exception {
+        mockMvc.perform(post("/attempts/1/submit"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void submitAttempt_onNonexistentAttempt_returns404() throws Exception {
+        String token = registerAndGetToken("s8a-submit-404@example.com");
+
+        mockMvc.perform(post("/attempts/999999/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void submitAttempt_onAnotherUsersAttempt_returns403() throws Exception {
+        String ownerToken = registerAndGetToken("s8a-owner@example.com");
+        String intruderToken = registerAndGetToken("s8a-intruder@example.com");
+        seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + ownerToken)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + intruderToken))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void submitAttempt_fullyAnsweredPartPractice_scoresCorrectly() throws Exception {
+        String token = registerAndGetToken("s8a-full@example.com");
+        Long correctQuestionId = seedQuestion("Part 5");
+        Long wrongQuestionId = seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        // seedQuestion always uses correctOption = "A".
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + correctQuestionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isOk());
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + wrongQuestionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "B"))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUBMITTED"))
+                .andExpect(jsonPath("$.score").value(1))
+                .andExpect(jsonPath("$.totalQuestions").value(2))
+                .andExpect(jsonPath("$.answers.length()").value(2));
+    }
+
+    @Test
+    void submitAttempt_withUnansweredQuestion_countsItAsIncorrect() throws Exception {
+        String token = registerAndGetToken("s8a-unanswered@example.com");
+        Long answeredQuestionId = seedQuestion("Part 5");
+        seedQuestion("Part 5"); // left unanswered — decision #2
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + answeredQuestionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isOk());
+
+        // totalQuestions comes from the Part's full question set
+        // (QuestionRepository.findByPart), not just the one Answer row, so
+        // the unanswered question still counts toward the denominator —
+        // and never toward correctCount, since it has no Answer row at all.
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.score").value(1))
+                .andExpect(jsonPath("$.totalQuestions").value(2))
+                .andExpect(jsonPath("$.answers.length()").value(1));
+    }
+
+    @Test
+    void submitAttempt_calledTwice_isIdempotentAndIgnoresAnswersSavedAfterFirstSubmit() throws Exception {
+        String token = registerAndGetToken("s8a-idempotent@example.com");
+        Long firstQuestionId = seedQuestion("Part 5");
+        Long secondQuestionId = seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + firstQuestionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.score").value(1))
+                .andExpect(jsonPath("$.totalQuestions").value(2));
+
+        // Approved decision #4: an answer saved after the first submit must
+        // never change the persisted score on a later submit call.
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + secondQuestionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUBMITTED"))
+                .andExpect(jsonPath("$.score").value(1))
+                .andExpect(jsonPath("$.totalQuestions").value(2));
     }
 }
