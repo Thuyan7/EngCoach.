@@ -20,6 +20,14 @@ engcoach:
     # MUST be overridden via the JWT_SECRET env var in Railway (ADR-001).
     # This default is for local dev only — do not deploy with it.
     secret: ${JWT_SECRET:dev-only-secret-change-me-before-any-real-deploy-32chars}
+  anthropic:
+    # S8b / ADR-004: server-side only, never exposed to the client. No
+    # working default on purpose — an unset ANTHROPIC_API_KEY means every
+    # explanation call is treated as UNAVAILABLE (approved decision #7),
+    # not a startup failure, so the rest of the app still runs without it
+    # (e.g. this sandbox, or a dev machine with no key).
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: ${ANTHROPIC_MODEL:claude-3-5-haiku-latest}
 
 server:
   port: ${PORT:8080}

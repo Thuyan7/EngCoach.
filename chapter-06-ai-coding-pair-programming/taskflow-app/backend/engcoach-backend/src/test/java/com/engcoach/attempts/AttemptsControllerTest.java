@@ -41,6 +41,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * by choosing whether to answer "A" (correct) or anything else
  * (incorrect) or not at all (unanswered, per decision #2).
  *
+ * Also covers Slice S8b: AI-generated explanations and the retry
+ * endpoint. See SLICE-S8B-NOTES.md for S8b's approved design decisions.
+ * No {@code ANTHROPIC_API_KEY} is set anywhere under {@code src/test},
+ * so every explanation call in this test class deterministically
+ * resolves to {@code UNAVAILABLE} (approved decision #7) — these tests
+ * assert that fallback path, not a real Anthropic response.
+ *
  * Same pattern as PartsControllerTest: clears the questions table before
  * every test (Spring caches the ApplicationContext/H2 instance across test
  * classes in one Maven run) and seeds Question rows directly via the
@@ -392,5 +399,168 @@ class AttemptsControllerTest {
                 .andExpect(jsonPath("$.status").value("SUBMITTED"))
                 .andExpect(jsonPath("$.score").value(1))
                 .andExpect(jsonPath("$.totalQuestions").value(2));
+    }
+
+    @Test
+    void submitAttempt_withWrongAnswer_setsExplanationUnavailableWithNoApiKeyConfigured() throws Exception {
+        String token = registerAndGetToken("s8b-explain-unavailable@example.com");
+        Long correctQuestionId = seedQuestion("Part 5");
+        Long wrongQuestionId = seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + correctQuestionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isOk());
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + wrongQuestionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "B"))))
+                .andExpect(status().isOk());
+
+        String submitResponse = mockMvc.perform(post("/attempts/" + attemptId + "/submit")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        var answers = objectMapper.readTree(submitResponse).get("answers");
+        for (var answer : answers) {
+            long questionId = answer.get("questionId").asLong();
+            if (questionId == wrongQuestionId) {
+                // Approved decision #4/#7: no ANTHROPIC_API_KEY configured
+                // under src/test -> the call is never attempted, and the
+                // wrong answer's explanation deterministically resolves to
+                // UNAVAILABLE rather than failing the whole submit.
+                org.junit.jupiter.api.Assertions.assertEquals("UNAVAILABLE",
+                        answer.get("explanationStatus").asText());
+                org.junit.jupiter.api.Assertions.assertTrue(answer.get("explanationText").isNull());
+            } else {
+                // Correct answers never get an explanation request at all.
+                org.junit.jupiter.api.Assertions.assertTrue(answer.get("explanationStatus").isNull());
+                org.junit.jupiter.api.Assertions.assertTrue(answer.get("explanationText").isNull());
+            }
+        }
+    }
+
+    @Test
+    void retryExplanation_withoutToken_returns401() throws Exception {
+        mockMvc.perform(post("/attempts/1/answers/1/retry-explanation"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void retryExplanation_onNonexistentAttempt_returns404() throws Exception {
+        String token = registerAndGetToken("s8b-retry-404@example.com");
+
+        mockMvc.perform(post("/attempts/999999/answers/1/retry-explanation")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void retryExplanation_onAnotherUsersAttempt_returns403() throws Exception {
+        String ownerToken = registerAndGetToken("s8b-retry-owner@example.com");
+        String intruderToken = registerAndGetToken("s8b-retry-intruder@example.com");
+        Long questionId = seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + ownerToken)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(post("/attempts/" + attemptId + "/answers/" + questionId + "/retry-explanation")
+                        .header("Authorization", "Bearer " + intruderToken))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void retryExplanation_beforeAttemptIsSubmitted_returns409() throws Exception {
+        String token = registerAndGetToken("s8b-retry-not-submitted@example.com");
+        Long questionId = seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(post("/attempts/" + attemptId + "/answers/" + questionId + "/retry-explanation")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void retryExplanation_onNonexistentAnswer_returns404() throws Exception {
+        String token = registerAndGetToken("s8b-retry-no-answer@example.com");
+        Long questionId = seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        // Submit with nothing answered: no Answer row exists for questionId.
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/attempts/" + attemptId + "/answers/" + questionId + "/retry-explanation")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void retryExplanation_onCorrectAnswer_returns409() throws Exception {
+        String token = registerAndGetToken("s8b-retry-correct@example.com");
+        Long questionId = seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + questionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        // The answer was correct, so explanationStatus is null, not
+        // UNAVAILABLE — approved decision #5: retry is rejected, not a
+        // silent no-op, when there was never anything to retry.
+        mockMvc.perform(post("/attempts/" + attemptId + "/answers/" + questionId + "/retry-explanation")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void retryExplanation_onUnavailableWrongAnswer_retriesAndReturns200() throws Exception {
+        String token = registerAndGetToken("s8b-retry-success@example.com");
+        Long questionId = seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + questionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "B"))))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        // No API key configured here either, so the retry also resolves
+        // to UNAVAILABLE again — but the endpoint itself must still
+        // succeed (200), not error, since the retry attempt itself
+        // completed normally.
+        mockMvc.perform(post("/attempts/" + attemptId + "/answers/" + questionId + "/retry-explanation")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.questionId").value(questionId))
+                .andExpect(jsonPath("$.explanationStatus").value("UNAVAILABLE"))
+                .andExpect(jsonPath("$.explanationText").value(nullValue()));
     }
 }

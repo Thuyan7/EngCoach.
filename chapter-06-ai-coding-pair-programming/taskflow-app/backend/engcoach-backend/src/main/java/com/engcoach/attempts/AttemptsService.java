@@ -1,13 +1,17 @@
 package com.engcoach.attempts;
 
+import com.engcoach.ai.AnthropicExplanationService;
 import com.engcoach.attempts.dto.AnswerResponse;
 import com.engcoach.attempts.dto.AttemptDetailResponse;
 import com.engcoach.attempts.dto.AttemptResponse;
+import com.engcoach.attempts.dto.ExplanationResponse;
 import com.engcoach.attempts.dto.SaveAnswerRequest;
 import com.engcoach.attempts.dto.StartAttemptRequest;
 import com.engcoach.attempts.dto.SubmitAttemptResponse;
+import com.engcoach.common.AnswerNotFoundException;
 import com.engcoach.common.AttemptAccessDeniedException;
 import com.engcoach.common.AttemptNotFoundException;
+import com.engcoach.common.ExplanationRetryNotAllowedException;
 import com.engcoach.common.PartHasNoQuestionsException;
 import com.engcoach.parts.Question;
 import com.engcoach.parts.QuestionRepository;
@@ -16,9 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 /**
  * Slice S6a: starting a Part practice (or mock test) attempt, and
@@ -45,7 +48,20 @@ import java.util.Map;
  * Slice S8a adds {@link #submitAttempt}: grading. See SLICE-S8A-NOTES.md
  * for that slice's approved design decisions (raw-count score plus a
  * persisted totalQuestions, unanswered-counts-as-incorrect, idempotent
- * resubmission, MOCK_TEST's known limitation until S11).
+ * resubmission, MOCK_TEST's known limitation until S11). The grading
+ * itself now lives in {@link AttemptGradingService} (moved there by S8b,
+ * see below) — this class just orchestrates it.
+ *
+ * Slice S8b adds AI-generated explanations for wrong answers
+ * (ADR-004/{@link AnthropicExplanationService}). See SLICE-S8B-NOTES.md
+ * for that slice's approved design decisions. Key point: this class is
+ * deliberately NOT {@code @Transactional} on {@link #submitAttempt} or
+ * {@link #retryExplanation} anymore — both call out to the slow, external
+ * Anthropic API, and holding a DB transaction open for that whole time
+ * would tie up a connection for no reason (approved decision #2). All DB
+ * writes those two methods need happen through {@link AttemptGradingService},
+ * a separate bean whose own methods are each individually
+ * {@code @Transactional} and short-lived.
  */
 @Service
 public class AttemptsService {
@@ -53,13 +69,19 @@ public class AttemptsService {
     private final AttemptRepository attemptRepository;
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
+    private final AttemptGradingService attemptGradingService;
+    private final AnthropicExplanationService explanationService;
 
     public AttemptsService(AttemptRepository attemptRepository,
                             AnswerRepository answerRepository,
-                            QuestionRepository questionRepository) {
+                            QuestionRepository questionRepository,
+                            AttemptGradingService attemptGradingService,
+                            AnthropicExplanationService explanationService) {
         this.attemptRepository = attemptRepository;
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
+        this.attemptGradingService = attemptGradingService;
+        this.explanationService = explanationService;
     }
 
     @Transactional
@@ -143,81 +165,95 @@ public class AttemptsService {
     }
 
     /**
-     * S8a: {@code POST /attempts/{id}/submit}. Approved design decision #4
-     * (idempotent resubmission): once {@code status} is
-     * {@code SUBMITTED}, this method never regrades — it returns exactly
-     * the {@code score}/{@code totalQuestions} {@link Attempt#markSubmitted}
-     * persisted the first time, built from the {@code Answer} rows as they
-     * stand now (an answer saved after submission, via the still-open
-     * auto-save endpoint, shows up in the list but was never counted
-     * toward {@code score} and never will be by this method).
+     * S8a: {@code POST /attempts/{id}/submit}. Approved S8a design
+     * decision #4 (idempotent resubmission): once {@code status} is
+     * {@code SUBMITTED}, grading never runs again — see
+     * {@link AttemptGradingService#gradeAndPersist}. S8b: on the first,
+     * real grading pass ({@code justGraded = true}), generates an
+     * explanation for every wrong answer right after grading commits —
+     * not inside the grading transaction itself (approved decision #2).
+     * A resubmit of an already-SUBMITTED attempt (justGraded = false)
+     * never re-generates explanations; that's what
+     * {@link #retryExplanation} is for.
      */
-    @Transactional
     public SubmitAttemptResponse submitAttempt(Long userId, Long attemptId) {
+        AttemptGradingService.GradingResult result = attemptGradingService.gradeAndPersist(userId, attemptId);
+
+        if (result.justGraded()) {
+            for (Answer answer : result.answers()) {
+                if (Boolean.FALSE.equals(answer.getIsCorrect())) {
+                    generateAndSaveExplanation(answer);
+                }
+            }
+        }
+
+        List<Answer> freshAnswers = answerRepository.findByAttemptId(attemptId);
+        return SubmitAttemptResponse.from(result.attempt(), freshAnswers);
+    }
+
+    /**
+     * S8b: {@code POST /attempts/{id}/answers/{questionId}/retry-explanation}.
+     * Approved design decision #5: only re-requests the explanation for
+     * one specific answer, never re-scores the attempt — distinct from
+     * resubmitting (S8a's idempotent {@link #submitAttempt}, which never
+     * touches explanations past the first grading pass). Allowed only
+     * when the attempt is already {@code SUBMITTED} and the targeted
+     * answer's current {@code explanationStatus} is
+     * {@code UNAVAILABLE} — retrying an answer that already has an
+     * explanation, or one that was correct and never got one, is
+     * rejected (409) rather than silently no-op'd, so the caller knows
+     * its request didn't do what it may have expected.
+     */
+    public ExplanationResponse retryExplanation(Long userId, Long attemptId, Long questionId) {
         Attempt attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(AttemptNotFoundException::new);
         if (!attempt.getUserId().equals(userId)) {
             throw new AttemptAccessDeniedException();
         }
-
-        if (Attempt.STATUS_SUBMITTED.equals(attempt.getStatus())) {
-            return SubmitAttemptResponse.from(attempt, answerRepository.findByAttemptId(attemptId));
+        if (!Attempt.STATUS_SUBMITTED.equals(attempt.getStatus())) {
+            throw new ExplanationRetryNotAllowedException(
+                    "Explanations can only be retried once the attempt has been submitted.");
         }
 
-        List<Answer> answers = answerRepository.findByAttemptId(attemptId);
-        Map<Long, String> correctOptionsByQuestionId = loadCorrectOptions(attempt, answers);
-
-        int correctCount = 0;
-        for (Answer answer : answers) {
-            String correctOption = correctOptionsByQuestionId.get(answer.getQuestionId());
-            boolean isCorrect = correctOption != null && correctOption.equals(answer.getChosenOption());
-            answer.setIsCorrect(isCorrect);
-            answerRepository.save(answer);
-            if (isCorrect) {
-                correctCount++;
-            }
+        Answer answer = answerRepository.findByAttemptIdAndQuestionId(attemptId, questionId)
+                .orElseThrow(AnswerNotFoundException::new);
+        if (!Answer.EXPLANATION_STATUS_UNAVAILABLE.equals(answer.getExplanationStatus())) {
+            throw new ExplanationRetryNotAllowedException(
+                    "Only an UNAVAILABLE explanation can be retried.");
         }
 
-        // Approved decision #2: totalQuestions for PART_PRACTICE is every
-        // Question in the Part, not just the ones answered — an unanswered
-        // question has no Answer row at all, so it simply never
-        // contributes to correctCount, which is how "unanswered counts as
-        // incorrect" falls out naturally without a sentinel row.
-        //
-        // Approved decision #3 (flagged limitation): MOCK_TEST has no real
-        // assigned question set until S11, so totalQuestions there is the
-        // count of answers actually saved — the best this slice can do,
-        // not a claim that it's the true size of a mock test.
-        int totalQuestions = "PART_PRACTICE".equals(attempt.getType())
-                ? correctOptionsByQuestionId.size()
-                : answers.size();
+        generateAndSaveExplanation(answer);
 
-        attempt.markSubmitted(correctCount, totalQuestions);
-        attempt = attemptRepository.save(attempt);
-
-        return SubmitAttemptResponse.from(attempt, answers);
+        Answer refreshed = answerRepository.findByAttemptIdAndQuestionId(attemptId, questionId)
+                .orElseThrow(AnswerNotFoundException::new);
+        return ExplanationResponse.from(refreshed);
     }
 
     /**
-     * Builds the questionId -> correctOption lookup used to grade
-     * {@code answers}. For {@code PART_PRACTICE} this is every Question in
-     * the attempt's Part (so unanswered ones are still represented, for
-     * {@code totalQuestions}); for {@code MOCK_TEST} it's only the
-     * questions actually answered, looked up individually, since no full
-     * question set exists yet (S11).
+     * Calls Anthropic (outside any DB transaction) for one answer, then
+     * persists the result (success or UNAVAILABLE) through
+     * {@link AttemptGradingService#saveExplanationResult} — its own short
+     * transaction, per approved decision #2. If the underlying
+     * {@code Question} can no longer be found (shouldn't normally happen),
+     * degrades straight to UNAVAILABLE without attempting a call.
      */
-    private Map<Long, String> loadCorrectOptions(Attempt attempt, List<Answer> answers) {
-        Map<Long, String> correctOptionsByQuestionId = new HashMap<>();
-        if ("PART_PRACTICE".equals(attempt.getType())) {
-            for (Question question : questionRepository.findByPart(attempt.getPart())) {
-                correctOptionsByQuestionId.put(question.getId(), question.getCorrectOption());
-            }
-        } else {
-            for (Answer answer : answers) {
-                questionRepository.findById(answer.getQuestionId())
-                        .ifPresent(question -> correctOptionsByQuestionId.put(question.getId(), question.getCorrectOption()));
-            }
+    private void generateAndSaveExplanation(Answer answer) {
+        Question question = questionRepository.findById(answer.getQuestionId()).orElse(null);
+        if (question == null) {
+            attemptGradingService.saveExplanationResult(
+                    answer.getId(), null, Answer.EXPLANATION_STATUS_UNAVAILABLE);
+            return;
         }
-        return correctOptionsByQuestionId;
+
+        Optional<String> explanation = explanationService.generateExplanation(
+                question.getPrompt(), question.getOptions(), question.getCorrectOption(), answer.getChosenOption());
+
+        if (explanation.isPresent()) {
+            attemptGradingService.saveExplanationResult(
+                    answer.getId(), explanation.get(), Answer.EXPLANATION_STATUS_OK);
+        } else {
+            attemptGradingService.saveExplanationResult(
+                    answer.getId(), null, Answer.EXPLANATION_STATUS_UNAVAILABLE);
+        }
     }
 }

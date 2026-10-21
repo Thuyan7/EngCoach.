@@ -3,6 +3,7 @@ package com.engcoach.attempts;
 import com.engcoach.attempts.dto.AnswerResponse;
 import com.engcoach.attempts.dto.AttemptDetailResponse;
 import com.engcoach.attempts.dto.AttemptResponse;
+import com.engcoach.attempts.dto.ExplanationResponse;
 import com.engcoach.attempts.dto.SaveAnswerRequest;
 import com.engcoach.attempts.dto.StartAttemptRequest;
 import com.engcoach.attempts.dto.SubmitAttemptResponse;
@@ -22,7 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
  * S6a: {@code POST /attempts} and
  * {@code PUT /attempts/{id}/answers/{questionId}}. S7a adds
  * {@code GET /attempts/{id}}. S8a adds
- * {@code POST /attempts/{id}/submit}. All four declared in
+ * {@code POST /attempts/{id}/submit}. S8b adds
+ * {@code POST /attempts/{id}/answers/{questionId}/retry-explanation}. All
+ * five declared in
  * chapter-05-ai-for-software-design-architecture/design/openapi.yaml.
  * {@code GET /attempts} and {@code DELETE /attempts/{id}} are later
  * slices (S10a) — not implemented here.
@@ -75,6 +78,15 @@ public class AttemptsController {
                                                                   Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         SubmitAttemptResponse response = attemptsService.submitAttempt(userId, id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/answers/{questionId}/retry-explanation")
+    public ResponseEntity<ExplanationResponse> retryExplanation(@PathVariable Long id,
+                                                                    @PathVariable Long questionId,
+                                                                    Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        ExplanationResponse response = attemptsService.retryExplanation(userId, id, questionId);
         return ResponseEntity.ok(response);
     }
 }
