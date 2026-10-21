@@ -116,18 +116,31 @@ level.
   risk table flags this as something to watch during testing, not solve
   now.
 
-## Verification status — NOT executed, network-blocked in this sandbox
+## Verification status — CONFIRMED by real `mvn test` run
 
-This sandbox's `mvn test`/`mvn compile` cannot reach
-`repo.maven.apache.org` (confirmed, non-transient — same limitation
-documented in every prior slice's notes), so no build was attempted here
-beyond visual review of every changed/added file against the 7 approved
-decisions. Note: since no `ANTHROPIC_API_KEY` is set in
-`src/test/resources/application.yml`, every explanation call during
-`mvn test` deterministically resolves to `UNAVAILABLE` (decision #7) —
-by design, not a test gap; the tests assert that fallback behavior
-directly rather than depending on a real Anthropic call.
+This sandbox attempted `mvn compile` first, as always, and it failed
+before any test ran — the egress proxy does not allow
+`repo.maven.apache.org` (confirmed, non-transient, the same limitation
+documented in every prior slice's notes). Not a code defect.
 
-**Net status: NOT CONFIRMED yet.** Awaiting a real local `mvn test` run
-and its exact output, same as every prior slice, before this file is
-updated to CONFIRMED.
+The user then ran the full suite locally, with no `ANTHROPIC_API_KEY`
+set (as expected per decision #7 — the fallback path is what's being
+tested, not a live Anthropic response):
+
+```
+Tests run: 55, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+`AttemptsControllerTest`: **27/27** — all 19 prior cases (8 S6a + 5 S7a +
+6 S8a) plus all 8 new S8b cases (wrong answer → explanationStatus
+UNAVAILABLE / correct answer → null, retry without token → 401, retry on
+nonexistent attempt → 404, retry on another user's attempt → 403, retry
+before submit → 409, retry on a nonexistent answer → 404, retry on a
+correct answer → 409, retry on an UNAVAILABLE wrong answer → 200). Full
+class-by-class breakdown: `AttemptsControllerTest` 27, `AuthLoginTest` 4,
+`AuthPasswordResetTest` 7, `AuthRegistrationTest` 4, `JwtServiceTest` 5,
+`JwtProtectionTest` 5, `PartsControllerTest` 3 — sums to 55.
+
+**Net status: CONFIRMED. S8b's own 8 tests pass, and the full suite
+(including every prior slice) is green at 55/55.**
