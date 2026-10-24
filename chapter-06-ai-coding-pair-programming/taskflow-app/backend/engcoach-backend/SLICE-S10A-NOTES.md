@@ -66,7 +66,7 @@ implementation-plan.md left open at the slice-description level.
   `404` response and a description to `DELETE /attempts/{id}` (that path
   previously only documented `204`/`403`, left over from before this
   slice — filled in now rather than left stale).
-- `AttemptsControllerTest` — adds 10 new test cases: history without a
+- `AttemptsControllerTest` — adds 9 new test cases: history without a
   token (401), history with only an in-progress attempt (empty list,
   decision #1), history with two submitted attempts plus one in-progress
   one (correct ordering and the in-progress one excluded), history only
@@ -103,11 +103,35 @@ session started (left over from an earlier interrupted session) — it was
 read in full and cross-checked line by line against the 7 decisions
 above before being trusted, following this project's established
 practice. It matched all 7 decisions correctly. What was actually
-missing and added in this session: this notes file, all 10
+missing and added in this session: this notes file, 9 new
 `AttemptsControllerTest` cases for `GET /attempts`/`DELETE /attempts/{id}`,
 and `DELETE /attempts/{id}`'s missing `404` response / description in
 `openapi.yaml`.
 
-**Net status: NOT CONFIRMED yet.** Awaiting a real local `mvn test` run
-and its exact output, same as every prior slice, before this file is
-updated to CONFIRMED.
+## Verification status — CONFIRMED by real `mvn test` run
+
+This sandbox attempted `mvn compile` first, as always, and it failed
+before any test ran — the egress proxy does not allow
+`repo.maven.apache.org` (confirmed, non-transient, the same limitation
+documented in every prior slice's notes). Not a code defect.
+
+The user then ran the full suite locally:
+
+```
+Tests run: 64, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+`AttemptsControllerTest`: **36/36** — all 27 prior cases (8 S6a + 5 S7a +
+6 S8a + 8 S8b) plus all 9 new S10a cases (history without a token,
+history excludes an in-progress attempt, history ordering/content with
+two submitted attempts, history only shows the caller's own attempts,
+delete without a token, delete on a nonexistent attempt, delete on
+another user's attempt, delete on an own in-progress attempt, delete on
+an own submitted attempt with a saved answer). Full class-by-class
+breakdown: `AttemptsControllerTest` 36, `AuthLoginTest` 4,
+`AuthPasswordResetTest` 7, `AuthRegistrationTest` 4, `JwtServiceTest` 5,
+`JwtProtectionTest` 5, `PartsControllerTest` 3 — sums to 64.
+
+**Net status: CONFIRMED. S10a's own 9 tests pass, and the full suite
+(including every prior slice) is green at 64/64.**
