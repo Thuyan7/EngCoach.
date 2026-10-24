@@ -19,4 +19,15 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
      * for an attempt, restoring exact in-progress state on resume.
      */
     List<Answer> findByAttemptId(Long attemptId);
+
+    /**
+     * S10a, approved decision #6: {@code Attempt}/{@code Answer} have no
+     * JPA {@code @OneToMany} relationship (only a plain FK column), so
+     * deleting an {@code Attempt} doesn't cascade on its own — this is
+     * called explicitly by {@code AttemptsService.deleteAttempt} before
+     * deleting the {@code Attempt} row itself, per
+     * software-architecture.md §3 ("Deleting an Attempt cascades to its
+     * Answer rows").
+     */
+    void deleteByAttemptId(Long attemptId);
 }

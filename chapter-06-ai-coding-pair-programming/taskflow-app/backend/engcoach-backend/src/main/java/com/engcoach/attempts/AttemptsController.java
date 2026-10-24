@@ -3,6 +3,7 @@ package com.engcoach.attempts;
 import com.engcoach.attempts.dto.AnswerResponse;
 import com.engcoach.attempts.dto.AttemptDetailResponse;
 import com.engcoach.attempts.dto.AttemptResponse;
+import com.engcoach.attempts.dto.AttemptSummaryResponse;
 import com.engcoach.attempts.dto.ExplanationResponse;
 import com.engcoach.attempts.dto.SaveAnswerRequest;
 import com.engcoach.attempts.dto.StartAttemptRequest;
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,16 +21,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * S6a: {@code POST /attempts} and
  * {@code PUT /attempts/{id}/answers/{questionId}}. S7a adds
  * {@code GET /attempts/{id}}. S8a adds
  * {@code POST /attempts/{id}/submit}. S8b adds
- * {@code POST /attempts/{id}/answers/{questionId}/retry-explanation}. All
- * five declared in
+ * {@code POST /attempts/{id}/answers/{questionId}/retry-explanation}. S10a
+ * adds {@code GET /attempts} and {@code DELETE /attempts/{id}}. All seven
+ * declared in
  * chapter-05-ai-for-software-design-architecture/design/openapi.yaml.
- * {@code GET /attempts} and {@code DELETE /attempts/{id}} are later
- * slices (S10a) — not implemented here.
  *
  * No {@code permitAll()} entry needed in SecurityConfig — protected by the
  * existing {@code anyRequest().authenticated()} default plus
@@ -88,5 +91,19 @@ public class AttemptsController {
         Long userId = (Long) authentication.getPrincipal();
         ExplanationResponse response = attemptsService.retryExplanation(userId, id, questionId);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<AttemptSummaryResponse>> listHistory(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        List<AttemptSummaryResponse> response = attemptsService.listHistory(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAttempt(@PathVariable Long id, Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        attemptsService.deleteAttempt(userId, id);
+        return ResponseEntity.noContent().build();
     }
 }

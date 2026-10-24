@@ -4,6 +4,7 @@ import com.engcoach.ai.AnthropicExplanationService;
 import com.engcoach.attempts.dto.AnswerResponse;
 import com.engcoach.attempts.dto.AttemptDetailResponse;
 import com.engcoach.attempts.dto.AttemptResponse;
+import com.engcoach.attempts.dto.AttemptSummaryResponse;
 import com.engcoach.attempts.dto.ExplanationResponse;
 import com.engcoach.attempts.dto.SaveAnswerRequest;
 import com.engcoach.attempts.dto.StartAttemptRequest;
@@ -62,6 +63,12 @@ import java.util.Optional;
  * writes those two methods need happen through {@link AttemptGradingService},
  * a separate bean whose own methods are each individually
  * {@code @Transactional} and short-lived.
+ *
+ * Slice S10a adds {@link #listHistory} and {@link #deleteAttempt}. See
+ * SLICE-S10A-NOTES.md for that slice's approved design decisions
+ * (history is SUBMITTED-only, most-recent-first by startedAt, delete is
+ * not status-gated, Answer rows are deleted explicitly since Attempt/
+ * Answer have no JPA cascade relationship).
  */
 @Service
 public class AttemptsService {
@@ -255,5 +262,45 @@ public class AttemptsService {
             attemptGradingService.saveExplanationResult(
                     answer.getId(), null, Answer.EXPLANATION_STATUS_UNAVAILABLE);
         }
+    }
+
+    /**
+     * S10a: {@code GET /attempts}. Approved design decision #1: only
+     * {@code SUBMITTED} attempts are listed (feature-specification.md §7:
+     * "reflects all completed attempts") — an {@code IN_PROGRESS} attempt
+     * is resumed via {@code POST /attempts}, not shown here. Approved
+     * decision #2: most-recent-first by {@code startedAt}. Approved
+     * decision #3: no pagination at this project's scale.
+     */
+    @Transactional(readOnly = true)
+    public List<AttemptSummaryResponse> listHistory(Long userId) {
+        return attemptRepository.findByUserIdAndStatusOrderByStartedAtDesc(userId, Attempt.STATUS_SUBMITTED)
+                .stream()
+                .map(AttemptSummaryResponse::from)
+                .toList();
+    }
+
+    /**
+     * S10a: {@code DELETE /attempts/{id}}. Approved decision #5: not
+     * gated on {@code status} — any attempt the caller owns can be
+     * deleted, {@code IN_PROGRESS} or {@code SUBMITTED}, same precedent
+     * as S7a's {@code GET /attempts/{id}}. Approved decision #6: its
+     * {@code Answer} rows are deleted first/explicitly, since
+     * {@code Attempt}/{@code Answer} have no JPA cascade relationship
+     * (software-architecture.md §3: "Deleting an Attempt cascades to its
+     * Answer rows" — the cascade is implemented here, in application
+     * code, not via a JPA annotation that doesn't exist on these
+     * entities).
+     */
+    @Transactional
+    public void deleteAttempt(Long userId, Long attemptId) {
+        Attempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(AttemptNotFoundException::new);
+        if (!attempt.getUserId().equals(userId)) {
+            throw new AttemptAccessDeniedException();
+        }
+
+        answerRepository.deleteByAttemptId(attemptId);
+        attemptRepository.delete(attempt);
     }
 }

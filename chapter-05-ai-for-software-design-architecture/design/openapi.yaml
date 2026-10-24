@@ -116,9 +116,30 @@ paths:
         "422": { description: "PART_PRACTICE requested for a Part with no questions available yet (RFC 9457 problem)" }
     get:
       summary: List the authenticated user's attempt history
+      description: >
+        S10a. Only SUBMITTED attempts appear here (feature-specification.md
+        §7: "reflects all completed attempts") — an IN_PROGRESS attempt is
+        resumed via POST /attempts, not listed. Ordered most-recent-first
+        by startedAt (no separate "submitted at" timestamp exists). No
+        pagination at this project's scale.
       security: [ { bearerAuth: [] } ]
       responses:
-        "200": { description: List of attempts, most recent first }
+        "200":
+          description: List of the caller's completed (SUBMITTED) attempts, most recent first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    type: { type: string, enum: [PART_PRACTICE, MOCK_TEST] }
+                    part: { type: string, nullable: true }
+                    status: { type: string, enum: [SUBMITTED] }
+                    score: { type: integer }
+                    totalQuestions: { type: integer }
+                    startedAt: { type: string, format: date-time }
 
   /attempts/{id}:
     get:
@@ -157,12 +178,17 @@ paths:
         "404": { description: Attempt does not exist (RFC 9457 problem) }
     delete:
       summary: Permanently delete an attempt
+      description: >
+        S10a. Not status-gated — an IN_PROGRESS or SUBMITTED attempt the
+        caller owns can both be deleted (same precedent as GET
+        /attempts/{id}, S7a). Cascades to the attempt's Answer rows.
       security: [ { bearerAuth: [] } ]
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
         "204": { description: Deleted }
         "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+        "404": { description: Attempt does not exist (RFC 9457 problem) }
 
   /attempts/{id}/answers/{questionId}:
     put:

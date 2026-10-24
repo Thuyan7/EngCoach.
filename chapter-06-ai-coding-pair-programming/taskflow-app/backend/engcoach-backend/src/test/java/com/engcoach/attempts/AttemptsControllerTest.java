@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -47,6 +48,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * so every explanation call in this test class deterministically
  * resolves to {@code UNAVAILABLE} (approved decision #7) — these tests
  * assert that fallback path, not a real Anthropic response.
+ *
+ * Also covers Slice S10a: {@code GET /attempts} (history) and
+ * {@code DELETE /attempts/{id}}. See SLICE-S10A-NOTES.md for S10a's
+ * approved design decisions (SUBMITTED-only history, most-recent-first
+ * by startedAt, delete not status-gated, explicit Answer cascade).
  *
  * Same pattern as PartsControllerTest: clears the questions table before
  * every test (Spring caches the ApplicationContext/H2 instance across test
@@ -562,5 +568,171 @@ class AttemptsControllerTest {
                 .andExpect(jsonPath("$.questionId").value(questionId))
                 .andExpect(jsonPath("$.explanationStatus").value("UNAVAILABLE"))
                 .andExpect(jsonPath("$.explanationText").value(nullValue()));
+    }
+
+    @Test
+    void listHistory_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get("/attempts"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void listHistory_withNoSubmittedAttempts_returnsEmptyList() throws Exception {
+        String token = registerAndGetToken("s10a-history-empty@example.com");
+        seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        // One IN_PROGRESS attempt exists, but history must not list it
+        // (approved decision #1: SUBMITTED-only).
+        mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/attempts").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void listHistory_listsOnlySubmittedAttemptsMostRecentFirst() throws Exception {
+        String token = registerAndGetToken("s10a-history@example.com");
+        Long part5QuestionId = seedQuestion("Part 5");
+
+        String startPart5Body = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String part5Response = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startPart5Body))
+                .andReturn().getResponse().getContentAsString();
+        long part5AttemptId = objectMapper.readTree(part5Response).get("id").asLong();
+        mockMvc.perform(put("/attempts/" + part5AttemptId + "/answers/" + part5QuestionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/attempts/" + part5AttemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        Long part6QuestionId = seedQuestion("Part 6");
+        String startPart6Body = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 6"));
+        String part6Response = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startPart6Body))
+                .andReturn().getResponse().getContentAsString();
+        long part6AttemptId = objectMapper.readTree(part6Response).get("id").asLong();
+        mockMvc.perform(post("/attempts/" + part6AttemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        // A second, still-IN_PROGRESS attempt that must not appear.
+        seedQuestion("Part 7");
+        String startPart7Body = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 7"));
+        mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startPart7Body))
+                .andExpect(status().isCreated());
+
+        // Most-recent-first: part6AttemptId was submitted after part5AttemptId.
+        mockMvc.perform(get("/attempts").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(part6AttemptId))
+                .andExpect(jsonPath("$[0].status").value("SUBMITTED"))
+                .andExpect(jsonPath("$[1].id").value(part5AttemptId))
+                .andExpect(jsonPath("$[1].score").value(1))
+                .andExpect(jsonPath("$[1].totalQuestions").value(1));
+    }
+
+    @Test
+    void listHistory_onlyReturnsCallersOwnAttempts() throws Exception {
+        String ownerToken = registerAndGetToken("s10a-history-owner@example.com");
+        String otherToken = registerAndGetToken("s10a-history-other@example.com");
+        seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + ownerToken)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + ownerToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/attempts").header("Authorization", "Bearer " + otherToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void deleteAttempt_withoutToken_returns401() throws Exception {
+        mockMvc.perform(delete("/attempts/1"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deleteAttempt_onNonexistentAttempt_returns404() throws Exception {
+        String token = registerAndGetToken("s10a-delete-404@example.com");
+
+        mockMvc.perform(delete("/attempts/999999").header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteAttempt_onAnotherUsersAttempt_returns403() throws Exception {
+        String ownerToken = registerAndGetToken("s10a-delete-owner@example.com");
+        String intruderToken = registerAndGetToken("s10a-delete-intruder@example.com");
+        seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + ownerToken)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(delete("/attempts/" + attemptId).header("Authorization", "Bearer " + intruderToken))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void deleteAttempt_onOwnInProgressAttempt_removesItAndItDisappearsFromGet() throws Exception {
+        String token = registerAndGetToken("s10a-delete-in-progress@example.com");
+        seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        // Approved decision #5: deleting an IN_PROGRESS (not just
+        // SUBMITTED) attempt is allowed.
+        mockMvc.perform(delete("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteAttempt_onOwnSubmittedAttemptWithAnswers_cascadesToAnswersAndRemovesFromHistory() throws Exception {
+        String token = registerAndGetToken("s10a-delete-cascade@example.com");
+        Long questionId = seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + questionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        // Approved decision #6: the Answer row is gone too, not just the
+        // Attempt — deleting it again (or fetching it) confirms the
+        // Attempt itself is gone (404), which is as far as this API
+        // surface can directly observe the Answer-cascade from outside.
+        mockMvc.perform(get("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/attempts").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
     }
 }
