@@ -28,7 +28,8 @@ public record AttemptDetailResponse(
         String status,
         Instant startedAt,
         Long remainingSeconds,
-        List<SavedAnswer> answers
+        List<SavedAnswer> answers,
+        List<QuestionView> questions
 ) {
     public record SavedAnswer(Long questionId, String chosenOption) {
         public static SavedAnswer from(Answer answer) {
@@ -36,7 +37,8 @@ public record AttemptDetailResponse(
         }
     }
 
-    public static AttemptDetailResponse from(Attempt attempt, Long remainingSeconds, List<Answer> answers) {
+    public static AttemptDetailResponse from(Attempt attempt, Long remainingSeconds, List<Answer> answers,
+                                              List<QuestionView> questions) {
         return new AttemptDetailResponse(
                 attempt.getId(),
                 attempt.getType(),
@@ -44,7 +46,8 @@ public record AttemptDetailResponse(
                 attempt.getStatus(),
                 attempt.getStartedAt(),
                 remainingSeconds,
-                answers.stream().map(SavedAnswer::from).toList()
+                answers.stream().map(SavedAnswer::from).toList(),
+                questions
         );
     }
 }

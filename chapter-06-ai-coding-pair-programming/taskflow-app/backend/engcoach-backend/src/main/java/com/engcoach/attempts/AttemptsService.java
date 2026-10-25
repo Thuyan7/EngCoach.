@@ -4,6 +4,7 @@ import com.engcoach.ai.AnthropicExplanationService;
 import com.engcoach.attempts.dto.AnswerResponse;
 import com.engcoach.attempts.dto.AttemptDetailResponse;
 import com.engcoach.attempts.dto.AttemptResponse;
+import com.engcoach.attempts.dto.QuestionView;
 import com.engcoach.attempts.dto.AttemptSummaryResponse;
 import com.engcoach.attempts.dto.ExplanationResponse;
 import com.engcoach.attempts.dto.SaveAnswerRequest;
@@ -150,7 +151,15 @@ public class AttemptsService {
         List<Answer> answers = answerRepository.findByAttemptId(attemptId);
         Long remainingSeconds = computeRemainingSeconds(attempt);
 
-        return AttemptDetailResponse.from(attempt, remainingSeconds, answers);
+        // S7b: a PART_PRACTICE attempt's questions are every question of its
+        // Part (the same set S8a grades against). A MOCK_TEST has no assigned
+        // question set until S11, so it gets none here.
+        List<QuestionView> questions = "PART_PRACTICE".equals(attempt.getType()) && attempt.getPart() != null
+                ? questionRepository.findByPartOrderByIdAsc(attempt.getPart()).stream()
+                        .map(QuestionView::from).toList()
+                : List.of();
+
+        return AttemptDetailResponse.from(attempt, remainingSeconds, answers, questions);
     }
 
     /**

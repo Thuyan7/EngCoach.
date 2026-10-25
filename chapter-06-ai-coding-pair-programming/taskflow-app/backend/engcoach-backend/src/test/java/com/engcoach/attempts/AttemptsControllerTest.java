@@ -735,4 +735,48 @@ class AttemptsControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
     }
+
+    // ---- S7b: questions on GET /attempts/{id} ----
+
+    private long startAttemptAndGetId(String token, Map<String, String> startBody) throws Exception {
+        String response = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(objectMapper.writeValueAsString(startBody)))
+                .andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(response).get("id").asLong();
+    }
+
+    @Test
+    void getAttempt_returnsTheQuestionsOfItsPart_inIdOrder_withParsedOptions_andNoAnswerKey() throws Exception {
+        String token = registerAndGetToken("s7b-questions@example.com");
+        Long first = questionRepository.save(new Question("Part 5", "Pick the right form.",
+                "[\"submit\",\"to submit\",\"submitting\"]", "to submit")).getId();
+        Long second = questionRepository.save(new Question("Part 5", "Second prompt.",
+                "[\"A\",\"B\",\"C\",\"D\"]", "A")).getId();
+        seedQuestion("Part 6"); // another Part: must not appear
+        long attemptId = startAttemptAndGetId(token, Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+
+        mockMvc.perform(get("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.questions.length()").value(2))
+                .andExpect(jsonPath("$.questions[0].id").value(first))
+                .andExpect(jsonPath("$.questions[0].prompt").value("Pick the right form."))
+                .andExpect(jsonPath("$.questions[0].options[1]").value("to submit"))
+                .andExpect(jsonPath("$.questions[0].options.length()").value(3))
+                .andExpect(jsonPath("$.questions[1].id").value(second))
+                .andExpect(jsonPath("$.questions[0].correctOption").doesNotExist())
+                .andExpect(jsonPath("$.questions[1].correctOption").doesNotExist());
+    }
+
+    @Test
+    void getAttempt_onMockTest_returnsNoQuestionsUntilS11() throws Exception {
+        String token = registerAndGetToken("s7b-mock@example.com");
+        seedQuestion("Part 5");
+        long attemptId = startAttemptAndGetId(token, Map.of("type", "MOCK_TEST"));
+
+        mockMvc.perform(get("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.questions").isArray())
+                .andExpect(jsonPath("$.questions").isEmpty());
+    }
 }
+

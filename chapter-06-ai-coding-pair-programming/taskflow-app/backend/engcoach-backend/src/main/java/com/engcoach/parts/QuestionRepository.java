@@ -31,4 +31,11 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
      * ones the caller happened to save an `Answer` for.
      */
     List<Question> findByPart(String part);
+
+    /**
+     * Backs S7b's question list on {@code GET /attempts/{id}}: the questions
+     * of a Part in a stable order (by id), so a refresh shows the same
+     * question sequence every time.
+     */
+    List<Question> findByPartOrderByIdAsc(String part);
 }
