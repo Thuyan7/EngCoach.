@@ -84,3 +84,30 @@ cd chapter-06-ai-coding-pair-programming/taskflow-app/frontend
 npm run dev        # http://localhost:5173 ; log in, you land on Dashboard
 npm test
 ```
+
+## Update — stats wired to the real API (after S10a)
+
+S10a added `GET /attempts` (the caller's completed attempts, most recent
+first, each with `score` and `totalQuestions`), which closes gap 1 above.
+The two stat cards on the Dashboard now use it:
+
+- **Attempts completed** — the number of attempts returned (a real `0`
+  when the user has none, not a placeholder).
+- **Average score** — the mean of each attempt's percentage correct
+  (`score / totalQuestions`), rounded to a whole percent; `—` with the hint
+  "Complete a practice to see your average score." when there is nothing to
+  average. A percentage is used because attempts have different lengths;
+  averaging raw counts would mix scales. S8a's score is a raw count and
+  OQ-004 (score representation) is still open in the PRD, so **confirm
+  that a percentage is what you want on the Dashboard**.
+- An attempt with no usable total (`null`/`0`, e.g. a MOCK_TEST before S11)
+  counts as completed but is left out of the average.
+- States: loading (`…`), error (alert + Try again — the Part list is
+  unaffected), `401` (ends the session). The Part list and the stats load
+  independently.
+
+Code: `api/attempts.js` (`listAttempts`), `src/stats.js` (pure
+calculation, unit-tested), `pages/DashboardPage.jsx`. Tests: 49 pass
+(`stats.test.js` 6, `DashboardPage.test.jsx` 14, the rest unchanged);
+`npm run build` succeeds. Not run against the real backend.
+

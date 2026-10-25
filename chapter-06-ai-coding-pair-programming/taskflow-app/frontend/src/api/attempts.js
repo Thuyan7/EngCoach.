@@ -22,3 +22,9 @@ export function saveAnswer(token, attemptId, questionId, chosenOption) {
     body: { chosenOption },
   });
 }
+
+// GET /attempts -> 200 [{id,type,part,status:"SUBMITTED",score,totalQuestions,
+// startedAt}], most recent first (S10a). Only completed attempts appear.
+export function listAttempts(token) {
+  return request("/attempts", { token });
+}

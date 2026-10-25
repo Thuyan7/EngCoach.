@@ -62,6 +62,15 @@ export function signIn() {
   );
 }
 
+// Test fixture in the shape GET /attempts/{id} returns for `questions`.
+export const questionsFixture = () => [
+  { id: 101, prompt: "The manager asked everyone ____ the report.", options: ["submit", "to submit", "submitting", "submitted"] },
+  { id: 102, prompt: "Our office is located ____ the station.", options: ["near", "nearly", "nearness", "nearer to"] },
+  { id: 103, prompt: "Please ____ your badge at the desk.", options: ["leaves", "leaving", "leave", "left"] },
+  { id: 104, prompt: "The meeting was postponed ____ the director was ill.", options: ["because", "despite", "so that", "although"] },
+  { id: 105, prompt: "____ employees must attend the briefing.", options: ["Every", "All", "Each", "Another"] },
+];
+
 export const attemptDetail = (overrides = {}) => ({
   id: 7,
   type: "PART_PRACTICE",
@@ -70,5 +79,6 @@ export const attemptDetail = (overrides = {}) => ({
   startedAt: "2026-10-17T08:00:00Z",
   remainingSeconds: null,
   answers: [],
+  questions: questionsFixture(),
   ...overrides,
 });

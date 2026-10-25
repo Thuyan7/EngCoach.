@@ -3,8 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { attemptDetail, jsonResponse, renderApp, routeFetch, signIn } from "../test/helpers.jsx";
 
-const Q1 = 900001; // sample ids from mock/mockQuestions.js
-const Q2 = 900002;
+const Q1 = 101; // ids from the questions fixture (test/helpers.jsx)
+const Q2 = 102;
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -18,29 +18,30 @@ function putBodies(fetchMock) {
 }
 
 describe("Test screen (S7b)", () => {
-  it("loads the real attempt and shows the first question, with the sample-data banner", async () => {
+  it("loads the attempt and shows the first question returned by the API", async () => {
     routeFetch({ "GET /attempts/7": () => jsonResponse(200, attemptDetail()) });
     renderApp("/practice/7");
 
     expect(await screen.findByRole("heading", { name: "Part 5 practice" })).toBeInTheDocument();
     expect(screen.getByText("Question 1 of 5")).toBeInTheDocument();
     expect(screen.getByText("0 of 5 answered")).toBeInTheDocument();
-    expect(screen.getByRole("note")).toHaveTextContent("Sample questions");
+    expect(screen.getByText(/The manager asked everyone/)).toBeInTheDocument();
     expect(screen.getAllByRole("radio")).toHaveLength(4);
+    expect(screen.queryByText(/Sample questions/)).not.toBeInTheDocument();
   });
 
   it("answering calls PUT /attempts/{id}/answers/{questionId} with the chosen option and shows Saved", async () => {
     const user = userEvent.setup();
     const fetchMock = routeFetch({
       "GET /attempts/7": () => jsonResponse(200, attemptDetail()),
-      [`PUT /attempts/7/answers/${Q1}`]: () => jsonResponse(200, { questionId: Q1, chosenOption: "B" }),
+      [`PUT /attempts/7/answers/${Q1}`]: () => jsonResponse(200, { questionId: Q1, chosenOption: "to submit" }),
     });
     renderApp("/practice/7");
 
     await user.click(await screen.findByRole("radio", { name: /B\. to submit/ }));
 
     expect(await screen.findByText("Saved")).toBeInTheDocument();
-    expect(putBodies(fetchMock)).toEqual([[`/attempts/7/answers/${Q1}`, { chosenOption: "B" }]]);
+    expect(putBodies(fetchMock)).toEqual([[`/attempts/7/answers/${Q1}`, { chosenOption: "to submit" }]]);
     const putInit = fetchMock.mock.calls.find(([, i]) => i?.method === "PUT")[1];
     expect(putInit.headers.Authorization).toBe("Bearer jwt-abc");
     expect(screen.getByText("1 of 5 answered")).toBeInTheDocument();
@@ -53,8 +54,8 @@ describe("Test screen (S7b)", () => {
           200,
           attemptDetail({
             answers: [
-              { questionId: Q1, chosenOption: "B" },
-              { questionId: Q2, chosenOption: "A" },
+              { questionId: Q1, chosenOption: "to submit" },
+              { questionId: Q2, chosenOption: "near" },
             ],
           }),
         ),
@@ -82,7 +83,7 @@ describe("Test screen (S7b)", () => {
     await user.click(screen.getByRole("radio", { name: /C\. submitting/ }));
 
     await waitFor(() => expect(putBodies(fetchMock)).toHaveLength(2));
-    expect(putBodies(fetchMock).map(([, body]) => body.chosenOption)).toEqual(["A", "C"]);
+    expect(putBodies(fetchMock).map(([, body]) => body.chosenOption)).toEqual(["submit", "submitting"]);
     expect(screen.getByRole("radio", { name: /C\. submitting/ })).toBeChecked();
   });
 
@@ -92,7 +93,7 @@ describe("Test screen (S7b)", () => {
     const fetchMock = routeFetch({
       "GET /attempts/7": () => jsonResponse(200, attemptDetail()),
       [`PUT /attempts/7/answers/${Q1}`]: () =>
-        ++calls === 1 ? jsonResponse(500, { title: "Server error" }) : jsonResponse(200, { questionId: Q1, chosenOption: "D" }),
+        ++calls === 1 ? jsonResponse(500, { title: "Server error" }) : jsonResponse(200, { questionId: Q1, chosenOption: "submitted" }),
     });
     renderApp("/practice/7");
 
@@ -124,7 +125,7 @@ describe("Test screen (S7b)", () => {
   it("a submitted attempt is read-only", async () => {
     routeFetch({
       "GET /attempts/7": () =>
-        jsonResponse(200, attemptDetail({ status: "SUBMITTED", answers: [{ questionId: Q1, chosenOption: "A" }] })),
+        jsonResponse(200, attemptDetail({ status: "SUBMITTED", answers: [{ questionId: Q1, chosenOption: "submit" }] })),
     });
     renderApp("/practice/7");
 
@@ -159,5 +160,31 @@ describe("Test screen (S7b)", () => {
 
     expect(await screen.findByRole("heading", { name: "Log in" })).toBeInTheDocument();
     expect(window.localStorage.getItem("engcoach.session")).toBeNull();
+  });
+
+  it("uses the question ids and option strings from the API (nothing is hard-coded)", async () => {
+    const user = userEvent.setup();
+    const fetchMock = routeFetch({
+      "GET /attempts/7": () =>
+        jsonResponse(
+          200,
+          attemptDetail({ questions: [{ id: 4242, prompt: "Pick one.", options: ["alpha", "beta"] }] }),
+        ),
+      "PUT /attempts/7/answers/4242": () => jsonResponse(200, { questionId: 4242, chosenOption: "beta" }),
+    });
+    renderApp("/practice/7");
+
+    await user.click(await screen.findByRole("radio", { name: /B\. beta/ }));
+
+    expect(await screen.findByText("Saved")).toBeInTheDocument();
+    expect(putBodies(fetchMock)).toEqual([["/attempts/7/answers/4242", { chosenOption: "beta" }]]);
+  });
+
+  it("an attempt with no questions (e.g. a mock test before S11) shows an empty state", async () => {
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, attemptDetail({ type: "MOCK_TEST", part: null, questions: [] })) });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText(/no questions in this practice yet/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to Dashboard" })).toBeInTheDocument();
   });
 });

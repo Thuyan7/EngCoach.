@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getAttempt, saveAnswer } from "../api/attempts.js";
-import { QUESTIONS_ARE_SAMPLES, loadQuestions } from "../api/questions.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 
-// S7b. Real: loading the attempt, restoring saved answers, auto-saving each
-// answer. Sample: the question text (api/questions.js).
+// S7b. Everything comes from the API: GET /attempts/{id} returns the
+// questions (id, prompt, options — never the answer key), the saved answers
+// and the status; each answer is auto-saved with PUT.
+const letter = (i) => String.fromCharCode(65 + i);
 export default function TestPage() {
   const { attemptId } = useParams();
   const { token, signOut } = useAuth();
@@ -27,7 +28,7 @@ export default function TestPage() {
     (async () => {
       try {
         const detail = await getAttempt(token, attemptId);
-        const qs = await loadQuestions(token, detail);
+        const qs = detail.questions ?? [];
         if (cancelled) return;
         const saved = {};
         detail.answers.forEach((a) => (saved[a.questionId] = a.chosenOption));
@@ -107,6 +108,17 @@ export default function TestPage() {
     );
   }
 
+  if (questions.length === 0) {
+    return (
+      <div className="card empty-state">
+        <p>There are no questions in this practice yet.</p>
+        <Link to="/dashboard" className="btn btn-secondary">
+          Back to Dashboard
+        </Link>
+      </div>
+    );
+  }
+
   const question = questions[index];
   const locked = attempt.status !== "IN_PROGRESS";
   const state = question ? saveState[question.id] : undefined;
@@ -120,13 +132,6 @@ export default function TestPage() {
           {answeredCount} of {questions.length} answered
         </p>
       </div>
-
-      {QUESTIONS_ARE_SAMPLES && (
-        <div className="sample-banner" role="note">
-          Sample questions — real questions will appear once the API provides them. Your answers are still
-          saved to your attempt.
-        </div>
-      )}
 
       {locked && (
         <div className="sample-banner" role="note">
@@ -159,18 +164,18 @@ export default function TestPage() {
               </span>
               <span className="q-prompt">{question.prompt}</span>
             </legend>
-            {question.options.map((opt) => (
-              <label key={opt.key} className="q-option">
+            {question.options.map((opt, i) => (
+              <label key={i} className="q-option">
                 <input
                   type="radio"
                   name={`q-${question.id}`}
-                  value={opt.key}
-                  checked={answers[question.id] === opt.key}
+                  value={opt}
+                  checked={answers[question.id] === opt}
                   disabled={locked}
-                  onChange={() => choose(question.id, opt.key)}
+                  onChange={() => choose(question.id, opt)}
                 />
                 <span>
-                  <strong>{opt.key}.</strong> {opt.text}
+                  <strong>{letter(i)}.</strong> {opt}
                 </span>
               </label>
             ))}

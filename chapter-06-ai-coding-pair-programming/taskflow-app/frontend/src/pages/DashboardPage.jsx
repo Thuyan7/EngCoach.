@@ -1,20 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { startPartPractice } from "../api/attempts.js";
+import { listAttempts, startPartPractice } from "../api/attempts.js";
 import { listParts } from "../api/parts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { summarizeAttempts } from "../stats.js";
 
 const LOAD_FAILED = "We couldn't load the Part list. Please try again.";
 const NO_QUESTIONS = "There are no questions for this Part yet.";
 const START_FAILED = "We couldn't start this practice. Please try again.";
+const STATS_FAILED = "We couldn't load your stats. Please try again.";
 
 // S6b. Real data only — nothing here is mock data.
 //  - Part list: GET /parts (S5a).
-//  - Stats (average score, attempt count): NO API exists yet. The only
-//    source would be GET /attempts (S10a), which is not built and whose
-//    response shape is not in openapi.yaml. They are shown as "not available
-//    yet" rather than as 0, because 0 would be a false statement for a user
-//    who may already have attempts. See SLICE-S6B-NOTES.md.
+//  - Stats: GET /attempts (S10a) — completed attempts. The Part list and the
+//    stats load independently, so a failure in one never hides the other.
 export default function DashboardPage() {
   const { token, signOut } = useAuth();
   const navigate = useNavigate();
@@ -22,6 +21,8 @@ export default function DashboardPage() {
   const [startError, setStartError] = useState(null);
   const [parts, setParts] = useState({ status: "loading", items: [] });
   const [reloadKey, setReloadKey] = useState(0);
+  const [stats, setStats] = useState({ status: "loading", attempts: [] });
+  const [statsReloadKey, setStatsReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,6 +47,26 @@ export default function DashboardPage() {
     };
   }, [token, signOut, reloadKey]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setStats({ status: "loading", attempts: [] });
+    listAttempts(token)
+      .then((attempts) => {
+        if (!cancelled) setStats({ status: "ready", attempts });
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err.status === 401) {
+          signOut();
+          return;
+        }
+        setStats({ status: "error", attempts: [] });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, signOut, statsReloadKey]);
+
   async function start(part) {
     setStartError(null);
     setStartingPart(part);
@@ -60,6 +81,11 @@ export default function DashboardPage() {
     }
   }
 
+  const summary = summarizeAttempts(stats.attempts);
+  const average = stats.status === "ready" && summary.averagePercent !== null;
+  const averageLabel = stats.status === "loading" ? "…" : average ? `${summary.averagePercent}%` : "—";
+  const countLabel = stats.status === "loading" ? "…" : stats.status === "ready" ? summary.attemptCount : "—";
+
   return (
     <>
       <div className="page-head">
@@ -67,23 +93,36 @@ export default function DashboardPage() {
         <p>Ready for today's practice?</p>
       </div>
 
-      <section aria-labelledby="stats-heading">
+      <section aria-labelledby="stats-heading" aria-busy={stats.status === "loading"}>
         <h2 id="stats-heading" className="visually-hidden">
           Your progress
         </h2>
         <div className="stats-grid">
           <div className="stat">
             <p className="label">Average score</p>
-            <p className="value">—</p>
+            <p className="value">{averageLabel}</p>
           </div>
           <div className="stat">
-            <p className="label">Attempts</p>
-            <p className="value">—</p>
+            <p className="label">Attempts completed</p>
+            <p className="value">{countLabel}</p>
           </div>
         </div>
-        <p className="stats-note">
-          Your average score and attempt count will appear here once attempt history is available.
-        </p>
+        {stats.status === "ready" && summary.averagePercent === null && (
+          <p className="stats-note">Complete a practice to see your average score.</p>
+        )}
+        {stats.status === "ready" && summary.averagePercent !== null && (
+          <p className="stats-note">Average of the percentage correct across your completed attempts.</p>
+        )}
+        {stats.status === "error" && (
+          <div>
+            <div className="error-msg" role="alert">
+              {STATS_FAILED}
+            </div>
+            <button type="button" className="btn btn-secondary" onClick={() => setStatsReloadKey((k) => k + 1)}>
+              Try again
+            </button>
+          </div>
+        )}
       </section>
 
       <section aria-labelledby="parts-heading">
