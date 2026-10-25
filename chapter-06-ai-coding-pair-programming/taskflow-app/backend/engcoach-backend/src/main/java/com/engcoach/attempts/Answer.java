@@ -18,13 +18,24 @@ import jakarta.persistence.Table;
  * {@code chosenOption} — one row per (attempt, question), auto-saved and
  * overwritten on every re-answer (see AttemptsService.saveAnswer).
  * {@code isCorrect}, {@code explanationText}, {@code explanationStatus}
- * are mapped here because they're part of the approved entity, but
- * nothing in this slice reads or writes them — grading is S8a,
- * AI explanation is S8b.
+ * are mapped here because they're part of the approved entity. S8a sets
+ * {@code isCorrect} at grading time. S8b sets {@code explanationText}/
+ * {@code explanationStatus}, but only for incorrect answers — a correct
+ * answer's explanation fields stay {@code null} forever (no explanation
+ * is ever requested for it).
  */
 @Entity
 @Table(name = "answers")
 public class Answer {
+
+    /** S8b: Anthropic call succeeded; {@code explanationText} is usable. */
+    public static final String EXPLANATION_STATUS_OK = "OK";
+    /**
+     * S8b: Anthropic call failed, or no API key is configured
+     * (ADR-004/decision #4/#7) — {@code explanationText} stays null. Not
+     * an application error; grading still succeeds.
+     */
+    public static final String EXPLANATION_STATUS_UNAVAILABLE = "UNAVAILABLE";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -94,5 +105,19 @@ public class Answer {
 
     public String getExplanationStatus() {
         return explanationStatus;
+    }
+
+    /**
+     * S8b: set once per attempted explanation generation (first grading,
+     * or a later retry) by {@code AttemptGradingService.saveExplanationResult}.
+     * {@code explanationText} is null when {@code explanationStatus} is
+     * {@link #EXPLANATION_STATUS_UNAVAILABLE}.
+     */
+    public void setExplanationText(String explanationText) {
+        this.explanationText = explanationText;
+    }
+
+    public void setExplanationStatus(String explanationStatus) {
+        this.explanationStatus = explanationStatus;
     }
 }

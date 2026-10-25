@@ -21,8 +21,9 @@ import java.util.Map;
  * validation). S2 adds a third (401 invalid credentials). S4 adds a fourth
  * (410 invalid/expired reset token). S6a adds three more (404 attempt not
  * found, 403 attempt belongs to another user, 422 Part has no questions).
- * More exception mappings are added here, not duplicated elsewhere, as
- * later slices introduce new failure cases.
+ * S8b adds two more (404 answer not found, 409 explanation retry not
+ * allowed). More exception mappings are added here, not duplicated
+ * elsewhere, as later slices introduce new failure cases.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -86,6 +87,26 @@ public class GlobalExceptionHandler {
                 HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
         problem.setType(URI.create(PROBLEM_BASE + "part-has-no-questions"));
         problem.setTitle("Part has no questions");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
+    @ExceptionHandler(AnswerNotFoundException.class)
+    public ProblemDetail handleAnswerNotFound(AnswerNotFoundException ex,
+                                                HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "answer-not-found"));
+        problem.setTitle("Answer not found");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
+    @ExceptionHandler(ExplanationRetryNotAllowedException.class)
+    public ProblemDetail handleExplanationRetryNotAllowed(ExplanationRetryNotAllowedException ex,
+                                                             HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "explanation-retry-not-allowed"));
+        problem.setTitle("Explanation retry not allowed");
         problem.setInstance(URI.create(request.getRequestURI()));
         return problem;
     }
