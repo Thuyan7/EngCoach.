@@ -15,11 +15,11 @@ import java.util.List;
  *
  * {@code remainingSeconds} is {@code null} when the attempt has no
  * {@code timeLimitSeconds} — approved S7a design decision #2. That is
- * every {@code PART_PRACTICE} attempt (untimed by design) and, for now,
- * every {@code MOCK_TEST} attempt too, since S6a doesn't set
- * {@code timeLimitSeconds} yet (S11's scope). {@code null} means
- * "untimed," not "0 seconds left" — those are different things and must
- * not be conflated.
+ * every {@code PART_PRACTICE} attempt (untimed by design). Every
+ * {@code MOCK_TEST} attempt has a fixed 7200-second limit since S11, so
+ * it gets a real, server-computed, non-null value instead. {@code null}
+ * means "untimed," not "0 seconds left" — those are different things and
+ * must not be conflated.
  */
 public record AttemptDetailResponse(
         Long id,

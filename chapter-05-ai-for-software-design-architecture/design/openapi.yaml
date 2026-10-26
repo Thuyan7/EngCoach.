@@ -99,7 +99,11 @@ paths:
         If an IN_PROGRESS attempt already exists for this user scoped by
         (type, part), that attempt is returned instead of creating a new
         one (resume semantics, S6a). `part` is required for
-        PART_PRACTICE and ignored for MOCK_TEST.
+        PART_PRACTICE and ignored for MOCK_TEST. S11: a MOCK_TEST attempt
+        gets a fixed 7200-second (2-hour) timeLimitSeconds, matching the
+        real TOEIC test duration; PART_PRACTICE stays untimed. Starting a
+        MOCK_TEST when the question bank is entirely empty is rejected
+        the same way an empty Part is (422) — same rule, generalized.
       security: [ { bearerAuth: [] } ]
       requestBody:
         required: true
@@ -147,9 +151,9 @@ paths:
       description: >
         Not restricted to IN_PROGRESS attempts (S7a) — works for any
         attempt the caller owns. `remainingSeconds` is null when the
-        attempt has no time limit (every PART_PRACTICE attempt, and every
-        MOCK_TEST attempt until S11 sets timeLimitSeconds); null means
-        "untimed," not "0 seconds left."
+        attempt has no time limit (every PART_PRACTICE attempt); every
+        MOCK_TEST attempt has a real, server-computed value since S11.
+        null means "untimed," not "0 seconds left."
       security: [ { bearerAuth: [] } ]
       parameters:
         - { name: id, in: path, required: true, schema: { type: integer } }
@@ -178,8 +182,11 @@ paths:
                     description: >
                       What the test screen needs to render the attempt (S7b).
                       For PART_PRACTICE: every question of the attempt's Part,
-                      ordered by id. For MOCK_TEST: empty until S11 assigns a
-                      question set. Never includes the correct option.
+                      ordered by id. For MOCK_TEST: every question in the
+                      whole bank, ordered by id (S11 — the real TOEIC
+                      question-bank source is still an open product question,
+                      OQ-001, so this is every Question currently seeded, not
+                      literally 200). Never includes the correct option.
                     type: array
                     items:
                       type: object
@@ -239,11 +246,10 @@ paths:
         resubmitting an already-SUBMITTED attempt returns the exact score
         persisted the first time rather than regrading — an answer saved
         after submission is never counted. For PART_PRACTICE,
-        totalQuestions is every Question in the Part, so an unanswered
-        question counts as incorrect (no Answer row exists for it). For
-        MOCK_TEST, totalQuestions is currently only the count of answers
-        actually saved, a known limitation until S11 assigns a real
-        question set. S8b: on the first (real) grading pass, every
+        totalQuestions is every Question in the Part; for MOCK_TEST
+        (since S11) it is every Question in the whole bank — in both
+        cases an unanswered question counts as incorrect (no Answer row
+        exists for it). S8b: on the first (real) grading pass, every
         incorrect answer also gets an AI-generated explanation
         (ADR-004) — explanationStatus is OK or UNAVAILABLE (never
         regenerated on a later resubmit; use the retry endpoint below for

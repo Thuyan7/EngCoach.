@@ -24,8 +24,10 @@ import java.time.Instant;
  * string — two concrete values still doesn't justify an enum on its own,
  * and changing representation is a larger, separate decision.)
  * {@code timeLimitSeconds} is mapped here because it's part of the
- * approved entity, but nothing written so far sets it:
- * {@code timeLimitSeconds} is mock-test-only (S11).
+ * approved entity. S11 is the first slice to actually set it: every
+ * {@code MOCK_TEST} attempt gets a fixed 7200-second (2-hour) limit at
+ * creation (approved S11 design decision #4); {@code PART_PRACTICE}
+ * stays untimed ({@code null}), unchanged.
  *
  * S8a adds {@code totalQuestions} — <strong>not</strong> part of the
  * original data-model.mmd ATTEMPT entity. Approved S8a design decision #4
@@ -33,10 +35,12 @@ import java.time.Instant;
  * computed by the first, never recomputed") requires persisting the
  * denominator alongside {@code score} at submit time, because
  * recomputing it on a later call could disagree with the first call's
- * value (most concretely for MOCK_TEST, whose "total" is the count of
- * saved answers until S11 assigns a real question set — more answers can
- * be saved after submission since this slice doesn't block the auto-save
- * endpoint post-submit). Logged here, and in SLICE-S8A-NOTES.md and
+ * value (most concretely for MOCK_TEST, whose "total" was the count of
+ * saved answers until S11 generalized grading to use the full question
+ * bank for MOCK_TEST too, same as PART_PRACTICE already did — more
+ * answers can still be saved after submission since this slice doesn't
+ * block the auto-save endpoint post-submit). Logged here, and in
+ * SLICE-S8A-NOTES.md and
  * data-model.mmd, as a small schema addition that follows the same
  * precedent as S4's PASSWORD_RESET_TOKEN addition during the Chapter 5
  * architecture review — a genuine gap the approved entity didn't cover,
@@ -85,11 +89,24 @@ public class Attempt {
     }
 
     public Attempt(Long userId, String type, String part, String status, Instant startedAt) {
+        this(userId, type, part, status, startedAt, null);
+    }
+
+    /**
+     * S11: overload taking {@code timeLimitSeconds} directly, used by
+     * {@code AttemptsService.startAttempt} for {@code MOCK_TEST} (approved
+     * decision #4). The 5-arg constructor above still exists and now just
+     * delegates here with {@code null} (untimed) — unchanged behavior for
+     * every existing caller.
+     */
+    public Attempt(Long userId, String type, String part, String status, Instant startedAt,
+                   Integer timeLimitSeconds) {
         this.userId = userId;
         this.type = type;
         this.part = part;
         this.status = status;
         this.startedAt = startedAt;
+        this.timeLimitSeconds = timeLimitSeconds;
         this.createdAt = startedAt;
     }
 

@@ -4,9 +4,9 @@ import com.engcoach.ai.AnthropicExplanationService;
 import com.engcoach.attempts.dto.AnswerResponse;
 import com.engcoach.attempts.dto.AttemptDetailResponse;
 import com.engcoach.attempts.dto.AttemptResponse;
-import com.engcoach.attempts.dto.QuestionView;
 import com.engcoach.attempts.dto.AttemptSummaryResponse;
 import com.engcoach.attempts.dto.ExplanationResponse;
+import com.engcoach.attempts.dto.QuestionView;
 import com.engcoach.attempts.dto.SaveAnswerRequest;
 import com.engcoach.attempts.dto.StartAttemptRequest;
 import com.engcoach.attempts.dto.SubmitAttemptResponse;
@@ -70,9 +70,19 @@ import java.util.Optional;
  * (history is SUBMITTED-only, most-recent-first by startedAt, delete is
  * not status-gated, Answer rows are deleted explicitly since Attempt/
  * Answer have no JPA cascade relationship).
+ *
+ * Slice S11 extends {@link #startAttempt} for {@code MOCK_TEST}: a fixed
+ * 7200-second (2-hour) time limit (approved decision #4), and the same
+ * "reject if the question set is empty" rule PART_PRACTICE already had,
+ * generalized to "the whole bank is empty" (approved decision #3). See
+ * SLICE-S11-NOTES.md. OQ-003 (exact timer-expiry behavior) stays
+ * deliberately unresolved here (approved decision #5) — that's S12's.
  */
 @Service
 public class AttemptsService {
+
+    /** S11 approved decision #4: TOEIC's real test duration, 2 hours. */
+    static final int MOCK_TEST_TIME_LIMIT_SECONDS = 2 * 60 * 60;
 
     private final AttemptRepository attemptRepository;
     private final AnswerRepository answerRepository;
@@ -104,11 +114,23 @@ public class AttemptsService {
             return AttemptResponse.from(existing);
         }
 
-        if ("PART_PRACTICE".equals(type) && !questionRepository.existsByPart(part)) {
-            throw new PartHasNoQuestionsException(part);
+        if ("PART_PRACTICE".equals(type)) {
+            if (!questionRepository.existsByPart(part)) {
+                throw new PartHasNoQuestionsException(part);
+            }
+        } else if ("MOCK_TEST".equals(type) && questionRepository.count() == 0) {
+            // Approved S11 design decision #3: same "don't create an
+            // empty, unplayable attempt" rule S6a already applied to a
+            // single empty Part, generalized to "the entire question
+            // bank is empty" for a mock test.
+            throw new PartHasNoQuestionsException();
         }
 
-        Attempt attempt = new Attempt(userId, type, part, Attempt.STATUS_IN_PROGRESS, Instant.now());
+        // Approved S11 design decision #4: a MOCK_TEST attempt gets a
+        // fixed time limit; PART_PRACTICE stays untimed (null), unchanged.
+        Integer timeLimitSeconds = "MOCK_TEST".equals(type) ? MOCK_TEST_TIME_LIMIT_SECONDS : null;
+        Attempt attempt = new Attempt(userId, type, part, Attempt.STATUS_IN_PROGRESS, Instant.now(),
+                timeLimitSeconds);
         attempt = attemptRepository.save(attempt);
         return AttemptResponse.from(attempt);
     }
@@ -152,24 +174,29 @@ public class AttemptsService {
         Long remainingSeconds = computeRemainingSeconds(attempt);
 
         // S7b: a PART_PRACTICE attempt's questions are every question of its
-        // Part (the same set S8a grades against). A MOCK_TEST has no assigned
-        // question set until S11, so it gets none here.
-        List<QuestionView> questions = "PART_PRACTICE".equals(attempt.getType()) && attempt.getPart() != null
-                ? questionRepository.findByPartOrderByIdAsc(attempt.getPart()).stream()
-                        .map(QuestionView::from).toList()
-                : List.of();
+        // Part (the same set S8a grades against). S11: a MOCK_TEST's
+        // questions are the whole bank (same "whatever grading uses, the
+        // detail view shows" precedent, extended to MOCK_TEST now that it
+        // has a real assigned question set too — approved S11 decision #1).
+        List<Question> assignedQuestions = "PART_PRACTICE".equals(attempt.getType()) && attempt.getPart() != null
+                ? questionRepository.findByPartOrderByIdAsc(attempt.getPart())
+                : "MOCK_TEST".equals(attempt.getType())
+                        ? questionRepository.findAllByOrderByIdAsc()
+                        : List.of();
+        List<QuestionView> questions = assignedQuestions.stream().map(QuestionView::from).toList();
 
         return AttemptDetailResponse.from(attempt, remainingSeconds, answers, questions);
     }
 
     /**
      * Approved S7a design decision #2: {@code null} when the attempt has no
-     * {@code timeLimitSeconds} (every {@code PART_PRACTICE} attempt, and
-     * every {@code MOCK_TEST} attempt until S11 starts setting it) — "no
-     * limit" is not the same as "0 seconds left." When a limit does exist,
-     * remaining time is always computed server-side from
-     * {@code startedAt}, per ADR-003: the client's own clock is never
-     * trusted.
+     * {@code timeLimitSeconds} (every {@code PART_PRACTICE} attempt —
+     * every {@code MOCK_TEST} attempt has one since S11) — "no limit" is
+     * not the same as "0 seconds left." When a limit does exist, remaining
+     * time is always computed server-side from {@code startedAt}, per
+     * ADR-003: the client's own clock is never trusted. Floors at 0 and
+     * never goes negative — what happens once it reaches 0 is OQ-003,
+     * deliberately left to S12 (approved S11 decision #5).
      */
     private Long computeRemainingSeconds(Attempt attempt) {
         Integer timeLimitSeconds = attempt.getTimeLimitSeconds();

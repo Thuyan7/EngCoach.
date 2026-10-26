@@ -768,15 +768,108 @@ class AttemptsControllerTest {
     }
 
     @Test
-    void getAttempt_onMockTest_returnsNoQuestionsUntilS11() throws Exception {
-        String token = registerAndGetToken("s7b-mock@example.com");
-        seedQuestion("Part 5");
+    void getAttempt_onMockTest_returnsTheWholeQuestionBank_sinceS11() throws Exception {
+        // Originally "...returnsNoQuestionsUntilS11": true when S7b was
+        // written, false now that S11 exists — MOCK_TEST's assigned
+        // question set is the whole bank (approved S11 decision #1), same
+        // "whatever grading uses, the detail view shows" precedent S7b
+        // established for PART_PRACTICE. Renamed and rewritten rather than
+        // silently left to fail or silently deleted.
+        String token = registerAndGetToken("s11-mock-questions@example.com");
+        Long first = seedQuestion("Part 5");
+        Long second = seedQuestion("Part 6");
         long attemptId = startAttemptAndGetId(token, Map.of("type", "MOCK_TEST"));
 
         mockMvc.perform(get("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.questions").isArray())
-                .andExpect(jsonPath("$.questions").isEmpty());
+                .andExpect(jsonPath("$.questions.length()").value(2))
+                .andExpect(jsonPath("$.questions[0].id").value(first))
+                .andExpect(jsonPath("$.questions[1].id").value(second))
+                .andExpect(jsonPath("$.questions[0].correctOption").doesNotExist());
+    }
+
+    // ---- S11: mock test (full question bank, timed) ----
+
+    @Test
+    void startAttempt_mockTestWithEmptyQuestionBank_returns422() throws Exception {
+        String token = registerAndGetToken("s11-empty-bank@example.com");
+        String body = objectMapper.writeValueAsString(Map.of("type", "MOCK_TEST"));
+
+        mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void startAttempt_mockTestWithQuestions_createsInProgressAttemptWithTimeLimit() throws Exception {
+        String token = registerAndGetToken("s11-start@example.com");
+        seedQuestion("Part 5");
+        String body = objectMapper.writeValueAsString(Map.of("type", "MOCK_TEST"));
+
+        mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.type").value("MOCK_TEST"))
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+    }
+
+    @Test
+    void getAttempt_onMockTest_returnsNonNullServerComputedRemainingSeconds() throws Exception {
+        String token = registerAndGetToken("s11-remaining@example.com");
+        seedQuestion("Part 5");
+        long attemptId = startAttemptAndGetId(token, Map.of("type", "MOCK_TEST"));
+
+        // Approved decision #4: a fixed 7200-second (2-hour) limit, just
+        // started, so remaining time must be a real number close to 7200
+        // — never null (that would mean "untimed", which MOCK_TEST no
+        // longer is) and never more than the limit itself.
+        mockMvc.perform(get("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.remainingSeconds").value(org.hamcrest.Matchers.lessThanOrEqualTo(7200)))
+                .andExpect(jsonPath("$.remainingSeconds").value(org.hamcrest.Matchers.greaterThan(7000)));
+    }
+
+    @Test
+    void startAttempt_mockTestCalledTwice_resumesSameAttempt() throws Exception {
+        String token = registerAndGetToken("s11-resume@example.com");
+        seedQuestion("Part 5");
+        String body = objectMapper.writeValueAsString(Map.of("type", "MOCK_TEST"));
+
+        String firstResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        long firstId = objectMapper.readTree(firstResponse).get("id").asLong();
+
+        mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(firstId));
+    }
+
+    @Test
+    void submitAttempt_mockTestAcrossMultipleParts_scoresAgainstTheWholeBank() throws Exception {
+        String token = registerAndGetToken("s11-submit@example.com");
+        Long correctQuestionId = seedQuestion("Part 5"); // correctOption = "A"
+        seedQuestion("Part 6"); // left unanswered — must still count toward totalQuestions
+        long attemptId = startAttemptAndGetId(token, Map.of("type", "MOCK_TEST"));
+
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + correctQuestionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isOk());
+
+        // Approved decisions #1/#2: totalQuestions for MOCK_TEST is now
+        // the whole bank (2), not just the one answer saved — the
+        // unanswered Part 6 question counts as incorrect, same mechanism
+        // PART_PRACTICE already used.
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUBMITTED"))
+                .andExpect(jsonPath("$.score").value(1))
+                .andExpect(jsonPath("$.totalQuestions").value(2))
+                .andExpect(jsonPath("$.answers.length()").value(1));
     }
 }
 

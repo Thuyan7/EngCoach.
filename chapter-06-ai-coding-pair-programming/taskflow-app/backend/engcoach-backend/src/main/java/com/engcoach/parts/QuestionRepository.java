@@ -38,4 +38,15 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
      * question sequence every time.
      */
     List<Question> findByPartOrderByIdAsc(String part);
+
+    /**
+     * S11: the {@code MOCK_TEST} equivalent of {@link #findByPartOrderByIdAsc}
+     * — every question in the whole bank, in a stable (by id) order,
+     * backing both {@code AttemptGradingService}'s grading (approved
+     * decisions #1/#2: the full bank is a {@code MOCK_TEST}'s "assigned
+     * question set") and {@code GET /attempts/{id}}'s question list
+     * (same "whatever grading uses, the detail view shows" precedent S7b
+     * established for {@code PART_PRACTICE}).
+     */
+    List<Question> findAllByOrderByIdAsc();
 }
