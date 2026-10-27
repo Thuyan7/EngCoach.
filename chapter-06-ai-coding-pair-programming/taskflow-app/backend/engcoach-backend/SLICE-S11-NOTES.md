@@ -158,6 +158,29 @@ attempted beyond visual review of every changed file against the 6
 approved decisions above, plus the leftover-code bug described above
 that was found and fixed this way.
 
-This file will be updated to **CONFIRMED** with exact test counts once
-the user runs the full suite locally (`mvn test`) and reports real
-output, following this project's established practice.
+## Verification status — CONFIRMED by real `mvn test` run
+
+The user ran the full suite locally:
+
+```
+Tests run: 71, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+`AttemptsControllerTest`: **43/43** — all 38 prior cases (8 S6a + 5 S7a
++ 6 S8a + 8 S8b + 9 S10a + 2 S7b) plus all 5 new S11 cases (mock test
+start on an empty bank → 422, mock test start with questions present →
+201/IN_PROGRESS, `GET /attempts/{id}` on a started mock test returns a
+non-null `remainingSeconds` close to 7200, starting a mock test twice
+resumes the same attempt, submitting a mock test spanning two Parts
+scores 1/2 with `totalQuestions=2`), plus the renamed/rewritten S7b
+test (`getAttempt_onMockTest_returnsTheWholeQuestionBank_sinceS11`,
+formerly `...returnsNoQuestionsUntilS11`) now correctly passing against
+S11's new behavior instead of the old one. Full class-by-class
+breakdown: `AttemptsControllerTest` 43, `AuthLoginTest` 4,
+`AuthPasswordResetTest` 7, `AuthRegistrationTest` 4, `JwtServiceTest` 5,
+`JwtProtectionTest` 5, `PartsControllerTest` 3 — sums to 71.
+
+**Net status: CONFIRMED. S11's own 5 new tests pass, the renamed S7b
+test correctly reflects S11's behavior, and the full suite (including
+every prior slice) is green at 71/71.**
