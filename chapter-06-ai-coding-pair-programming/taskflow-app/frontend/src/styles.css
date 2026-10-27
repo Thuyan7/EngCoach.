@@ -147,3 +147,25 @@ button, input{font-family:inherit;}
 .save-error{color:var(--danger);}
 .link-btn{background:none;border:none;color:var(--primary);font-size:12.5px;font-weight:700;padding:0;cursor:pointer;text-decoration:underline;}
 .q-actions{display:flex;gap:10px;margin-top:16px;max-width:720px;}
+
+/* ---- Result screen + submit (S9) ---- */
+.submit-area{margin-top:22px;max-width:720px;}
+.submit-confirm{background:#FFF6E0;border:1px solid #E8D9A8;border-radius:var(--radius-control);padding:12px 14px;}
+.submit-confirm p{margin:0 0 4px;font-size:14px;color:#5B4A12;}
+.submit-confirm .q-actions{margin-top:10px;}
+.result-score-card{max-width:420px;display:flex;flex-direction:column;}
+.result-score-card .label{font-size:12.5px;font-weight:600;color:var(--text-secondary);margin:0;}
+.result-big{font-family:var(--font-display);font-size:48px;font-weight:600;margin:4px 0 2px;letter-spacing:-0.015em;}
+.result-split{display:flex;gap:20px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+.result-split div{display:flex;flex-direction:column;}
+.rs-label{font-size:11.5px;color:var(--text-secondary);font-weight:600;}
+.rs-value{font-size:18px;font-weight:800;}
+.explain-list{list-style:none;padding:0;margin:0;max-width:760px;}
+.explain-card{border-radius:var(--radius-card);padding:14px 16px;margin-bottom:10px;}
+.explain-card.incorrect{background:var(--tint-danger-bg);}
+.explain-card.unavailable{background:var(--bg);border:1px dashed var(--border-strong);}
+.explain-card .q{font-size:13.5px;font-weight:700;color:var(--danger);margin:0 0 4px;}
+.explain-card.unavailable .q{color:var(--text-secondary);}
+.explain-card .body{font-size:13.5px;color:var(--text-secondary);margin:0 0 6px;white-space:pre-line;}
+.explain-card .body.prompt{color:var(--text);font-weight:600;}
+.link-btn:disabled{opacity:0.6;cursor:progress;}

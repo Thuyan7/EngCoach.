@@ -4,9 +4,9 @@ import { vi } from "vitest";
 import App from "../App.jsx";
 import { AuthProvider } from "../auth/AuthContext.jsx";
 
-export function renderApp(path = "/login") {
+export function renderApp(path = "/login", state) {
   return render(
-    <MemoryRouter initialEntries={[path]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <MemoryRouter initialEntries={[state ? { pathname: path, state } : path]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <App />
       </AuthProvider>

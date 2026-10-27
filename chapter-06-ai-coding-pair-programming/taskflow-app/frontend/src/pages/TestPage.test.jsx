@@ -187,4 +187,142 @@ describe("Test screen (S7b)", () => {
     expect(await screen.findByText(/no questions in this practice yet/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to Dashboard" })).toBeInTheDocument();
   });
+
+  describe("submitting (S9)", () => {
+    const allAnswered = () =>
+      [101, 102, 103, 104, 105].map((id, i) => ({ questionId: id, chosenOption: i === 0 ? "to submit" : "near" }));
+    const graded = { id: 7, status: "SUBMITTED", score: 3, totalQuestions: 5, answers: [] };
+
+    // The server reports SUBMITTED from the moment grading has happened, which
+    // is what the Result screen checks before showing anything.
+    function server({ saved = allAnswered(), submit = () => jsonResponse(200, graded), extra = {} } = {}) {
+      let submitted = false;
+      return routeFetch({
+        "GET /attempts/7": () =>
+          jsonResponse(200, attemptDetail({ answers: saved, status: submitted ? "SUBMITTED" : "IN_PROGRESS" })),
+        "POST /attempts/7/submit": (init) => {
+          const response = submit(init);
+          if (response instanceof Response && response.ok) submitted = true;
+          return response;
+        },
+        ...extra,
+      });
+    }
+
+    it("with every question answered, submits and shows the Result screen", async () => {
+      const user = userEvent.setup();
+      const fetchMock = server();
+      renderApp("/practice/7");
+
+      await user.click(await screen.findByRole("button", { name: "Submit for grading" }));
+
+      expect(await screen.findByRole("heading", { name: "Part 5 result" })).toBeInTheDocument();
+      expect(screen.getByText("3 / 5")).toBeInTheDocument();
+      expect(fetchMock.mock.calls.filter(([url]) => url === "/attempts/7/submit")).toHaveLength(1);
+    });
+
+    it("with unanswered questions, asks for confirmation first; Keep working cancels", async () => {
+      const user = userEvent.setup();
+      const fetchMock = routeFetch({
+        "GET /attempts/7": () => jsonResponse(200, attemptDetail({ answers: allAnswered().slice(0, 2) })),
+      });
+      renderApp("/practice/7");
+
+      await user.click(await screen.findByRole("button", { name: "Submit for grading" }));
+
+      expect(screen.getByRole("group", { name: "Confirm submission" })).toHaveTextContent(
+        "3 unanswered questions",
+      );
+      await user.click(screen.getByRole("button", { name: "Keep working" }));
+      expect(screen.queryByRole("group", { name: "Confirm submission" })).not.toBeInTheDocument();
+      expect(fetchMock.mock.calls.some(([url]) => url === "/attempts/7/submit")).toBe(false);
+    });
+
+    it("Submit anyway grades with unanswered questions", async () => {
+      const user = userEvent.setup();
+      server({ saved: allAnswered().slice(0, 2) });
+      renderApp("/practice/7");
+
+      await user.click(await screen.findByRole("button", { name: "Submit for grading" }));
+      await user.click(screen.getByRole("button", { name: "Submit anyway" }));
+
+      expect(await screen.findByRole("heading", { name: "Part 5 result" })).toBeInTheDocument();
+    });
+
+    it("shows a grading state and disables the button while the server grades", async () => {
+      const user = userEvent.setup();
+      server({ submit: () => new Promise(() => {}) }); // the server never answers
+      renderApp("/practice/7");
+
+      await user.click(await screen.findByRole("button", { name: "Submit for grading" }));
+
+      expect(await screen.findByRole("button", { name: "Grading…" })).toBeDisabled();
+      expect(screen.getByText(/Grading your answers/)).toBeInTheDocument();
+    });
+
+    it("a grading failure keeps the answers, shows an error, and lets the user try again", async () => {
+      const user = userEvent.setup();
+      let calls = 0;
+      server({ submit: () => (++calls === 1 ? jsonResponse(500, { title: "x" }) : jsonResponse(200, graded)) });
+      renderApp("/practice/7");
+
+      await user.click(await screen.findByRole("button", { name: "Submit for grading" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent("couldn't grade your attempt");
+
+      await user.click(screen.getByRole("button", { name: "Submit for grading" }));
+      expect(await screen.findByRole("heading", { name: "Part 5 result" })).toBeInTheDocument();
+    });
+
+    it("waits for an in-flight answer save before grading", async () => {
+      const user = userEvent.setup();
+      let releasePut;
+      const order = [];
+      server({
+        saved: allAnswered().slice(1),
+        submit: () => {
+          order.push("SUBMIT");
+          return jsonResponse(200, graded);
+        },
+        extra: {
+          "PUT /attempts/7/answers/101": () => {
+            order.push("PUT");
+            return new Promise((resolve) => (releasePut = () => resolve(jsonResponse(200, { questionId: 101 }))));
+          },
+        },
+      });
+      renderApp("/practice/7");
+
+      await user.click(await screen.findByRole("radio", { name: /B\. to submit/ })); // 5th answer, save pending
+      await user.click(screen.getByRole("button", { name: "Submit for grading" }));
+
+      expect(order).toEqual(["PUT"]); // not graded yet
+      releasePut();
+      expect(await screen.findByRole("heading", { name: "Part 5 result" })).toBeInTheDocument();
+      expect(order).toEqual(["PUT", "SUBMIT"]);
+    });
+
+    it("an answer that failed to save blocks submission and says why", async () => {
+      const user = userEvent.setup();
+      const fetchMock = routeFetch({
+        "GET /attempts/7": () => jsonResponse(200, attemptDetail({ answers: allAnswered().slice(1) })),
+        "PUT /attempts/7/answers/101": () => jsonResponse(500, { title: "x" }),
+      });
+      renderApp("/practice/7");
+
+      await user.click(await screen.findByRole("radio", { name: /B\. to submit/ }));
+      await screen.findByText(/Couldn't save this answer/);
+      await user.click(screen.getByRole("button", { name: "Submit for grading" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent("Some answers couldn't be saved yet");
+      expect(fetchMock.mock.calls.some(([url]) => url === "/attempts/7/submit")).toBe(false);
+    });
+
+    it("an already-submitted attempt has no Submit button, only a link to its result", async () => {
+      routeFetch({ "GET /attempts/7": () => jsonResponse(200, attemptDetail({ status: "SUBMITTED" })) });
+      renderApp("/practice/7");
+
+      expect(await screen.findByRole("link", { name: "View result" })).toHaveAttribute("href", "/result/7");
+      expect(screen.queryByRole("button", { name: "Submit for grading" })).not.toBeInTheDocument();
+    });
+  });
 });

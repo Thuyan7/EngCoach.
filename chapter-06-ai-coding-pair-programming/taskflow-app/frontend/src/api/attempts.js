@@ -28,3 +28,22 @@ export function saveAnswer(token, attemptId, questionId, chosenOption) {
 export function listAttempts(token) {
   return request("/attempts", { token });
 }
+
+// POST /attempts/{id}/submit -> 200 {id,status:"SUBMITTED",score,totalQuestions,
+// answers:[{questionId,chosenOption,isCorrect,explanationStatus,explanationText}]}
+// (S8a/S8b). Idempotent: submitting an already-submitted attempt returns the
+// stored result without regrading. Grading + AI explanations can take a while.
+// `answers` only lists questions that have a saved answer.
+export function submitAttempt(token, attemptId) {
+  return request(`/attempts/${attemptId}/submit`, { method: "POST", token });
+}
+
+// POST /attempts/{id}/answers/{questionId}/retry-explanation -> 200
+// {questionId, explanationStatus: "OK"|"UNAVAILABLE", explanationText}.
+// 409 when the attempt isn't submitted or that explanation isn't UNAVAILABLE.
+export function retryExplanation(token, attemptId, questionId) {
+  return request(`/attempts/${attemptId}/answers/${questionId}/retry-explanation`, {
+    method: "POST",
+    token,
+  });
+}

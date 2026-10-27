@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { getAttempt, saveAnswer } from "../api/attempts.js";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { getAttempt, saveAnswer, submitAttempt } from "../api/attempts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 // S7b. Everything comes from the API: GET /attempts/{id} returns the
@@ -10,6 +10,7 @@ const letter = (i) => String.fromCharCode(65 + i);
 export default function TestPage() {
   const { attemptId } = useParams();
   const { token, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const [load, setLoad] = useState({ status: "loading" });
   const [attempt, setAttempt] = useState(null);
@@ -21,6 +22,9 @@ export default function TestPage() {
   // One chain of PUTs per question, so rapid re-answers reach the server in
   // the order the user made them.
   const chains = useRef({});
+  // Questions whose latest save failed; a submit is blocked while any remain.
+  const failedSaves = useRef(new Set());
+  const [submitState, setSubmitState] = useState({ status: "idle" }); // idle|confirming|grading|error
 
   useEffect(() => {
     let cancelled = false;
@@ -60,14 +64,42 @@ export default function TestPage() {
       chains.current[questionId] = previous
         .catch(() => {})
         .then(() => saveAnswer(token, attemptId, questionId, option))
-        .then(() => setSaveState((s) => ({ ...s, [questionId]: "saved" })))
+        .then(() => {
+          failedSaves.current.delete(questionId);
+          setSaveState((s) => ({ ...s, [questionId]: "saved" }));
+        })
         .catch((err) => {
           if (err.status === 401) return signOut();
+          failedSaves.current.add(questionId);
           setSaveState((s) => ({ ...s, [questionId]: "error" }));
         });
     },
     [token, attemptId, signOut],
   );
+
+  async function submit() {
+    setSubmitState({ status: "grading" });
+    // Let every in-flight answer save finish first, so nothing typed a moment
+    // ago is missing when the server grades.
+    await Promise.all(Object.values(chains.current));
+    if (failedSaves.current.size > 0) {
+      setSubmitState({ status: "error", reason: "unsaved" });
+      return;
+    }
+    try {
+      const result = await submitAttempt(token, attemptId);
+      navigate(`/result/${attemptId}`, { state: { result } });
+    } catch (err) {
+      if (err.status === 401) return signOut();
+      setSubmitState({ status: "error", reason: "grading" });
+    }
+  }
+
+  function startSubmit() {
+    const unanswered = questions.filter((q) => answers[q.id] === undefined).length;
+    if (unanswered > 0) setSubmitState({ status: "confirming" });
+    else submit();
+  }
 
   function choose(questionId, option) {
     setAnswers((a) => ({ ...a, [questionId]: option }));
@@ -135,7 +167,8 @@ export default function TestPage() {
 
       {locked && (
         <div className="sample-banner" role="note">
-          This attempt has already been submitted, so answers can no longer be changed.
+          This attempt has already been submitted, so answers can no longer be changed.{" "}
+          <Link to={`/result/${attempt.id}`}>View result</Link>
         </div>
       )}
 
@@ -218,6 +251,52 @@ export default function TestPage() {
           Next
         </button>
       </div>
+
+      {!locked && (
+        <div className="submit-area">
+          {submitState.status === "confirming" && (
+            <div className="submit-confirm" role="group" aria-label="Confirm submission">
+              <p>
+                You have {questions.length - answeredCount} unanswered question
+                {questions.length - answeredCount === 1 ? "" : "s"}. They will be marked incorrect.
+              </p>
+              <div className="q-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setSubmitState({ status: "idle" })}>
+                  Keep working
+                </button>
+                <button type="button" className="btn btn-primary" onClick={submit}>
+                  Submit anyway
+                </button>
+              </div>
+            </div>
+          )}
+
+          {submitState.status === "error" && (
+            <div className="error-msg" role="alert">
+              {submitState.reason === "unsaved"
+                ? "Some answers couldn't be saved yet. Use Retry on them, then submit again."
+                : "We couldn't grade your attempt. Your answers are saved — please try again."}
+            </div>
+          )}
+
+          {submitState.status === "grading" && (
+            <p className="save-status" role="status" aria-live="polite">
+              Grading your answers… explanations can take a few seconds.
+            </p>
+          )}
+
+          {submitState.status !== "confirming" && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={submitState.status === "grading"}
+              onClick={startSubmit}
+            >
+              {submitState.status === "grading" ? "Grading…" : "Submit for grading"}
+            </button>
+          )}
+        </div>
+      )}
     </>
   );
 }
