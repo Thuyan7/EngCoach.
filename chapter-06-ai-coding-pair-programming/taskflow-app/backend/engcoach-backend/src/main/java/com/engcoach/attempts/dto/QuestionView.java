@@ -18,14 +18,16 @@ import java.util.List;
  * {@code Question.correctOption}, so correctOption must equal one of the
  * entries in options.
  */
-public record QuestionView(Long id, String prompt, List<String> options) {
+public record QuestionView(Long id, String prompt, List<String> options,
+                           String passage, String imageUrl, String audioUrl) {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static QuestionView from(Question question) {
         try {
             List<String> options = MAPPER.readValue(question.getOptions(), new TypeReference<List<String>>() { });
-            return new QuestionView(question.getId(), question.getPrompt(), options);
+            return new QuestionView(question.getId(), question.getPrompt(), options,
+                    question.getPassage(), question.getImageUrl(), question.getAudioUrl());
         } catch (Exception e) {
             // A malformed options value is a data error in the question bank,
             // not something the caller can fix; name the question so it can

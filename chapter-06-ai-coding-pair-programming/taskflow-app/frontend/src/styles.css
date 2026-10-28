@@ -169,3 +169,36 @@ button, input{font-family:inherit;}
 .explain-card .body{font-size:13.5px;color:var(--text-secondary);margin:0 0 6px;white-space:pre-line;}
 .explain-card .body.prompt{color:var(--text);font-weight:600;}
 .link-btn:disabled{opacity:0.6;cursor:progress;}
+
+
+/* Question-bank context/media (optional fields returned by GET /attempts/{id}). */
+.question-passage{
+  margin:0 0 22px;
+  padding:18px 20px;
+  border:1px solid var(--border);
+  border-left:4px solid var(--primary);
+  border-radius:var(--radius-control);
+  background:#F8FAFC;
+}
+.question-passage h2{
+  margin:0 0 10px;
+  font-size:15px;
+  font-weight:700;
+}
+.question-passage p{
+  margin:0;
+  white-space:pre-line;
+  line-height:1.7;
+  font-size:14px;
+}
+.question-media-image{
+  display:block;
+  max-width:100%;
+  height:auto;
+  max-height:420px;
+  object-fit:contain;
+  margin:0 0 18px;
+  border-radius:var(--radius-control);
+}
+.question-media-audio{margin:0 0 18px;}
+.question-media-audio audio{width:100%;max-width:560px;}

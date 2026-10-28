@@ -1,0 +1,86 @@
+[
+  {
+    "part": "Part 5",
+    "prompt": "The purchasing department will place the order _____ the manager approves the budget.",
+    "options": [
+      "during",
+      "once",
+      "unless",
+      "despite"
+    ],
+    "correctOption": "once",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Ms. Rivera has worked at the company _____ 2021.",
+    "options": [
+      "for",
+      "since",
+      "during",
+      "while"
+    ],
+    "correctOption": "since",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null
+  },
+  {
+    "part": "Part 6",
+    "passage": "NOTICE TO ALL STAFF\n\nThe second-floor offices will be renovated next week. Please remove personal items from your desks by Friday afternoon. Temporary workstations will be available on the first floor. Contact the facilities team if you need assistance.",
+    "prompt": "Employees should remove their personal items by Friday _____ contractors can begin work on Monday.",
+    "options": [
+      "so that",
+      "even though",
+      "unless",
+      "because of"
+    ],
+    "correctOption": "so that",
+    "imageUrl": null,
+    "audioUrl": null
+  },
+  {
+    "part": "Part 6",
+    "passage": "NOTICE TO ALL STAFF\n\nThe second-floor offices will be renovated next week. Please remove personal items from your desks by Friday afternoon. Temporary workstations will be available on the first floor. Contact the facilities team if you need assistance.",
+    "prompt": "Questions about temporary workstations should be directed _____ the facilities team.",
+    "options": [
+      "at",
+      "to",
+      "with",
+      "from"
+    ],
+    "correctOption": "to",
+    "imageUrl": null,
+    "audioUrl": null
+  },
+  {
+    "part": "Part 7",
+    "passage": "From: Maya Chen, Training Coordinator\nTo: Workshop Participants\nSubject: Change of Training Room\n\nHello everyone,\n\nThe customer-service workshop scheduled for Thursday will still take place at 10:00 a.m., but we need to move it to Room 204 because the main conference room is being repaired. Please bring the workbook distributed last week. If you cannot attend, let me know by Wednesday afternoon.\n\nThank you,\nMaya",
+    "prompt": "Why was the workshop moved to Room 204?",
+    "options": [
+      "The workbook is not ready.",
+      "The main conference room is being repaired.",
+      "The workshop starts earlier.",
+      "Room 204 has more computers."
+    ],
+    "correctOption": "The main conference room is being repaired.",
+    "imageUrl": null,
+    "audioUrl": null
+  },
+  {
+    "part": "Part 7",
+    "passage": "From: Maya Chen, Training Coordinator\nTo: Workshop Participants\nSubject: Change of Training Room\n\nHello everyone,\n\nThe customer-service workshop scheduled for Thursday will still take place at 10:00 a.m., but we need to move it to Room 204 because the main conference room is being repaired. Please bring the workbook distributed last week. If you cannot attend, let me know by Wednesday afternoon.\n\nThank you,\nMaya",
+    "prompt": "What should participants bring to the workshop?",
+    "options": [
+      "A printed invoice",
+      "A laptop charger",
+      "The workbook distributed last week",
+      "A visitor badge"
+    ],
+    "correctOption": "The workbook distributed last week",
+    "imageUrl": null,
+    "audioUrl": null
+  }
+]
