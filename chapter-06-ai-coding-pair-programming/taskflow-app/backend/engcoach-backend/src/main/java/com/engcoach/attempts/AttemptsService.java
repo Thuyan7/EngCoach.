@@ -13,6 +13,8 @@ import com.engcoach.attempts.dto.SubmitAttemptResponse;
 import com.engcoach.common.AnswerNotFoundException;
 import com.engcoach.common.AttemptAccessDeniedException;
 import com.engcoach.common.AttemptNotFoundException;
+import com.engcoach.common.AttemptNotInProgressException;
+import com.engcoach.common.InvalidAnswerException;
 import com.engcoach.common.ExplanationRetryNotAllowedException;
 import com.engcoach.common.PartHasNoQuestionsException;
 import com.engcoach.parts.Question;
@@ -141,6 +143,18 @@ public class AttemptsService {
                 .orElseThrow(AttemptNotFoundException::new);
         if (!attempt.getUserId().equals(userId)) {
             throw new AttemptAccessDeniedException();
+        }
+        if (!Attempt.STATUS_IN_PROGRESS.equals(attempt.getStatus())) {
+            throw new AttemptNotInProgressException();
+        }
+
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(InvalidAnswerException::new);
+        boolean belongsToAttempt = "MOCK_TEST".equals(attempt.getType())
+                || ("PART_PRACTICE".equals(attempt.getType())
+                    && attempt.getPart() != null && attempt.getPart().equals(question.getPart()));
+        if (!belongsToAttempt || !QuestionView.from(question).options().contains(request.getChosenOption())) {
+            throw new InvalidAnswerException();
         }
 
         Answer answer = answerRepository.findByAttemptIdAndQuestionId(attemptId, questionId)

@@ -190,6 +190,62 @@ class AttemptsControllerTest {
     }
 
     @Test
+    void saveAnswer_optionNotPresentInQuestion_returns422() throws Exception {
+        String token = registerAndGetToken("s6a-invalid-option@example.com");
+        Long questionId = seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        String body = objectMapper.writeValueAsString(Map.of("chosenOption", "not-an-option"));
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + questionId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void saveAnswer_questionFromDifferentPart_returns422() throws Exception {
+        String token = registerAndGetToken("s6a-wrong-part@example.com");
+        seedQuestion("Part 5");
+        Long part7QuestionId = seedQuestion("Part 7");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        String body = objectMapper.writeValueAsString(Map.of("chosenOption", "A"));
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + part7QuestionId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void saveAnswer_afterSubmission_returns409() throws Exception {
+        String token = registerAndGetToken("s6a-submitted-answer@example.com");
+        Long questionId = seedQuestion("Part 5");
+        String startBody = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 5"));
+        String startResponse = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(startBody))
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        String body = objectMapper.writeValueAsString(Map.of("chosenOption", "A"));
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + questionId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     void saveAnswer_onAnotherUsersAttempt_returns403() throws Exception {
         String ownerToken = registerAndGetToken("s6a-owner@example.com");
         String intruderToken = registerAndGetToken("s6a-intruder@example.com");

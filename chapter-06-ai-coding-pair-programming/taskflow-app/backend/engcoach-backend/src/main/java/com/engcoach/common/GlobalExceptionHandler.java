@@ -80,6 +80,27 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(AttemptNotInProgressException.class)
+    public ProblemDetail handleAttemptNotInProgress(AttemptNotInProgressException ex,
+                                                      HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "attempt-not-in-progress"));
+        problem.setTitle("Attempt is not in progress");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidAnswerException.class)
+    public ProblemDetail handleInvalidAnswer(InvalidAnswerException ex,
+                                               HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "invalid-answer"));
+        problem.setTitle("Invalid answer");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
     @ExceptionHandler(PartHasNoQuestionsException.class)
     public ProblemDetail handlePartHasNoQuestions(PartHasNoQuestionsException ex,
                                                     HttpServletRequest request) {
