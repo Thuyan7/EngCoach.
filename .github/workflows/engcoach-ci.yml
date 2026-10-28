@@ -1,0 +1,60 @@
+name: EngCoach CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "chapter-06-ai-coding-pair-programming/taskflow-app/backend/engcoach-backend/**"
+      - "chapter-06-ai-coding-pair-programming/taskflow-app/frontend/**"
+      - ".github/workflows/engcoach-ci.yml"
+  pull_request:
+    paths:
+      - "chapter-06-ai-coding-pair-programming/taskflow-app/backend/engcoach-backend/**"
+      - "chapter-06-ai-coding-pair-programming/taskflow-app/frontend/**"
+      - ".github/workflows/engcoach-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend tests (Java 21 / Maven)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chapter-06-ai-coding-pair-programming/taskflow-app/backend/engcoach-backend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: chapter-06-ai-coding-pair-programming/taskflow-app/backend/engcoach-backend/pom.xml
+      - name: Run backend tests
+        run: mvn --batch-mode --no-transfer-progress test
+
+  frontend:
+    name: Frontend tests and production build (Node 20)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chapter-06-ai-coding-pair-programming/taskflow-app/frontend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: chapter-06-ai-coding-pair-programming/taskflow-app/frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run frontend tests
+        run: npm test
+      - name: Build frontend
+        run: npm run build
