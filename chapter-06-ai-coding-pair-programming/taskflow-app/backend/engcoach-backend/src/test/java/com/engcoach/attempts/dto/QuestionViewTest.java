@@ -1,60 +1,44 @@
 package com.engcoach.attempts.dto;
 
 import com.engcoach.parts.Question;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class QuestionViewTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     @Test
-    void mapsPassageAndMediaWithoutExposingAnswerKey() throws Exception {
-        String options = objectMapper.writeValueAsString(List.of("Room A", "Room B", "Room C", "Room D"));
+    void exposesQuestionContentAndMediaWithoutAnswerKey() {
         Question question = new Question(
                 "Part 7",
-                "Why was the meeting moved?",
-                options,
-                "Room B",
-                "The meeting will take place in Room B.",
-                "https://example.com/meeting.png",
-                "https://example.com/meeting.mp3"
-        );
+                "What is the purpose of the notice?",
+                "[\"To announce a schedule change\",\"To request payment\"]",
+                "To announce a schedule change",
+                "Office notice: The meeting will begin at 10 a.m.",
+                "https://example.com/notice.jpg",
+                "https://example.com/notice.mp3");
 
         QuestionView view = QuestionView.from(question);
 
-        assertEquals(question.getPrompt(), view.prompt());
-        assertEquals(question.getPassage(), view.passage());
-        assertEquals(question.getImageUrl(), view.imageUrl());
-        assertEquals(question.getAudioUrl(), view.audioUrl());
-        assertEquals(4, view.options().size());
-
-        JsonNode response = objectMapper.valueToTree(view);
-        assertTrue(response.has("options"));
-        assertTrue(response.has("passage"));
-        assertTrue(response.has("imageUrl"));
-        assertTrue(response.has("audioUrl"));
-        assertFalse(response.has("correctOption"),
-                "The answer key must not be included in the question response.");
-        assertFalse(response.has("correct_option"),
-                "The answer key must not be included in the question response.");
+        assertEquals("What is the purpose of the notice?", view.prompt());
+        assertEquals(2, view.options().size());
+        assertEquals("To announce a schedule change", view.options().get(0));
+        assertEquals("Office notice: The meeting will begin at 10 a.m.", view.passage());
+        assertEquals("https://example.com/notice.jpg", view.imageUrl());
+        assertEquals("https://example.com/notice.mp3", view.audioUrl());
+        assertFalse(java.util.Arrays.stream(QuestionView.class.getRecordComponents())
+                .anyMatch(component -> component.getName().equals("correctOption")));
     }
 
     @Test
-    void rejectsMalformedOptionsWithClearError() {
-        Question question = new Question("Part 5", "Choose one.", "not-json", "A");
+    void rejectsMalformedOptionsWithQuestionIdInError() {
+        Question question = new Question("Part 5", "Choose the answer", "not-json", "A");
 
         IllegalStateException error = assertThrows(
                 IllegalStateException.class, () -> QuestionView.from(question));
 
-        assertTrue(error.getMessage().contains("options that are not a JSON array of strings"));
+        assertEquals("Question null has options that are not a JSON array of strings", error.getMessage());
     }
 }
