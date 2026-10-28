@@ -2,10 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 // Sidebar shell from the approved prototype (Dashboard / Practice / Progress).
-// Practice and Progress screens are later slices (S7b, S10b), so those two
-// items are shown but disabled instead of linking to routes that don't exist.
-// Not ported: the prototype's search box, "Reading & Listening" chip, promo
-// card and user name — none has a backing feature or API yet.
+// Practice remains disabled until a dedicated practice index is in scope.
 export default function AppShell() {
   const { signOut } = useAuth();
   return (
@@ -32,9 +29,9 @@ export default function AppShell() {
             </button>
           </li>
           <li>
-            <button type="button" className="nav-item" aria-disabled="true" title="Coming soon">
+            <NavLink to="/progress" className="nav-item">
               Progress
-            </button>
+            </NavLink>
           </li>
         </ul>
 

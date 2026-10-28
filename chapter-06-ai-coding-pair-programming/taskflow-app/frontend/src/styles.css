@@ -171,6 +171,49 @@ button, input{font-family:inherit;}
 .link-btn:disabled{opacity:0.6;cursor:progress;}
 
 
+/* ---- Progress/history screen (S10b) ---- */
+.progress-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:22px;}
+.progress-summary .stat{min-width:0;}
+.trend-card{margin-bottom:22px;}
+.trend-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px;}
+.trend-heading h2{font-family:var(--font-display);font-size:18px;font-weight:600;margin:0 0 4px;}
+.trend-heading p{font-size:12.5px;color:var(--text-secondary);margin:0;}
+.trend-chart{display:block;width:100%;height:auto;overflow:visible;}
+.trend-gridline{stroke:var(--border);stroke-width:1;stroke-dasharray:3 4;}
+.trend-line{fill:none;stroke:var(--primary);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+.trend-point{fill:var(--surface);stroke:var(--primary);stroke-width:2.5;}
+.trend-labels{display:flex;justify-content:space-between;gap:8px;color:var(--text-secondary);font-size:11px;margin-top:6px;}
+.history-card{padding:0;overflow:hidden;}
+.history-title{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px;border-bottom:1px solid var(--border);}
+.history-title h2{font-family:var(--font-display);font-size:18px;font-weight:600;margin:0;}
+.history-count{font-size:12px;color:var(--text-secondary);}
+.history-list{list-style:none;padding:0;margin:0;}
+.history-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid var(--border);}
+.history-row:last-child{border-bottom:0;}
+.history-meta{min-width:0;}
+.history-name{font-size:13.5px;font-weight:700;margin:0 0 4px;}
+.history-date{font-size:12px;color:var(--text-secondary);margin:0;}
+.history-score{text-align:right;white-space:nowrap;}
+.history-score strong{display:block;font-size:15px;}
+.history-score span{font-size:11.5px;color:var(--text-secondary);}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid var(--border);border-radius:var(--radius-control);background:var(--surface);color:var(--text-secondary);font-size:18px;cursor:pointer;}
+.icon-btn:hover:not(:disabled){border-color:var(--danger);color:var(--danger);background:var(--tint-danger-bg);}
+.icon-btn:disabled{opacity:.5;cursor:progress;}
+.history-delete-error{font-size:12.5px;color:var(--danger);margin:8px 22px 14px;}
+.delete-backdrop{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(17,31,45,.45);}
+.delete-dialog{width:min(100%,440px);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-card);padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.delete-dialog h2{font-family:var(--font-display);font-size:21px;margin:0 0 8px;}
+.delete-dialog p{font-size:13.5px;color:var(--text-secondary);line-height:1.55;margin:0 0 20px;}
+.delete-dialog-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;}
+.btn-danger{background:var(--danger);color:#fff;border-color:var(--danger);}
+.btn-danger:hover:not(:disabled){background:#842424;}
+@media (max-width:600px){
+  .progress-summary{grid-template-columns:1fr 1fr;gap:8px;}
+  .history-row{grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:14px;}
+  .history-row .icon-btn{grid-column:2;grid-row:1;}
+  .history-score{grid-column:1;grid-row:2;text-align:left;}
+  .history-title{padding:16px;}
+}
 /* Question-bank context/media (optional fields returned by GET /attempts/{id}). */
 .question-passage{
   margin:0 0 22px;
