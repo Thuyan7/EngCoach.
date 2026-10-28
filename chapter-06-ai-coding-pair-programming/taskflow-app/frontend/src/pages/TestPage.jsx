@@ -7,6 +7,12 @@ import { useAuth } from "../auth/AuthContext.jsx";
 // questions (id, prompt, options — never the answer key), the saved answers
 // and the status; each answer is auto-saved with PUT.
 const letter = (i) => String.fromCharCode(65 + i);
+const formatTime = (seconds) => {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainder = safeSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
+};
 export default function TestPage() {
   const { attemptId } = useParams();
   const { token, signOut } = useAuth();
@@ -25,6 +31,9 @@ export default function TestPage() {
   // Questions whose latest save failed; a submit is blocked while any remain.
   const failedSaves = useRef(new Set());
   const [submitState, setSubmitState] = useState({ status: "idle" }); // idle|confirming|grading|error
+  const [remainingSeconds, setRemainingSeconds] = useState(null);
+  const submissionLock = useRef(false);
+  const autoSubmitTriggered = useRef(false);
 
   useEffect(() => {
     let cancelled = false;

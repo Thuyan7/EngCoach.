@@ -347,4 +347,30 @@ describe("Test screen (S7b)", () => {
       expect(screen.queryByRole("button", { name: "Submit for grading" })).not.toBeInTheDocument();
     });
   });
+
+  describe("mock-test timer (S12)", () => {
+    it("shows the server-computed countdown for a mock test", async () => {
+      routeFetch({
+        "GET /attempts/7": () =>
+          jsonResponse(200, attemptDetail({ type: "MOCK_TEST", part: null, remainingSeconds: 3661 })),
+      });
+      renderApp("/practice/7");
+
+      expect(await screen.findByRole("timer", { name: "Time remaining" })).toHaveTextContent("Time remaining: 61:01");
+      expect(screen.getByRole("heading", { name: "Mock test" })).toBeInTheDocument();
+    });
+
+    it("automatically submits a mock test when the server-computed time reaches zero", async () => {
+      const fetchMock = routeFetch({
+        "GET /attempts/7": () =>
+          jsonResponse(200, attemptDetail({ type: "MOCK_TEST", part: null, remainingSeconds: 0 })),
+        "POST /attempts/7/submit": () =>
+          jsonResponse(200, { id: 7, status: "SUBMITTED", score: 3, totalQuestions: 5, answers: [] }),
+      });
+      renderApp("/practice/7");
+
+      expect(await screen.findByText("3 / 5")).toBeInTheDocument();
+      expect(fetchMock.mock.calls.filter(([url, init]) => url === "/attempts/7/submit" && init?.method === "POST")).toHaveLength(1);
+    });
+  });
 });
