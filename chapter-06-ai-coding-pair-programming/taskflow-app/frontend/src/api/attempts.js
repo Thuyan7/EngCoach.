@@ -29,6 +29,11 @@ export function listAttempts(token) {
   return request("/attempts", { token });
 }
 
+// DELETE /attempts/{id} -> 204. Only the caller's own attempt can be deleted.
+export function deleteAttempt(token, attemptId) {
+  return request(`/attempts/${attemptId}`, { method: "DELETE", token });
+}
+
 // POST /attempts/{id}/submit -> 200 {id,status:"SUBMITTED",score,totalQuestions,
 // answers:[{questionId,chosenOption,isCorrect,explanationStatus,explanationText}]}
 // (S8a/S8b). Idempotent: submitting an already-submitted attempt returns the
