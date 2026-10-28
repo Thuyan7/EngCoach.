@@ -60,7 +60,7 @@ class AttemptQuestionPayloadTest {
         questionRepository.save(new Question(
                 "Part 7",
                 "What is the notice about?",
-                "[\\"An office renovation\\",\\"A holiday schedule\\"]",
+                "[\"An office renovation\",\"A holiday schedule\"]",
                 "An office renovation",
                 "NOTICE TO STAFF: The second-floor offices will be renovated.",
                 "https://example.com/office.jpg",
