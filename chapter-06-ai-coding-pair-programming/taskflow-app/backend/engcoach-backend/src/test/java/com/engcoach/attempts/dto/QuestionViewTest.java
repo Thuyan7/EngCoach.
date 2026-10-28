@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class QuestionViewTest {
 
@@ -15,10 +18,11 @@ class QuestionViewTest {
 
     @Test
     void mapsPassageAndMediaWithoutExposingAnswerKey() throws Exception {
+        String options = objectMapper.writeValueAsString(List.of("Room A", "Room B", "Room C", "Room D"));
         Question question = new Question(
                 "Part 7",
                 "Why was the meeting moved?",
-                "[\"Room A\",\"Room B\",\"Room C\",\"Room D\"]",
+                options,
                 "Room B",
                 "The meeting will take place in Room B.",
                 "https://example.com/meeting.png",
@@ -45,12 +49,12 @@ class QuestionViewTest {
     }
 
     @Test
-    void rejectsMalformedOptionsWithQuestionIdInError() {
+    void rejectsMalformedOptionsWithClearError() {
         Question question = new Question("Part 5", "Choose one.", "not-json", "A");
 
-        IllegalStateException error = org.junit.jupiter.api.Assertions.assertThrows(
+        IllegalStateException error = assertThrows(
                 IllegalStateException.class, () -> QuestionView.from(question));
 
-        assertTrue(error.getMessage().contains("Question null"));
+        assertTrue(error.getMessage().contains("options that are not a JSON array of strings"));
     }
 }
