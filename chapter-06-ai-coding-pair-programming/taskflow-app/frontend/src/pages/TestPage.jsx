@@ -190,6 +190,27 @@ export default function TestPage() {
 
       {question && (
         <div className="card question-card">
+          {question.passage && (
+            <section className="question-passage" aria-label="Reading passage">
+              <h2>Read the passage</h2>
+              <p>{question.passage}</p>
+            </section>
+          )}
+          {question.imageUrl && (
+            <img
+              className="question-media-image"
+              src={question.imageUrl}
+              alt={`Illustration for question ${index + 1}`}
+              loading="lazy"
+            />
+          )}
+          {question.audioUrl && (
+            <div className="question-media-audio">
+              <audio controls preload="none" src={question.audioUrl} aria-label={`Audio for question ${index + 1}`}>
+                Your browser does not support audio playback.
+              </audio>
+            </div>
+          )}
           <fieldset className="question" key={question.id}>
             <legend>
               <span className="q-count">

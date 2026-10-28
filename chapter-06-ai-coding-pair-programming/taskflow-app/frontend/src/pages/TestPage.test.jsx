@@ -30,6 +30,28 @@ describe("Test screen (S7b)", () => {
     expect(screen.queryByText(/Sample questions/)).not.toBeInTheDocument();
   });
 
+  it("renders an optional reading passage, image, and audio without exposing an answer key", async () => {
+    const detail = attemptDetail({
+      questions: [{
+        id: 101,
+        prompt: "What is the notice about?",
+        options: ["An office renovation", "A holiday schedule"],
+        passage: "NOTICE TO STAFF\nThe second-floor offices will be renovated.",
+        imageUrl: "https://example.com/office.jpg",
+        audioUrl: "https://example.com/notice.mp3",
+      }],
+    });
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, detail) });
+    const { container } = renderApp("/practice/7");
+
+    expect(await screen.findByText(/The second-floor offices will be renovated/)).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Illustration for question 1" })).toHaveAttribute(
+      "src", "https://example.com/office.jpg",
+    );
+    expect(container.querySelector("audio")).toHaveAttribute("src", "https://example.com/notice.mp3");
+    expect(screen.queryByText(/correctOption/i)).not.toBeInTheDocument();
+  });
+
   it("answering calls PUT /attempts/{id}/answers/{questionId} with the chosen option and shows Saved", async () => {
     const user = userEvent.setup();
     const fetchMock = routeFetch({

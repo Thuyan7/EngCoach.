@@ -11,16 +11,10 @@ import jakarta.persistence.Table;
 /**
  * Maps 1:1 to the {@code Question} entity in
  * chapter-05-ai-for-software-design-architecture/design/data-model.mmd.
- * Fields: id, part, prompt, options, correct_option.
- *
- * S5a scope only: this slice reads {@code part} (via
- * {@link QuestionRepository#findDistinctParts()}) to back {@code GET
- * /parts}. {@code prompt}/{@code options}/{@code correctOption} are mapped
- * here because they're part of the approved entity, but nothing in this
- * slice reads or writes them — no question-authoring/seeding mechanism and
- * no grading logic exist yet (grading is S8a+). {@code options} is stored
- * as a raw JSON string, not parsed into a structured type, since no caller
- * needs it parsed until a later slice does.
+ * Core fields: id, part, prompt, options, correct_option. Optional passage
+ * and media URLs support TOEIC reading/listening material. The options field
+ * remains a JSON array of strings so the existing grading contract stays
+ * unchanged; correctOption must exactly match one of those strings.
  */
 @Entity
 @Table(name = "questions")
@@ -44,15 +38,33 @@ public class Question {
     @Column(name = "correct_option", nullable = false)
     private String correctOption;
 
+    @Lob
+    @Column
+    private String passage;
+
+    @Column(length = 2048)
+    private String imageUrl;
+
+    @Column(length = 2048)
+    private String audioUrl;
+
     protected Question() {
         // required by JPA
     }
 
     public Question(String part, String prompt, String options, String correctOption) {
+        this(part, prompt, options, correctOption, null, null, null);
+    }
+
+    public Question(String part, String prompt, String options, String correctOption,
+                    String passage, String imageUrl, String audioUrl) {
         this.part = part;
         this.prompt = prompt;
         this.options = options;
         this.correctOption = correctOption;
+        this.passage = passage;
+        this.imageUrl = imageUrl;
+        this.audioUrl = audioUrl;
     }
 
     public Long getId() {
@@ -73,5 +85,17 @@ public class Question {
 
     public String getCorrectOption() {
         return correctOption;
+    }
+
+    public String getPassage() {
+        return passage;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public String getAudioUrl() {
+        return audioUrl;
     }
 }

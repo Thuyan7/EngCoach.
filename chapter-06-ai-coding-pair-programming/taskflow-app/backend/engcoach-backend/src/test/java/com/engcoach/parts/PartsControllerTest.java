@@ -17,11 +17,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Slice S5a. implementation-plan.md's definition of done: "GET /parts
- * returns all distinct Parts with a valid JWT." There is no
- * question-seeding mechanism anywhere in the project yet, so these tests
- * insert Question rows directly via QuestionRepository — the same pattern
- * AuthPasswordResetTest uses for PasswordResetTokenRepository — rather than
- * depending on data that doesn't exist.
+ * returns all distinct Parts with a valid JWT." The optional sample question
+ * seeder is disabled by default, so these tests insert Question rows directly
+ * via QuestionRepository rather than depending on sample data being present.
  *
  * Spring caches the test ApplicationContext (and so the same in-memory H2
  * instance) across test classes in one Maven run, and JUnit 5's default
