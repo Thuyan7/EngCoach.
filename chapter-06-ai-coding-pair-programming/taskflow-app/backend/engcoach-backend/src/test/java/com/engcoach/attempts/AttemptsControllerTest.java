@@ -449,12 +449,12 @@ class AttemptsControllerTest {
                 .andExpect(jsonPath("$.score").value(1))
                 .andExpect(jsonPath("$.totalQuestions").value(2));
 
-        // Approved decision #4: an answer saved after the first submit must
-        // never change the persisted score on a later submit call.
+        // Submitted attempts are immutable: answers cannot be changed after
+        // grading, and resubmitting must return the original persisted score.
         mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + secondQuestionId)
                         .header("Authorization", "Bearer " + token).contentType("application/json")
                         .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
-                .andExpect(status().isOk());
+                .andExpect(status().isConflict());
 
         mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
