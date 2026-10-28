@@ -82,5 +82,89 @@
     "correctOption": "The workbook distributed last week",
     "imageUrl": null,
     "audioUrl": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The conference room is unavailable _____ it is being repainted.",
+    "options": [
+      "although",
+      "because",
+      "unless",
+      "despite"
+    ],
+    "correctOption": "because",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Please submit your travel receipts _____ the end of the month.",
+    "options": [
+      "by",
+      "between",
+      "among",
+      "during"
+    ],
+    "correctOption": "by",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null
+  },
+  {
+    "part": "Part 6",
+    "passage": "NOTICE: PARKING LOT MAINTENANCE\n\nThe east parking lot will be closed on Saturday from 7:00 a.m. to 3:00 p.m. for line repainting. Employees should use the west lot during this period. The west lot entrance is on Pine Street. We apologize for the inconvenience.",
+    "prompt": "Where should employees park on Saturday morning?",
+    "options": [
+      "In the east lot",
+      "On Pine Street",
+      "In the west lot",
+      "At the visitor center"
+    ],
+    "correctOption": "In the west lot",
+    "imageUrl": null,
+    "audioUrl": null
+  },
+  {
+    "part": "Part 6",
+    "passage": "NOTICE: PARKING LOT MAINTENANCE\n\nThe east parking lot will be closed on Saturday from 7:00 a.m. to 3:00 p.m. for line repainting. Employees should use the west lot during this period. The west lot entrance is on Pine Street. We apologize for the inconvenience.",
+    "prompt": "Why will the east parking lot be closed?",
+    "options": [
+      "A new entrance is being built",
+      "The parking lines are being repainted",
+      "The office is moving",
+      "A company event is taking place"
+    ],
+    "correctOption": "The parking lines are being repainted",
+    "imageUrl": null,
+    "audioUrl": null
+  },
+  {
+    "part": "Part 7",
+    "passage": "EMAIL\nFrom: Daniel Wu\nTo: Office Staff\nSubject: Printer Replacement\n\nThe printer near the reception desk will be replaced on Tuesday morning. During installation, please use the printer on the third floor. The technician expects the work to be completed before noon. If you have print jobs scheduled for Tuesday, please send them after 12:00 p.m.",
+    "prompt": "What are employees asked to do during the installation?",
+    "options": [
+      "Work from home",
+      "Use the printer on the third floor",
+      "Contact the technician directly",
+      "Move the reception desk"
+    ],
+    "correctOption": "Use the printer on the third floor",
+    "imageUrl": null,
+    "audioUrl": null
+  },
+  {
+    "part": "Part 7",
+    "passage": "EMAIL\nFrom: Daniel Wu\nTo: Office Staff\nSubject: Printer Replacement\n\nThe printer near the reception desk will be replaced on Tuesday morning. During installation, please use the printer on the third floor. The technician expects the work to be completed before noon. If you have print jobs scheduled for Tuesday, please send them after 12:00 p.m.",
+    "prompt": "When should employees send print jobs to the reception-area printer?",
+    "options": [
+      "Before 8:00 a.m.",
+      "During installation",
+      "After noon",
+      "On Wednesday"
+    ],
+    "correctOption": "After noon",
+    "imageUrl": null,
+    "audioUrl": null
   }
 ]

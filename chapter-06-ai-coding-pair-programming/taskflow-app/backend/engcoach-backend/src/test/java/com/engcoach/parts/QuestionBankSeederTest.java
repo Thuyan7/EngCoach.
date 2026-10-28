@@ -34,7 +34,7 @@ class QuestionBankSeederTest {
         verify(repository).saveAll(captor.capture());
 
         List<Question> saved = StreamSupport.stream(captor.getValue().spliterator(), false).toList();
-        assertEquals(6, saved.size());
+        assertEquals(12, saved.size());
         assertEquals("Part 5", saved.get(0).getPart());
         assertEquals("once", saved.get(0).getCorrectOption());
         assertTrue(saved.stream().anyMatch(question -> "Part 6".equals(question.getPart())
