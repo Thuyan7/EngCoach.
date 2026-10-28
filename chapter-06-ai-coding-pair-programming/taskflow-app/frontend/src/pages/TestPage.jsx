@@ -86,12 +86,15 @@ export default function TestPage() {
     [token, attemptId, signOut],
   );
 
-  async function submit() {
+  async function submit(force = false) {
+    if (submissionLock.current) return;
+    submissionLock.current = true;
     setSubmitState({ status: "grading" });
     // Let every in-flight answer save finish first, so nothing typed a moment
     // ago is missing when the server grades.
     await Promise.all(Object.values(chains.current));
-    if (failedSaves.current.size > 0) {
+    if (!force && failedSaves.current.size > 0) {
+      submissionLock.current = false;
       setSubmitState({ status: "error", reason: "unsaved" });
       return;
     }
@@ -100,9 +103,37 @@ export default function TestPage() {
       navigate(`/result/${attemptId}`, { state: { result } });
     } catch (err) {
       if (err.status === 401) return signOut();
+      submissionLock.current = false;
       setSubmitState({ status: "error", reason: "grading" });
     }
   }
+
+  // Use the server-computed remaining time so resuming a mock test does not
+  // restart its two-hour clock.
+  useEffect(() => {
+    if (
+      load.status !== "ready" ||
+      attempt?.type !== "MOCK_TEST" ||
+      attempt.status !== "IN_PROGRESS" ||
+      remainingSeconds === null ||
+      submitState.status === "grading"
+    ) {
+      return undefined;
+    }
+
+    if (remainingSeconds <= 0) {
+      if (!autoSubmitTriggered.current) {
+        autoSubmitTriggered.current = true;
+        void submit(true);
+      }
+      return undefined;
+    }
+
+    const intervalId = setInterval(() => {
+      setRemainingSeconds((seconds) => (seconds === null ? null : Math.max(0, seconds - 1)));
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [load.status, attempt, remainingSeconds, submitState.status]);
 
   function startSubmit() {
     const unanswered = questions.filter((q) => answers[q.id] === undefined).length;
@@ -168,10 +199,15 @@ export default function TestPage() {
   return (
     <>
       <div className="page-head">
-        <h1>{attempt.part} practice</h1>
+        <h1>{attempt.type === "MOCK_TEST" ? "Mock test" : `${attempt.part} practice`}</h1>
         <p>
           {answeredCount} of {questions.length} answered
         </p>
+        {attempt.type === "MOCK_TEST" && remainingSeconds !== null && attempt.status === "IN_PROGRESS" && (
+          <p className="save-status" role="timer" aria-label="Time remaining">
+            Time remaining: {formatTime(remainingSeconds)}
+          </p>
+        )}
       </div>
 
       {locked && (
