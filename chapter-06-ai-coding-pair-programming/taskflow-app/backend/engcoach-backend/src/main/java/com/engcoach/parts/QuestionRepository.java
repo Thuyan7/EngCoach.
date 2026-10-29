@@ -38,10 +38,16 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
      */
     List<Question> findByPart(String part);
 
+    /** Questions from a user-selected subset of Parts. */
+    List<Question> findByPartIn(List<String> parts);
+
     /**
      * Questions of a Part in stable ID order for attempt detail views.
      */
     List<Question> findByPartOrderByIdAsc(String part);
+
+    /** Selected Part questions in stable ID order for an attempt. */
+    List<Question> findByPartInOrderByIdAsc(List<String> parts);
 
     /**
      * All questions in stable ID order for mock-test grading and detail views.
