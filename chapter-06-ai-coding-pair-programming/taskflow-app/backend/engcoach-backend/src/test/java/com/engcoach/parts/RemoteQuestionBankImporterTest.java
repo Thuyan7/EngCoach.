@@ -52,7 +52,8 @@ class RemoteQuestionBankImporterTest {
                   "prompt": "Where is the meeting?",
                   "choices": ["In the conference room.", "At noon.", "Ms. Lee."],
                   "answer": 0,
-                  "audioText": "Where is the meeting? In the conference room. At noon. Ms. Lee."
+                  "audioText": "Where is the meeting? In the conference room. At noon. Ms. Lee.",
+                  "audioUrl": "https://cdn.example.com/listening/part2-question1.mp3"
                 }
                 """);
 
@@ -62,7 +63,7 @@ class RemoteQuestionBankImporterTest {
         assertEquals("In the conference room.", question.getCorrectOption());
         assertEquals("Where is the meeting? In the conference room. At noon. Ms. Lee.",
                 question.getAudioText());
-        assertNull(question.getAudioUrl());
+        assertEquals("https://cdn.example.com/listening/part2-question1.mp3", question.getAudioUrl());
     }
 
     @Test
