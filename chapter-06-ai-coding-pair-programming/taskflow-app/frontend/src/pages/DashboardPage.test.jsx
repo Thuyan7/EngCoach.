@@ -73,13 +73,13 @@ describe("Dashboard — Part list (S6b)", () => {
     expect(window.localStorage.getItem("engcoach.session")).toBeNull();
   });
 
-  it("sidebar: Dashboard is current; Practice and Progress are disabled (later slices)", async () => {
+  it("sidebar: Dashboard is current and Progress is an active link", async () => {
     routeFetch(ok([]));
     renderApp("/dashboard");
 
     expect(await screen.findByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("button", { name: "Practice" })).toHaveAttribute("aria-disabled", "true");
-    expect(screen.getByRole("button", { name: "Progress" })).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByRole("link", { name: "Progress" })).toHaveAttribute("href", "/progress");
   });
 
   it("Start on a Part calls POST /attempts and opens the test screen", async () => {
