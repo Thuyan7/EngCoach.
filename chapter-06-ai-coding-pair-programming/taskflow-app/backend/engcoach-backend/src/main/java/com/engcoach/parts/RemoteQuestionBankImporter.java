@@ -94,7 +94,7 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
     }
 
     private static String duplicateKey(String part, String prompt) {
-        return part + "\u0000" + prompt;
+        return part + "::" + prompt;
     }
 
     static JsonNode parseBankArray(String javascript) throws IOException {
