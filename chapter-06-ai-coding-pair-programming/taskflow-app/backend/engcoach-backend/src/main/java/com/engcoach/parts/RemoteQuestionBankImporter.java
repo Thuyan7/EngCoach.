@@ -160,7 +160,7 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
             if (inString) {
                 if (escaped) {
                     escaped = false;
-                } else if (ch == '\\\\') {
+                } else if (ch == 92) {
                     escaped = true;
                 } else if (ch == '"') {
                     inString = false;
@@ -201,14 +201,14 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
                 passage.isBlank() ? null : passage, null, null);
     }
 
-    private Question mapPartOneQuestion(JsonNode row) throws IOException {
+    Question mapPartOneQuestion(JsonNode row) throws IOException {
         List<String> choices = readChoices(row);
         int answerIndex = readAnswerIndex(row, choices.size());
         String imagePath = requiredText(row, "image");
 
         // Only allow known repository-relative Part 1 assets; never accept arbitrary URLs.
         if (!imagePath.startsWith("assets/part1/") || imagePath.contains("..")
-                || imagePath.contains("\\\\")) {
+                || imagePath.indexOf((char) 92) >= 0) {
             throw new IOException("Part 1 question contains an invalid image path");
         }
 
