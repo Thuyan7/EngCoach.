@@ -47,6 +47,10 @@ public class Question {
     @Column(length = 2048)
     private String audioUrl;
 
+    @Lob
+    @Column(name = "audio_text")
+    private String audioText;
+
     protected Question() {
         // required by JPA
     }
@@ -57,6 +61,11 @@ public class Question {
 
     public Question(String part, String prompt, String options, String correctOption,
                     String passage, String imageUrl, String audioUrl) {
+        this(part, prompt, options, correctOption, passage, imageUrl, audioUrl, null);
+    }
+
+    public Question(String part, String prompt, String options, String correctOption,
+                    String passage, String imageUrl, String audioUrl, String audioText) {
         this.part = part;
         this.prompt = prompt;
         this.options = options;
@@ -64,6 +73,7 @@ public class Question {
         this.passage = passage;
         this.imageUrl = imageUrl;
         this.audioUrl = audioUrl;
+        this.audioText = audioText;
     }
 
     public Long getId() {
@@ -96,5 +106,9 @@ public class Question {
 
     public String getAudioUrl() {
         return audioUrl;
+    }
+
+    public String getAudioText() {
+        return audioText;
     }
 }
