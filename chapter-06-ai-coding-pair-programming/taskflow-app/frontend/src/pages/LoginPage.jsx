@@ -42,7 +42,7 @@ export default function LoginPage() {
       subtitle="Continue your TOEIC practice."
       footer={
         <>
-          <p className="login-foot">Forgot your password?</p>
+          <p className="login-foot"><Link to="/forgot-password">Forgot your password?</Link></p>
           <p className="login-foot">
             New to EngCoach? <Link to="/register">Create an account</Link>
           </p>

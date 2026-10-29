@@ -9,3 +9,14 @@ export function register(email, password) {
 export function login(email, password) {
   return request("/auth/login", { method: "POST", body: { email, password } });
 }
+
+
+// POST /auth/forgot-password -> generic confirmation.
+export function forgotPassword(email) {
+  return request("/auth/forgot-password", { method: "POST", body: { email } });
+}
+
+// POST /auth/reset-password -> change password using reset token.
+export function resetPassword(token, newPassword) {
+  return request("/auth/reset-password", { method: "POST", body: { token, newPassword } });
+}
