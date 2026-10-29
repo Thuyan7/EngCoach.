@@ -52,3 +52,8 @@ export function retryExplanation(token, attemptId, questionId) {
     token,
   });
 }
+
+// POST /attempts -> 201 {id,type:"MOCK_TEST",status,startedAt,remainingSeconds}.
+export function startMockTest(token) {
+  return request("/attempts", { method: "POST", token, body: { type: "MOCK_TEST" } });
+}

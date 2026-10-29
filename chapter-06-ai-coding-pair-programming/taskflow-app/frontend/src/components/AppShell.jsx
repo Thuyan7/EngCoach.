@@ -1,8 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 
-// Sidebar shell from the approved prototype (Dashboard / Practice / Progress).
-// Practice remains disabled until a dedicated practice index is in scope.
+// Shared navigation shell for Dashboard, Practice, and Progress.
 export default function AppShell() {
   const { signOut } = useAuth();
   return (
@@ -24,9 +23,7 @@ export default function AppShell() {
             </NavLink>
           </li>
           <li>
-            <button type="button" className="nav-item" aria-disabled="true" title="Coming soon">
-              Practice
-            </button>
+            <NavLink to="/practice" className="nav-item">Practice</NavLink>
           </li>
           <li>
             <NavLink to="/progress" className="nav-item">
