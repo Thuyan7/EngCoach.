@@ -229,9 +229,21 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         String prompt = "Look at the picture and select the sentence that best describes it.";
         String imageUrl = RAW_SOURCE_BASE + imagePath;
         String optionsJson = objectMapper.writeValueAsString(choices);
+        // The v31 source adds this transcript in its browser wrapper, so build
+        // the same A-D transcript from the source choices when importing its raw items.
         String audioText = optionalText(row, "audioText");
+        if (audioText.isBlank()) {
+            StringBuilder transcript = new StringBuilder();
+            for (int i = 0; i < choices.size(); i++) {
+                if (i > 0) {
+                    transcript.append(' ');
+                }
+                transcript.append((char) ('A' + i)).append(". ").append(choices.get(i));
+            }
+            audioText = transcript.toString();
+        }
         return new Question("Part 1", prompt, optionsJson, choices.get(answerIndex),
-                null, imageUrl, null, audioText.isBlank() ? null : audioText);
+                null, imageUrl, null, audioText);
     }
 
     private List<String> readChoices(JsonNode row) throws IOException {
