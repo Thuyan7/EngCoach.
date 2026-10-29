@@ -267,11 +267,11 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         String prompt = "Look at the picture and select the sentence that best describes it.";
         String imageUrl = RAW_SOURCE_BASE + imagePath;
         String optionsJson = objectMapper.writeValueAsString(choices);
-        // Part 1 is picture-based. Answer choices are not an audio transcript,
-        // so only keep a transcript when the source explicitly provides one.
-        String audioText = optionalText(row, "audioText");
+        // Part 1 is picture-based. The upstream source synthesizes audioText
+        // from the answer choices, which is not an actual listening transcript.
+        // Do not expose those choices as audio/transcript content.
         return new Question("Part 1", prompt, optionsJson, choices.get(answerIndex),
-                null, imageUrl, null, audioText.isBlank() ? null : audioText);
+                null, imageUrl, null, null);
     }
 
     private List<String> readChoices(JsonNode row) throws IOException {
