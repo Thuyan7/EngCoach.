@@ -9,6 +9,7 @@
 
   --primary:#1B5FA0;
   --primary-hover:#164C82;
+  --warning:#8A5A0E;
   --danger:#A32D2D;
 
   --surface:#FFFFFF;
@@ -36,7 +37,7 @@ body{
 }
 button, input{font-family:inherit;}
 .countdown{display:inline-flex;width:fit-content;padding:6px 10px;border-radius:var(--radius-control);font-weight:700;font-variant-numeric:tabular-nums;}
-.countdown--warning{color:#805400;background:#FFF2CC;border:1px solid #E5B94C;}
+.countdown--warning{color:var(--warning);background:#FFF2CC;border:1px solid var(--warning);}
 .countdown--critical{color:var(--danger);background:var(--tint-danger-bg);border:1px solid var(--danger);}
 :focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
 @media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important;transition-duration:0.001ms !important;}}
