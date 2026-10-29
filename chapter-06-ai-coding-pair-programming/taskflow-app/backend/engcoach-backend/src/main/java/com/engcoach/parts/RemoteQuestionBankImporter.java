@@ -13,14 +13,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
- * One-time, opt-in import of original TOEIC-style practice questions from
- * TOEIC Question Ocean. This is a GitHub-hosted data file, not a live question API.
+ * Opt-in import of original TOEIC-style practice questions from TOEIC Question Ocean.
+ * This is a GitHub-hosted data file, not a live question API.
  *
- * The importer intentionally runs only when the local question table is empty.
- * It never overwrites a user's existing bank.
+ * Existing questions are preserved. Rows matching an existing (part, prompt)
+ * pair are skipped, making repeat imports safe for the same source bank.
  */
 @Component
 @ConditionalOnProperty(prefix = "engcoach.question-bank", name = "import-remote", havingValue = "true")
@@ -44,10 +46,6 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (questionRepository.count() > 0) {
-            return;
-        }
-
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(SOURCE_URL))
                     .timeout(Duration.ofSeconds(30))
@@ -64,23 +62,39 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
             }
 
             JsonNode bank = parseBankArray(response.body());
-            List<Question> questions = new ArrayList<>();
-            for (JsonNode row : bank) {
-                questions.add(mapQuestion(row));
-            }
-            if (questions.isEmpty()) {
+            if (bank.isEmpty()) {
                 throw new IllegalStateException("Remote question bank was empty; no rows were imported");
             }
 
-            questionRepository.saveAll(questions);
-            System.out.printf("Imported %d original TOEIC-style questions from %s%n",
-                    questions.size(), SOURCE_URL);
+            List<Question> questionsToInsert = new ArrayList<>();
+            Set<String> sourceKeys = new HashSet<>();
+            int skipped = 0;
+            for (JsonNode row : bank) {
+                Question question = mapQuestion(row);
+                String key = duplicateKey(question.getPart(), question.getPrompt());
+                if (!sourceKeys.add(key) || questionRepository.existsByPartAndPrompt(
+                        question.getPart(), question.getPrompt())) {
+                    skipped++;
+                    continue;
+                }
+                questionsToInsert.add(question);
+            }
+
+            if (!questionsToInsert.isEmpty()) {
+                questionRepository.saveAll(questionsToInsert);
+            }
+            System.out.printf("Remote TOEIC question-bank import complete: added %d, skipped %d duplicates, source %s%n",
+                    questionsToInsert.size(), skipped, SOURCE_URL);
         } catch (IOException e) {
             throw new IllegalStateException("Could not read the remote TOEIC question bank", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Remote TOEIC question-bank import was interrupted", e);
         }
+    }
+
+    private static String duplicateKey(String part, String prompt) {
+        return part + "\u0000" + prompt;
     }
 
     static JsonNode parseBankArray(String javascript) throws IOException {
