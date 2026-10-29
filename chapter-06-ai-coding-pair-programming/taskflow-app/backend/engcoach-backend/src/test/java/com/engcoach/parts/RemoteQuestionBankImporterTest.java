@@ -63,6 +63,7 @@ class RemoteQuestionBankImporterTest {
         assertEquals("https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/assets/part1/warehouse.jpg",
                 question.getImageUrl());
         assertNull(question.getAudioUrl());
+        assertEquals("A. Workers are sitting. B. Workers are standing.", question.getAudioText());
     }
 
     @Test
