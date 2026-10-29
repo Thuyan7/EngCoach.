@@ -26,4 +26,10 @@ class RemoteQuestionBankImporterTest {
         assertThrows(IOException.class,
                 () -> RemoteQuestionBankImporter.parseBankArray("window.BUILTIN_BANK = undefined;"));
     }
+
+    @Test
+    void parsesAnEmptyArrayButImporterRejectsItBeforeSaving() throws IOException {
+        JsonNode bank = RemoteQuestionBankImporter.parseBankArray("window.BUILTIN_BANK = [];");
+        assertEquals(0, bank.size());
+    }
 }
