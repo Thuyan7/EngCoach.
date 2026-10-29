@@ -116,10 +116,21 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         return bank;
     }
 
-    private boolean shouldSkip(Question question, Set<String> sourceKeys) {
-        String key = duplicateKey(question.getPart(), question.getPrompt());
-        return !sourceKeys.add(key)
-                || questionRepository.existsByPartAndPrompt(question.getPart(), question.getPrompt());
+    boolean shouldSkip(Question question, Set<String> sourceKeys) {
+        // Part 1 questions intentionally share the same instruction prompt, so
+        // their image URL—not the prompt—identifies a unique question.
+        boolean isImageQuestion = "Part 1".equals(question.getPart())
+                && question.getImageUrl() != null && !question.getImageUrl().isBlank();
+        String key = isImageQuestion
+                ? question.getPart() + "::image::" + question.getImageUrl()
+                : duplicateKey(question.getPart(), question.getPrompt());
+
+        if (!sourceKeys.add(key)) {
+            return true;
+        }
+        return isImageQuestion
+                ? questionRepository.existsByPartAndImageUrl(question.getPart(), question.getImageUrl())
+                : questionRepository.existsByPartAndPrompt(question.getPart(), question.getPrompt());
     }
 
     private static String duplicateKey(String part, String prompt) {
