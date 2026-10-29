@@ -46,6 +46,10 @@ export default function TestPage() {
         const saved = {};
         detail.answers.forEach((a) => (saved[a.questionId] = a.chosenOption));
         setAttempt(detail);
+        setRemainingSeconds(detail.remainingSeconds ?? null);
+        autoSubmitTriggered.current = false;
+        submissionLock.current = false;
+        setSubmitState({ status: "idle" });
         setQuestions(qs);
         setAnswers(saved);
         setSaveState({});
@@ -204,7 +208,11 @@ export default function TestPage() {
           {answeredCount} of {questions.length} answered
         </p>
         {attempt.type === "MOCK_TEST" && remainingSeconds !== null && attempt.status === "IN_PROGRESS" && (
-          <p className="save-status" role="timer" aria-label="Time remaining">
+          <p
+            className={`save-status countdown${remainingSeconds <= 60 ? " countdown--critical" : remainingSeconds <= 600 ? " countdown--warning" : ""}`}
+            role="timer"
+            aria-label="Time remaining"
+            data-time-state={remainingSeconds <= 60 ? "critical" : remainingSeconds <= 600 ? "warning" : "normal"}
             Time remaining: {formatTime(remainingSeconds)}
           </p>
         )}
