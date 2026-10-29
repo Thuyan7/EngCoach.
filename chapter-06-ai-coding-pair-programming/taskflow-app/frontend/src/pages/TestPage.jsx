@@ -213,6 +213,7 @@ export default function TestPage() {
             role="timer"
             aria-label="Time remaining"
             data-time-state={remainingSeconds < 60 ? "critical" : remainingSeconds < 300 ? "warning" : "normal"}
+          >
             Time remaining: {formatTime(remainingSeconds)}
           </p>
         )}
