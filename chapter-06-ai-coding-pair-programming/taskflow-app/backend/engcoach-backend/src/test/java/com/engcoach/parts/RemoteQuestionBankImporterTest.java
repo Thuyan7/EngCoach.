@@ -43,6 +43,29 @@ class RemoteQuestionBankImporterTest {
     }
 
     @Test
+    void mapsListeningTranscriptWithoutPretendingItIsAnAudioFile() throws IOException {
+        RemoteQuestionBankImporter importer = new RemoteQuestionBankImporter(
+                mock(QuestionRepository.class), objectMapper);
+        JsonNode row = objectMapper.readTree("""
+                {
+                  "part": "2",
+                  "prompt": "Where is the meeting?",
+                  "choices": ["In the conference room.", "At noon.", "Ms. Lee."],
+                  "answer": 0,
+                  "audioText": "Where is the meeting? In the conference room. At noon. Ms. Lee."
+                }
+                """);
+
+        Question question = importer.mapQuestion(row);
+
+        assertEquals("Part 2", question.getPart());
+        assertEquals("In the conference room.", question.getCorrectOption());
+        assertEquals("Where is the meeting? In the conference room. At noon. Ms. Lee.",
+                question.getAudioText());
+        assertNull(question.getAudioUrl());
+    }
+
+    @Test
     void mapsPartOneQuestionAndBuildsRawImageUrl() throws IOException {
         RemoteQuestionBankImporter importer = new RemoteQuestionBankImporter(
                 mock(QuestionRepository.class), objectMapper);
