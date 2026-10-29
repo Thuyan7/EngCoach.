@@ -22,6 +22,12 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     boolean existsByPartAndPrompt(String part, String prompt);
 
     /**
+     * Part 1 questions share a generic instruction prompt, so deduplication
+     * uses the stable image URL for these photograph-description items.
+     */
+    boolean existsByPartAndImageUrl(String part, String imageUrl);
+
+    /**
      * Backs S6a's {@code POST /attempts} validation: a Part practice attempt
      * can't be started for a part with zero questions.
      */
