@@ -186,7 +186,8 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
             } else if (ch == ']') {
                 depth--;
                 if (depth == 0) {
-                    JsonNode bank = new ObjectMapper().readTree(javascript.substring(start, i + 1));
+                    String jsonArray = removeTrailingCommas(javascript.substring(start, i + 1));
+                    JsonNode bank = new ObjectMapper().readTree(jsonArray);
                     if (!bank.isArray()) {
                         throw new IOException("Upstream question bank is not a JSON array");
                     }
@@ -196,6 +197,41 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         }
 
         throw new IOException("Unterminated JSON array in upstream question bank");
+    }
+
+    private static String removeTrailingCommas(String json) {
+        StringBuilder cleaned = new StringBuilder(json.length());
+        boolean inString = false;
+        boolean escaped = false;
+        for (int i = 0; i < json.length(); i++) {
+            char ch = json.charAt(i);
+            if (inString) {
+                cleaned.append(ch);
+                if (escaped) {
+                    escaped = false;
+                } else if (ch == 92) {
+                    escaped = true;
+                } else if (ch == '"') {
+                    inString = false;
+                }
+                continue;
+            }
+            if (ch == '"') {
+                inString = true;
+                cleaned.append(ch);
+            } else if (ch == ',') {
+                int next = i + 1;
+                while (next < json.length() && Character.isWhitespace(json.charAt(next))) {
+                    next++;
+                }
+                if (next < json.length() && json.charAt(next) != ']' && json.charAt(next) != '}') {
+                    cleaned.append(ch);
+                }
+            } else {
+                cleaned.append(ch);
+            }
+        }
+        return cleaned.toString();
     }
 
     Question mapQuestion(JsonNode row) throws IOException {
