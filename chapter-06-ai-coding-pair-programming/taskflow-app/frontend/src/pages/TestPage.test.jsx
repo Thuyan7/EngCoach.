@@ -357,6 +357,7 @@ describe("Test screen (S7b)", () => {
       renderApp("/practice/7");
 
       expect(await screen.findByRole("timer", { name: "Time remaining" })).toHaveTextContent("Time remaining: 61:01");
+      expect(screen.getByRole("timer", { name: "Time remaining" })).toHaveAttribute("data-time-state", "normal");
       expect(screen.getByRole("heading", { name: "Mock test" })).toBeInTheDocument();
     });
 
