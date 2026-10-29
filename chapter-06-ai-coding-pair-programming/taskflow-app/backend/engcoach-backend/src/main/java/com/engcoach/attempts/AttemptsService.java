@@ -26,6 +26,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 
 /**
  * Slice S6a: starting a Part practice (or mock test) attempt, and
@@ -107,7 +110,14 @@ public class AttemptsService {
     @Transactional
     public AttemptResponse startAttempt(Long userId, StartAttemptRequest request) {
         String type = request.getType();
-        String part = "PART_PRACTICE".equals(type) ? request.getPart() : null;
+        String part = null;
+        List<String> selectedParts = List.of();
+        if ("PART_PRACTICE".equals(type)) {
+            selectedParts = normalizeParts(request);
+            part = String.join(",", selectedParts);
+        } else if (!"MOCK_TEST".equals(type)) {
+            throw new IllegalArgumentException("type must be PART_PRACTICE or MOCK_TEST");
+        }
 
         Attempt existing = attemptRepository
                 .findFirstByUserIdAndTypeAndPartAndStatus(userId, type, part, Attempt.STATUS_IN_PROGRESS)
@@ -117,8 +127,10 @@ public class AttemptsService {
         }
 
         if ("PART_PRACTICE".equals(type)) {
-            if (!questionRepository.existsByPart(part)) {
-                throw new PartHasNoQuestionsException(part);
+            for (String selectedPart : selectedParts) {
+                if (!questionRepository.existsByPart(selectedPart)) {
+                    throw new PartHasNoQuestionsException(selectedPart);
+                }
             }
         } else if ("MOCK_TEST".equals(type) && questionRepository.count() == 0) {
             // Approved S11 design decision #3: same "don't create an
@@ -152,7 +164,7 @@ public class AttemptsService {
                 .orElseThrow(InvalidAnswerException::new);
         boolean belongsToAttempt = "MOCK_TEST".equals(attempt.getType())
                 || ("PART_PRACTICE".equals(attempt.getType())
-                    && attempt.getPart() != null && attempt.getPart().equals(question.getPart()));
+                    && parseStoredParts(attempt.getPart()).contains(question.getPart()));
         if (!belongsToAttempt || !QuestionView.from(question).options().contains(request.getChosenOption())) {
             throw new InvalidAnswerException();
         }
@@ -192,14 +204,48 @@ public class AttemptsService {
         // questions are the whole bank (same "whatever grading uses, the
         // detail view shows" precedent, extended to MOCK_TEST now that it
         // has a real assigned question set too — approved S11 decision #1).
-        List<Question> assignedQuestions = "PART_PRACTICE".equals(attempt.getType()) && attempt.getPart() != null
-                ? questionRepository.findByPartOrderByIdAsc(attempt.getPart())
+        List<Question> assignedQuestions = "PART_PRACTICE".equals(attempt.getType())
+                ? questionRepository.findByPartInOrderByIdAsc(parseStoredParts(attempt.getPart()))
                 : "MOCK_TEST".equals(attempt.getType())
                         ? questionRepository.findAllByOrderByIdAsc()
                         : List.of();
         List<QuestionView> questions = assignedQuestions.stream().map(QuestionView::from).toList();
 
         return AttemptDetailResponse.from(attempt, remainingSeconds, answers, questions);
+    }
+
+    private List<String> normalizeParts(StartAttemptRequest request) {
+        List<String> requested = request.getParts();
+        if (requested == null || requested.isEmpty()) {
+            String part = request.getPart();
+            requested = part == null ? List.of() : List.of(part.split(","));
+        }
+
+        LinkedHashSet<String> unique = new LinkedHashSet<>();
+        for (String value : requested) {
+            if (value == null || value.isBlank()) {
+                continue;
+            }
+            String part = value.trim();
+            if (!part.matches("Part [1-7]")) {
+                throw new IllegalArgumentException("Each selected part must be named Part 1 through Part 7");
+            }
+            unique.add(part);
+        }
+        if (unique.isEmpty()) {
+            throw new IllegalArgumentException("Select at least one Part");
+        }
+
+        List<String> normalized = new ArrayList<>(unique);
+        normalized.sort(Comparator.comparingInt(p -> Integer.parseInt(p.substring("Part ".length()))));
+        return List.copyOf(normalized);
+    }
+
+    private List<String> parseStoredParts(String stored) {
+        if (stored == null || stored.isBlank()) {
+            return List.of();
+        }
+        return List.of(stored.split(","));
     }
 
     /**
