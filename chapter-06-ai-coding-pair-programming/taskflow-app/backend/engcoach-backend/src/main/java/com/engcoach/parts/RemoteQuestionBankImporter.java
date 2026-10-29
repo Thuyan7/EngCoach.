@@ -207,9 +207,12 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         String passage = optionalText(row, "passage");
         String part = "Part " + partNumber;
         String optionsJson = objectMapper.writeValueAsString(choices);
-        // audioText is a transcript, not a playable audio URL.
+        // Keep transcript separate from a playable audio URL; the frontend may
+        // choose speech synthesis or display a transcript during review.
+        String audioText = optionalText(row, "audioText");
         return new Question(part, prompt, optionsJson, choices.get(answerIndex),
-                passage.isBlank() ? null : passage, null, null);
+                passage.isBlank() ? null : passage, null, null,
+                audioText.isBlank() ? null : audioText);
     }
 
     Question mapPartOneQuestion(JsonNode row) throws IOException {
@@ -226,8 +229,9 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         String prompt = "Look at the picture and select the sentence that best describes it.";
         String imageUrl = RAW_SOURCE_BASE + imagePath;
         String optionsJson = objectMapper.writeValueAsString(choices);
+        String audioText = optionalText(row, "audioText");
         return new Question("Part 1", prompt, optionsJson, choices.get(answerIndex),
-                null, imageUrl, null);
+                null, imageUrl, null, audioText.isBlank() ? null : audioText);
     }
 
     private List<String> readChoices(JsonNode row) throws IOException {
