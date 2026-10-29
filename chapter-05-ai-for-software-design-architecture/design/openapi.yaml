@@ -120,7 +120,7 @@ paths:
                 parts:
                   type: array
                   description: Selected Parts for a combined practice attempt; use Part 1 through Part 7 values.
-                  items: { type: string, pattern: '^Part [1-7]
+                  items: { type: string, enum: ["Part 1", "Part 2", "Part 3", "Part 4", "Part 5", "Part 6", "Part 7"] }
       responses:
         "201": { description: Attempt created (or existing in-progress attempt resumed) }
         "422": { description: "PART_PRACTICE requested for a Part with no questions available yet (RFC 9457 problem)" }
