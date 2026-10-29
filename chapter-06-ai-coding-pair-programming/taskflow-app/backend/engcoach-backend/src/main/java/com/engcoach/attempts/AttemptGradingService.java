@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 
 /**
  * S8a/S8b: the transactional core of submitting an attempt, split out of
@@ -128,7 +129,7 @@ public class AttemptGradingService {
     private Map<Long, String> loadCorrectOptions(Attempt attempt, List<Answer> answers) {
         Map<Long, String> correctOptionsByQuestionId = new HashMap<>();
         Iterable<Question> fullQuestionSet = "PART_PRACTICE".equals(attempt.getType())
-                ? questionRepository.findByPart(attempt.getPart())
+                ? questionRepository.findByPartIn(Arrays.asList(attempt.getPart().split(",")))
                 : questionRepository.findAll();
         for (Question question : fullQuestionSet) {
             correctOptionsByQuestionId.put(question.getId(), question.getCorrectOption());
