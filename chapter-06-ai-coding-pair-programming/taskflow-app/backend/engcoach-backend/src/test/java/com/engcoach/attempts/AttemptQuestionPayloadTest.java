@@ -120,4 +120,44 @@ class AttemptQuestionPayloadTest {
                 .andExpect(jsonPath("$.questions[0].audioText").value("Staff notice transcript."))
                 .andExpect(jsonPath("$.questions[0].correctOption").doesNotExist());
     }
+    @Test
+    void multiPartAttemptGradesOnlyQuestionsFromSelectedParts() throws Exception {
+        Long partOneId = questionRepository.save(new Question("Part 1", "Describe the picture.",
+                "[\\"A\\",\\"B\\"]", "A", null, "https://example.com/part1.jpg", null)).getId();
+        Long partFiveId = questionRepository.save(new Question("Part 5", "Choose the word.",
+                "[\\"A\\",\\"B\\"]", "B")).getId();
+        questionRepository.save(new Question("Part 7", "Read the notice.",
+                "[\\"A\\",\\"B\\"]", "A"));
+
+        String token = registerAndGetToken();
+        String startBody = objectMapper.writeValueAsString(Map.of(
+                "type", "PART_PRACTICE", "parts", java.util.List.of("Part 5", "Part 1")));
+        String startResponse = mockMvc.perform(post("/attempts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(startBody))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + partOneId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isOk());
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + partFiveId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "B"))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUBMITTED"))
+                .andExpect(jsonPath("$.score").value(2))
+                .andExpect(jsonPath("$.totalQuestions").value(2))
+                .andExpect(jsonPath("$.answers.length()").value(2));
+    }
+
 }
