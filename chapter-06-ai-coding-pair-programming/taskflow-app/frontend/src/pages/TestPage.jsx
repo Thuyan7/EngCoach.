@@ -209,10 +209,10 @@ export default function TestPage() {
         </p>
         {attempt.type === "MOCK_TEST" && remainingSeconds !== null && attempt.status === "IN_PROGRESS" && (
           <p
-            className={`save-status countdown${remainingSeconds <= 60 ? " countdown--critical" : remainingSeconds <= 600 ? " countdown--warning" : ""}`}
+            className={`save-status countdown${remainingSeconds <= 60 ? " countdown--critical" : remainingSeconds <= 300 ? " countdown--warning" : ""}`}
             role="timer"
             aria-label="Time remaining"
-            data-time-state={remainingSeconds <= 60 ? "critical" : remainingSeconds <= 600 ? "warning" : "normal"}
+            data-time-state={remainingSeconds <= 60 ? "critical" : remainingSeconds <= 300 ? "warning" : "normal"}
             Time remaining: {formatTime(remainingSeconds)}
           </p>
         )}
