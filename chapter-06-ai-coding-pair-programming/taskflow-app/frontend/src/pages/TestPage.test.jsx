@@ -361,6 +361,22 @@ describe("Test screen (S7b)", () => {
       expect(screen.getByRole("heading", { name: "Mock test" })).toBeInTheDocument();
     });
 
+    it.each([[299, "warning"], [59, "critical"]])(
+      "applies the approved %s-second urgency state",
+      async (remainingSeconds, expectedState) => {
+        routeFetch({
+          "GET /attempts/7": () =>
+            jsonResponse(200, attemptDetail({ type: "MOCK_TEST", part: null, remainingSeconds })),
+        });
+        renderApp("/practice/7");
+
+        expect(await screen.findByRole("timer", { name: "Time remaining" })).toHaveAttribute(
+          "data-time-state",
+          expectedState,
+        );
+      },
+    );
+
     it("automatically submits a mock test when the server-computed time reaches zero", async () => {
       const fetchMock = routeFetch({
         "GET /attempts/7": () =>
