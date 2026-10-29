@@ -33,7 +33,7 @@ class RemoteQuestionBankImporterTest {
     @Test
     void parsesNamedArrayWithoutIncludingLaterArrays() throws IOException {
         JsonNode bank = RemoteQuestionBankImporter.parseNamedArray(
-                "const items = [{\"image\":\"assets/part1/photo.jpg\","
+                "const items = [{\"image\":\"assets/part1/photo.jpg\",", "const items =")
                         + "\"choices\":[\"A [near]\",\"B\"],\"answer\":0}];"
                         + "window.BUILTIN_BANK.push(...items.map(x => x));");
 
