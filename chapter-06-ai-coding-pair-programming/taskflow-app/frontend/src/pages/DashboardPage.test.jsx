@@ -78,7 +78,7 @@ describe("Dashboard — Part list (S6b)", () => {
     renderApp("/dashboard");
 
     expect(await screen.findByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("button", { name: "Practice" })).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByRole("link", { name: "Practice" })).toHaveAttribute("href", "/tests");
     expect(screen.getByRole("link", { name: "Progress" })).toHaveAttribute("href", "/progress");
   });
 
