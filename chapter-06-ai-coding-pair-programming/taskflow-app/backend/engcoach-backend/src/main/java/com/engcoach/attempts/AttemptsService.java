@@ -15,6 +15,7 @@ import com.engcoach.common.AttemptAccessDeniedException;
 import com.engcoach.common.AttemptNotFoundException;
 import com.engcoach.common.AttemptNotInProgressException;
 import com.engcoach.common.InvalidAnswerException;
+import com.engcoach.common.InvalidAttemptRequestException;
 import com.engcoach.common.ExplanationRetryNotAllowedException;
 import com.engcoach.common.PartHasNoQuestionsException;
 import com.engcoach.parts.Question;
@@ -116,7 +117,7 @@ public class AttemptsService {
             selectedParts = normalizeParts(request);
             part = String.join(",", selectedParts);
         } else if (!"MOCK_TEST".equals(type)) {
-            throw new IllegalArgumentException("type must be PART_PRACTICE or MOCK_TEST");
+            throw new InvalidAttemptRequestException("type must be PART_PRACTICE or MOCK_TEST");
         }
 
         Attempt existing = attemptRepository
@@ -228,12 +229,12 @@ public class AttemptsService {
             }
             String part = value.trim();
             if (!part.matches("Part [1-7]")) {
-                throw new IllegalArgumentException("Each selected part must be named Part 1 through Part 7");
+                throw new InvalidAttemptRequestException("Each selected part must be named Part 1 through Part 7");
             }
             unique.add(part);
         }
         if (unique.isEmpty()) {
-            throw new IllegalArgumentException("Select at least one Part");
+            throw new InvalidAttemptRequestException("Select at least one Part");
         }
 
         List<String> normalized = new ArrayList<>(unique);
