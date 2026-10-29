@@ -98,8 +98,10 @@ paths:
       description: >
         If an IN_PROGRESS attempt already exists for this user scoped by
         (type, part), that attempt is returned instead of creating a new
-        one (resume semantics, S6a). `part` is required for
-        PART_PRACTICE and ignored for MOCK_TEST. S11: a MOCK_TEST attempt
+        one (resume semantics, S6a). For PART_PRACTICE, provide either
+        legacy `part` for one Part or `parts` for a selected subset;
+        selected Parts are normalized and stored together on the attempt.
+        Both fields are ignored for MOCK_TEST. S11: a MOCK_TEST attempt
         gets a fixed 7200-second (2-hour) timeLimitSeconds, matching the
         real TOEIC test duration; PART_PRACTICE stays untimed. Starting a
         MOCK_TEST when the question bank is entirely empty is rejected
@@ -114,7 +116,232 @@ paths:
               required: [type]
               properties:
                 type: { type: string, enum: [PART_PRACTICE, MOCK_TEST] }
-                part: { type: string, nullable: true }
+                part: { type: string, nullable: true, description: "Backward-compatible single Part, e.g. Part 5" }
+                parts:
+                  type: array
+                  description: Selected Parts for a combined practice attempt; use Part 1 through Part 7 values.
+                  items: { type: string, pattern: '^Part [1-7]
+      responses:
+        "201": { description: Attempt created (or existing in-progress attempt resumed) }
+        "422": { description: "PART_PRACTICE requested for a Part with no questions available yet (RFC 9457 problem)" }
+    get:
+      summary: List the authenticated user's attempt history
+      description: >
+        S10a. Only SUBMITTED attempts appear here (feature-specification.md
+        §7: "reflects all completed attempts") — an IN_PROGRESS attempt is
+        resumed via POST /attempts, not listed. Ordered most-recent-first
+        by startedAt (no separate "submitted at" timestamp exists). No
+        pagination at this project's scale.
+      security: [ { bearerAuth: [] } ]
+      responses:
+        "200":
+          description: List of the caller's completed (SUBMITTED) attempts, most recent first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    type: { type: string, enum: [PART_PRACTICE, MOCK_TEST] }
+                    part: { type: string, nullable: true }
+                    status: { type: string, enum: [SUBMITTED] }
+                    score: { type: integer }
+                    totalQuestions: { type: integer }
+                    startedAt: { type: string, format: date-time }
+
+  /attempts/{id}:
+    get:
+      summary: Resume or inspect an attempt
+      description: >
+        Not restricted to IN_PROGRESS attempts (S7a) — works for any
+        attempt the caller owns. `remainingSeconds` is null when the
+        attempt has no time limit (every PART_PRACTICE attempt); every
+        MOCK_TEST attempt has a real, server-computed value since S11.
+        null means "untimed," not "0 seconds left."
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Attempt with saved answers and server-computed remaining time, restoring exact in-progress state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  type: { type: string, enum: [PART_PRACTICE, MOCK_TEST] }
+                  part: { type: string, nullable: true }
+                  status: { type: string }
+                  startedAt: { type: string, format: date-time }
+                  remainingSeconds: { type: integer, nullable: true }
+                  answers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        questionId: { type: integer }
+                        chosenOption: { type: string }
+                  questions:
+                    description: >
+                      What the test screen needs to render the attempt (S7b).
+                      For PART_PRACTICE: every question of the attempt's Part,
+                      ordered by id. For MOCK_TEST: every question in the
+                      whole bank, ordered by id (S11 — the real TOEIC
+                      question-bank source is still an open product question,
+                      OQ-001, so this is every Question currently seeded, not
+                      literally 200). Never includes the correct option.
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        prompt: { type: string }
+                        options:
+                          description: >
+                            The strings to show as choices. The chosen string
+                            is sent back as chosenOption and compared with the
+                            question's correct option when grading.
+                          type: array
+                          items: { type: string }
+        "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+        "404": { description: Attempt does not exist (RFC 9457 problem) }
+    delete:
+      summary: Permanently delete an attempt
+      description: >
+        S10a. Not status-gated — an IN_PROGRESS or SUBMITTED attempt the
+        caller owns can both be deleted (same precedent as GET
+        /attempts/{id}, S7a). Cascades to the attempt's Answer rows.
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+        "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+        "404": { description: Attempt does not exist (RFC 9457 problem) }
+
+  /attempts/{id}/answers/{questionId}:
+    put:
+      summary: Auto-save one answer during an in-progress attempt
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+        - { name: questionId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [chosenOption]
+              properties:
+                chosenOption: { type: string }
+      responses:
+        "200": { description: Answer saved (re-answering the same question overwrites the prior value) }
+        "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+        "404": { description: Attempt does not exist (RFC 9457 problem) }
+
+  /attempts/{id}/submit:
+    post:
+      summary: Submit an attempt for grading
+      description: >
+        Grades every saved Answer against the question's correctOption and
+        persists score/totalQuestions on the Attempt (S8a). Idempotent:
+        resubmitting an already-SUBMITTED attempt returns the exact score
+        persisted the first time rather than regrading — an answer saved
+        after submission is never counted. For PART_PRACTICE,
+        totalQuestions is every Question in the Part; for MOCK_TEST
+        (since S11) it is every Question in the whole bank — in both
+        cases an unanswered question counts as incorrect (no Answer row
+        exists for it). S8b: on the first (real) grading pass, every
+        incorrect answer also gets an AI-generated explanation
+        (ADR-004) — explanationStatus is OK or UNAVAILABLE (never
+        regenerated on a later resubmit; use the retry endpoint below for
+        that). explanationStatus/explanationText are null for a correct
+        answer.
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Score returned (double-submission is a no-op success, same persisted score)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  status: { type: string, enum: [SUBMITTED] }
+                  score: { type: integer }
+                  totalQuestions: { type: integer }
+                  answers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        questionId: { type: integer }
+                        chosenOption: { type: string, nullable: true }
+                        isCorrect: { type: boolean }
+                        explanationStatus: { type: string, nullable: true, enum: [OK, UNAVAILABLE, null] }
+                        explanationText: { type: string, nullable: true }
+        "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+        "404": { description: Attempt does not exist (RFC 9457 problem) }
+
+  /attempts/{id}/answers/{questionId}/retry-explanation:
+    post:
+      summary: Retry a failed AI explanation for one wrong answer
+      description: >
+        S8b, approved design decision #5. Re-requests the Anthropic
+        explanation for exactly one answer — never re-scores the attempt
+        (distinct from resubmitting via POST .../submit, which is
+        idempotent and never touches explanations past the first grading
+        pass). Only allowed when the attempt is already SUBMITTED and the
+        targeted answer's current explanationStatus is UNAVAILABLE.
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+        - { name: questionId, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Refreshed explanation state (explanationStatus may still be UNAVAILABLE if the retry also failed)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  questionId: { type: integer }
+                  explanationStatus: { type: string, enum: [OK, UNAVAILABLE] }
+                  explanationText: { type: string, nullable: true }
+        "403": { description: Attempt belongs to another user (RFC 9457 problem) }
+        "404": { description: Attempt or answer does not exist (RFC 9457 problem) }
+        "409": { description: "Attempt not yet submitted, or the answer's explanation isn't UNAVAILABLE (RFC 9457 problem)" }
+
+  /attempts/{id}/result:
+    get:
+      summary: Get the graded result and per-question explanations
+      description: >
+        Not built as of S8b — POST /attempts/{id}/submit's own response
+        already returns score and per-answer explanations (see above),
+        which is what S9's Result screen consumes (it depends on S8a +
+        S8b only, no separate "result" slice). A dedicated read-only
+        result endpoint remains a placeholder for a later slice if a real
+        need for one (e.g. revisiting a result without resubmitting)
+        shows up.
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Score plus explanations; unavailable explanations flagged, not omitted }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT }
+                  minItems: 1
       responses:
         "201": { description: Attempt created (or existing in-progress attempt resumed) }
         "422": { description: "PART_PRACTICE requested for a Part with no questions available yet (RFC 9457 problem)" }
