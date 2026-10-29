@@ -198,7 +198,7 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         throw new IOException("Unterminated JSON array in upstream question bank");
     }
 
-    private Question mapQuestion(JsonNode row) throws IOException {
+    Question mapQuestion(JsonNode row) throws IOException {
         String partNumber = requiredText(row, "part");
         String prompt = requiredText(row, "prompt");
         List<String> choices = readChoices(row);
