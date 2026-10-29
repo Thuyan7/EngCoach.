@@ -378,11 +378,19 @@ describe("Test screen (S7b)", () => {
     );
 
     it("automatically submits a mock test when the server-computed time reaches zero", async () => {
+      let submitted = false;
       const fetchMock = routeFetch({
         "GET /attempts/7": () =>
-          jsonResponse(200, attemptDetail({ type: "MOCK_TEST", part: null, remainingSeconds: 0 })),
-        "POST /attempts/7/submit": () =>
-          jsonResponse(200, { id: 7, status: "SUBMITTED", score: 3, totalQuestions: 5, answers: [] }),
+          jsonResponse(200, attemptDetail({
+            type: "MOCK_TEST",
+            part: null,
+            remainingSeconds: 0,
+            status: submitted ? "SUBMITTED" : "IN_PROGRESS",
+          })),
+        "POST /attempts/7/submit": () => {
+          submitted = true;
+          return jsonResponse(200, { id: 7, status: "SUBMITTED", score: 3, totalQuestions: 5, answers: [] });
+        },
       });
       renderApp("/practice/7");
 
