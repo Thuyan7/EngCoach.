@@ -75,7 +75,8 @@ class RemoteQuestionBankImporterTest {
                 {
                   "image": "assets/part1/warehouse.jpg",
                   "choices": ["Workers are sitting.", "Workers are standing."],
-                  "answer": 1
+                  "answer": 1,
+                  "audioText": "A. Workers are sitting. B. Workers are standing."
                 }
                 """);
 
