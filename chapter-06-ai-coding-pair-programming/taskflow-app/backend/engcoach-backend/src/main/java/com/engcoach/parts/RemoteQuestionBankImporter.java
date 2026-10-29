@@ -30,6 +30,10 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
 
     static final String SOURCE_URL =
             "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/question-bank.js";
+    static final String PART_ONE_SOURCE_URL =
+            "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/question-bank-v31.js";
+    private static final String RAW_SOURCE_BASE =
+            "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/";
 
     private final QuestionRepository questionRepository;
     private final ObjectMapper objectMapper;
@@ -47,50 +51,75 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            HttpRequest request = HttpRequest.newBuilder(URI.create(SOURCE_URL))
-                    .timeout(Duration.ofSeconds(30))
-                    .header("Accept", "text/plain")
-                    .header("User-Agent", "EngCoach-question-bank-importer")
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(
-                    request, HttpResponse.BodyHandlers.ofString(java.nio.charset.StandardCharsets.UTF_8));
-
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                throw new IllegalStateException("Question source returned HTTP " + response.statusCode());
-            }
-
-            JsonNode bank = parseBankArray(response.body());
-            if (bank.isEmpty()) {
-                throw new IllegalStateException("Remote question bank was empty; no rows were imported");
+            JsonNode generalBank = fetchBank(SOURCE_URL, false);
+            JsonNode partOneBank = fetchBank(PART_ONE_SOURCE_URL, true);
+            if (generalBank.isEmpty() && partOneBank.isEmpty()) {
+                throw new IllegalStateException("Remote question banks were empty; no rows were imported");
             }
 
             List<Question> questionsToInsert = new ArrayList<>();
             Set<String> sourceKeys = new HashSet<>();
             int skipped = 0;
-            for (JsonNode row : bank) {
+
+            for (JsonNode row : generalBank) {
                 Question question = mapQuestion(row);
-                String key = duplicateKey(question.getPart(), question.getPrompt());
-                if (!sourceKeys.add(key) || questionRepository.existsByPartAndPrompt(
-                        question.getPart(), question.getPrompt())) {
+                if (shouldSkip(question, sourceKeys)) {
                     skipped++;
-                    continue;
+                } else {
+                    questionsToInsert.add(question);
                 }
-                questionsToInsert.add(question);
+            }
+
+            for (JsonNode row : partOneBank) {
+                Question question = mapPartOneQuestion(row);
+                if (shouldSkip(question, sourceKeys)) {
+                    skipped++;
+                } else {
+                    questionsToInsert.add(question);
+                }
             }
 
             if (!questionsToInsert.isEmpty()) {
                 questionRepository.saveAll(questionsToInsert);
             }
-            System.out.printf("Remote TOEIC question-bank import complete: added %d, skipped %d duplicates, source %s%n",
-                    questionsToInsert.size(), skipped, SOURCE_URL);
+            System.out.printf("Remote TOEIC question-bank import complete: added %d, skipped %d duplicates, sources %s and %s%n",
+                    questionsToInsert.size(), skipped, SOURCE_URL, PART_ONE_SOURCE_URL);
         } catch (IOException e) {
-            throw new IllegalStateException("Could not read the remote TOEIC question bank", e);
+            throw new IllegalStateException("Could not read or parse the remote TOEIC question banks", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Remote TOEIC question-bank import was interrupted", e);
         }
+    }
+
+    private JsonNode fetchBank(String sourceUrl, boolean partOne) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(URI.create(sourceUrl))
+                .timeout(Duration.ofSeconds(30))
+                .header("Accept", "text/plain")
+                .header("User-Agent", "EngCoach-question-bank-importer")
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(
+                request, HttpResponse.BodyHandlers.ofString(java.nio.charset.StandardCharsets.UTF_8));
+
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IOException("Question source returned HTTP " + response.statusCode() + ": " + sourceUrl);
+        }
+
+        JsonNode bank = partOne
+                ? parseNamedArray(response.body(), "const items =")
+                : parseBankArray(response.body());
+        if (bank.isEmpty()) {
+            throw new IOException("Remote question bank was empty: " + sourceUrl);
+        }
+        return bank;
+    }
+
+    private boolean shouldSkip(Question question, Set<String> sourceKeys) {
+        String key = duplicateKey(question.getPart(), question.getPrompt());
+        return !sourceKeys.add(key)
+                || questionRepository.existsByPartAndPrompt(question.getPart(), question.getPrompt());
     }
 
     private static String duplicateKey(String part, String prompt) {
@@ -99,21 +128,98 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
 
     static JsonNode parseBankArray(String javascript) throws IOException {
         int start = javascript.indexOf('[');
-        int end = javascript.lastIndexOf(']');
-        if (start < 0 || end <= start) {
+        if (start < 0) {
             throw new IOException("Expected a JSON array in the upstream question-bank.js file");
         }
+        return parseArrayAt(javascript, start);
+    }
 
-        JsonNode bank = new ObjectMapper().readTree(javascript.substring(start, end + 1));
-        if (!bank.isArray()) {
-            throw new IOException("Upstream question bank is not a JSON array");
+    /**
+     * Parses a named JavaScript array declaration while respecting quoted strings
+     * and nested arrays. The source bank uses JSON-compatible objects in this array.
+     */
+    static JsonNode parseNamedArray(String javascript, String declaration) throws IOException {
+        int declarationIndex = javascript.indexOf(declaration);
+        if (declarationIndex < 0) {
+            throw new IOException("Could not find array declaration: " + declaration);
         }
-        return bank;
+        int start = javascript.indexOf('[', declarationIndex + declaration.length());
+        if (start < 0) {
+            throw new IOException("Could not find array after declaration: " + declaration);
+        }
+        return parseArrayAt(javascript, start);
+    }
+
+    private static JsonNode parseArrayAt(String javascript, int start) throws IOException {
+        int depth = 0;
+        boolean inString = false;
+        boolean escaped = false;
+
+        for (int i = start; i < javascript.length(); i++) {
+            char ch = javascript.charAt(i);
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                } else if (ch == '\\\\') {
+                    escaped = true;
+                } else if (ch == '"') {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (ch == '"') {
+                inString = true;
+            } else if (ch == '[') {
+                depth++;
+            } else if (ch == ']') {
+                depth--;
+                if (depth == 0) {
+                    JsonNode bank = new ObjectMapper().readTree(javascript.substring(start, i + 1));
+                    if (!bank.isArray()) {
+                        throw new IOException("Upstream question bank is not a JSON array");
+                    }
+                    return bank;
+                }
+            }
+        }
+
+        throw new IOException("Unterminated JSON array in upstream question bank");
     }
 
     private Question mapQuestion(JsonNode row) throws IOException {
         String partNumber = requiredText(row, "part");
         String prompt = requiredText(row, "prompt");
+        List<String> choices = readChoices(row);
+        int answerIndex = readAnswerIndex(row, choices.size());
+
+        String passage = optionalText(row, "passage");
+        String part = "Part " + partNumber;
+        String optionsJson = objectMapper.writeValueAsString(choices);
+        // audioText is a transcript, not a playable audio URL.
+        return new Question(part, prompt, optionsJson, choices.get(answerIndex),
+                passage.isBlank() ? null : passage, null, null);
+    }
+
+    private Question mapPartOneQuestion(JsonNode row) throws IOException {
+        List<String> choices = readChoices(row);
+        int answerIndex = readAnswerIndex(row, choices.size());
+        String imagePath = requiredText(row, "image");
+
+        // Only allow known repository-relative Part 1 assets; never accept arbitrary URLs.
+        if (!imagePath.startsWith("assets/part1/") || imagePath.contains("..")
+                || imagePath.contains("\\\\")) {
+            throw new IOException("Part 1 question contains an invalid image path");
+        }
+
+        String prompt = "Look at the picture and select the sentence that best describes it.";
+        String imageUrl = RAW_SOURCE_BASE + imagePath;
+        String optionsJson = objectMapper.writeValueAsString(choices);
+        return new Question("Part 1", prompt, optionsJson, choices.get(answerIndex),
+                null, imageUrl, null);
+    }
+
+    private List<String> readChoices(JsonNode row) throws IOException {
         JsonNode choicesNode = row.get("choices");
         if (choicesNode == null || !choicesNode.isArray() || choicesNode.size() < 2) {
             throw new IOException("Question has no valid choices");
@@ -126,27 +232,24 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
             }
             choices.add(choice.asText());
         }
+        return choices;
+    }
 
+    private static int readAnswerIndex(JsonNode row, int choicesCount) throws IOException {
         JsonNode answerNode = row.get("answer");
         if (answerNode == null || !answerNode.canConvertToInt()) {
             throw new IOException("Question has no numeric answer index");
         }
         int answerIndex = answerNode.asInt();
-        if (answerIndex < 0 || answerIndex >= choices.size()) {
+        if (answerIndex < 0 || answerIndex >= choicesCount) {
             throw new IOException("Question answer index is outside the choices array");
         }
-
-        String passage = optionalText(row, "passage");
-        String part = "Part " + partNumber;
-        String optionsJson = objectMapper.writeValueAsString(choices);
-        // The upstream file contains transcript/text fields, not direct audio file URLs.
-        return new Question(part, prompt, optionsJson, choices.get(answerIndex),
-                passage.isBlank() ? null : passage, null, null);
+        return answerIndex;
     }
 
     private static String requiredText(JsonNode row, String field) throws IOException {
         JsonNode value = row.get(field);
-        if (value == null || value.asText().isBlank()) {
+        if (value == null || !value.isTextual() || value.asText().isBlank()) {
             throw new IOException("Question is missing required field: " + field);
         }
         return value.asText();
