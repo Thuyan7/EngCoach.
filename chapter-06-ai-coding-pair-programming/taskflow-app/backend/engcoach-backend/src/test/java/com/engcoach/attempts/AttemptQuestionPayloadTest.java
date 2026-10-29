@@ -56,6 +56,36 @@ class AttemptQuestionPayloadTest {
     }
 
     @Test
+    void selectedPartsAreStoredAndOnlyTheirQuestionsAreReturned() throws Exception {
+        questionRepository.save(new Question("Part 1", "Describe the picture.",
+                "[\"A\",\"B\"]", "A", null, "https://example.com/part1.jpg", null, "A. One B. Two"));
+        questionRepository.save(new Question("Part 5", "Choose the word.",
+                "[\"A\",\"B\"]", "B"));
+        questionRepository.save(new Question("Part 7", "Read the notice.",
+                "[\"A\",\"B\"]", "A"));
+
+        String token = registerAndGetToken();
+        String startBody = objectMapper.writeValueAsString(Map.of(
+                "type", "PART_PRACTICE", "parts", java.util.List.of("Part 5", "Part 1")));
+        String startResponse = mockMvc.perform(post("/attempts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(startBody))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(startResponse).get("id").asLong();
+
+        mockMvc.perform(get("/attempts/" + attemptId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.part").value("Part 1,Part 5"))
+                .andExpect(jsonPath("$.questions.length()").value(2))
+                .andExpect(jsonPath("$.questions[0].part").doesNotExist())
+                .andExpect(jsonPath("$.questions[0].imageUrl").value("https://example.com/part1.jpg"))
+                .andExpect(jsonPath("$.questions[0].audioText").value("A. One B. Two"));
+    }
+
+    @Test
     void attemptDetailIncludesReadingContextButNeverTheCorrectAnswer() throws Exception {
         questionRepository.save(new Question(
                 "Part 7",
@@ -64,7 +94,7 @@ class AttemptQuestionPayloadTest {
                 "An office renovation",
                 "NOTICE TO STAFF: The second-floor offices will be renovated.",
                 "https://example.com/office.jpg",
-                "https://example.com/notice.mp3"));
+                "https://example.com/notice.mp3", "Staff notice transcript."));
 
         String token = registerAndGetToken();
         String startBody = objectMapper.writeValueAsString(
@@ -87,6 +117,7 @@ class AttemptQuestionPayloadTest {
                         .value("NOTICE TO STAFF: The second-floor offices will be renovated."))
                 .andExpect(jsonPath("$.questions[0].imageUrl").value("https://example.com/office.jpg"))
                 .andExpect(jsonPath("$.questions[0].audioUrl").value("https://example.com/notice.mp3"))
+                .andExpect(jsonPath("$.questions[0].audioText").value("Staff notice transcript."))
                 .andExpect(jsonPath("$.questions[0].correctOption").doesNotExist());
     }
 }
