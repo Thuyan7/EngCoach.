@@ -20,7 +20,7 @@ describe("Progress screen (S10b)", () => {
 
     expect(await screen.findByRole("heading", { name: "Your progress" })).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
-    expect(screen.getByText("75%")).toBeInTheDocument(); // mean of 80% and 75%, rounded
+    expect(screen.getByText("78%")).toBeInTheDocument(); // mean of 80% and 75% is 77.5%, rounded
     expect(screen.getByText("Part 5")).toBeInTheDocument();
     expect(screen.getByText("Full mock test")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /Accuracy trend/ })).toBeInTheDocument();
