@@ -24,9 +24,9 @@ export default function AppShell() {
             </NavLink>
           </li>
           <li>
-            <button type="button" className="nav-item" aria-disabled="true" title="Coming soon">
+            <NavLink to="/tests" className="nav-item">
               Practice
-            </button>
+            </NavLink>
           </li>
           <li>
             <NavLink to="/progress" className="nav-item">
