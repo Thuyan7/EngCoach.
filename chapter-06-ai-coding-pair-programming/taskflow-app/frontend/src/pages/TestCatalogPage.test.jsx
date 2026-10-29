@@ -33,7 +33,8 @@ describe("Test catalog — Part selection preview", () => {
     expect(screen.getByText("4 of 7 Parts selected")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Your selected Parts" })).toBeInTheDocument();
     expect(screen.getByText(/This is a UI preview only/)).toBeInTheDocument();
-    expect(screen.getByText("Part 4 — Short Talks")).toBeInTheDocument();
+    expect(screen.getByText("Short Talks")).toBeInTheDocument();
+    expect(screen.getByText("Part 4")).toBeInTheDocument();
     expect(screen.queryByText("Part 1 — Photographs")).not.toBeInTheDocument();
   });
 
