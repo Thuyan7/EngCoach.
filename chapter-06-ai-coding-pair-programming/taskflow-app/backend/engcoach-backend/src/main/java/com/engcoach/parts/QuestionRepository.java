@@ -9,44 +9,36 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     /**
      * Backs {@code GET /parts} (implementation-plan.md S5a: "returns all
-     * distinct Parts"). Returns an empty list if no questions exist yet —
-     * that's the expected state until a question bank is seeded, not an
-     * error (see PartsControllerTest and SLICE-S5A-NOTES.md).
+     * distinct Parts"). Returns an empty list if no questions exist yet — that's
+     * the expected state until a question bank is seeded.
      */
     @Query("SELECT DISTINCT q.part FROM Question q ORDER BY q.part")
     List<String> findDistinctParts();
 
     /**
-     * Backs S6a's {@code POST /attempts} validation (approved design
-     * decision #3): a Part practice attempt can't be started for a
-     * {@code part} with zero questions — checked before creating the
-     * {@code Attempt} row, not after.
+     * Used by the opt-in remote question-bank importer to preserve existing
+     * questions and skip rows already present in the local bank.
+     */
+    boolean existsByPartAndPrompt(String part, String prompt);
+
+    /**
+     * Backs S6a's {@code POST /attempts} validation: a Part practice attempt
+     * can't be started for a part with zero questions.
      */
     boolean existsByPart(String part);
 
     /**
-     * Backs S8a's grading (approved design decision #2): every question in
-     * a Part, used to compute {@code totalQuestions} and to find which
-     * ones were never answered ("unanswered = incorrect") — not just the
-     * ones the caller happened to save an `Answer` for.
+     * Questions in a Part, used for grading and unanswered-question handling.
      */
     List<Question> findByPart(String part);
 
     /**
-     * Backs S7b's question list on {@code GET /attempts/{id}}: the questions
-     * of a Part in a stable order (by id), so a refresh shows the same
-     * question sequence every time.
+     * Questions of a Part in stable ID order for attempt detail views.
      */
     List<Question> findByPartOrderByIdAsc(String part);
 
     /**
-     * S11: the {@code MOCK_TEST} equivalent of {@link #findByPartOrderByIdAsc}
-     * — every question in the whole bank, in a stable (by id) order,
-     * backing both {@code AttemptGradingService}'s grading (approved
-     * decisions #1/#2: the full bank is a {@code MOCK_TEST}'s "assigned
-     * question set") and {@code GET /attempts/{id}}'s question list
-     * (same "whatever grading uses, the detail view shows" precedent S7b
-     * established for {@code PART_PRACTICE}).
+     * All questions in stable ID order for mock-test grading and detail views.
      */
     List<Question> findAllByOrderByIdAsc();
 }

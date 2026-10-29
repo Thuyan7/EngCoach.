@@ -38,8 +38,7 @@ public class Question {
     @Column(name = "correct_option", nullable = false)
     private String correctOption;
 
-    @Lob
-    @Column
+    @Column(columnDefinition = "LONGTEXT")
     private String passage;
 
     @Column(length = 2048)
