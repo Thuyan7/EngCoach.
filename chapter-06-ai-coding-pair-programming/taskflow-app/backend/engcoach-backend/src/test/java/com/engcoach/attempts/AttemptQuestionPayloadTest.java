@@ -123,11 +123,11 @@ class AttemptQuestionPayloadTest {
     @Test
     void multiPartAttemptGradesOnlyQuestionsFromSelectedParts() throws Exception {
         Long partOneId = questionRepository.save(new Question("Part 1", "Describe the picture.",
-                "[\\"A\\",\\"B\\"]", "A", null, "https://example.com/part1.jpg", null)).getId();
+                objectMapper.writeValueAsString(java.util.List.of("A", "B")), "A", null, "https://example.com/part1.jpg", null)).getId();
         Long partFiveId = questionRepository.save(new Question("Part 5", "Choose the word.",
-                "[\\"A\\",\\"B\\"]", "B")).getId();
+                objectMapper.writeValueAsString(java.util.List.of("A", "B")), "B")).getId();
         questionRepository.save(new Question("Part 7", "Read the notice.",
-                "[\\"A\\",\\"B\\"]", "A"));
+                objectMapper.writeValueAsString(java.util.List.of("A", "B")), "A"));
 
         String token = registerAndGetToken();
         String startBody = objectMapper.writeValueAsString(Map.of(
