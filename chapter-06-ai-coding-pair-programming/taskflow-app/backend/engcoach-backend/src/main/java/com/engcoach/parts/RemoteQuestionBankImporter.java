@@ -246,8 +246,10 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         // Keep transcript separate from a playable audio URL; the frontend may
         // choose speech synthesis or display a transcript during review.
         String audioText = optionalText(row, "audioText");
+        String audioUrl = optionalText(row, "audioUrl");
         return new Question(part, prompt, optionsJson, choices.get(answerIndex),
-                passage.isBlank() ? null : passage, null, null,
+                passage.isBlank() ? null : passage, null,
+                audioUrl.isBlank() ? null : audioUrl,
                 audioText.isBlank() ? null : audioText);
     }
 
