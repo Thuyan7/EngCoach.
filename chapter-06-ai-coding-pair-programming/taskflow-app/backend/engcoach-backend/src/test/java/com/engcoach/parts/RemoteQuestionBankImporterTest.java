@@ -5,8 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -59,6 +63,21 @@ class RemoteQuestionBankImporterTest {
         assertEquals("https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/assets/part1/warehouse.jpg",
                 question.getImageUrl());
         assertNull(question.getAudioUrl());
+    }
+
+    @Test
+    void deduplicatesPartOneByImageInsteadOfSharedPrompt() {
+        QuestionRepository repository = mock(QuestionRepository.class);
+        RemoteQuestionBankImporter importer = new RemoteQuestionBankImporter(repository, objectMapper);
+        Set<String> sourceKeys = new HashSet<>();
+        Question first = new Question("Part 1", "Look at the picture.", "[\"A\",\"B\"]", "A",
+                null, "https://example.com/one.jpg", null);
+        Question second = new Question("Part 1", "Look at the picture.", "[\"A\",\"B\"]", "B",
+                null, "https://example.com/two.jpg", null);
+
+        assertFalse(importer.shouldSkip(first, sourceKeys));
+        assertFalse(importer.shouldSkip(second, sourceKeys));
+        assertTrue(importer.shouldSkip(first, sourceKeys));
     }
 
     @Test
