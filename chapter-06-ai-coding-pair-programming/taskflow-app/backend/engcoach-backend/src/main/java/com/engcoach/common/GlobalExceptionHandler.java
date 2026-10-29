@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import com.engcoach.common.InvalidAttemptRequestException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
@@ -97,6 +98,17 @@ public class GlobalExceptionHandler {
                 HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
         problem.setType(URI.create(PROBLEM_BASE + "invalid-answer"));
         problem.setTitle("Invalid answer");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidAttemptRequestException.class)
+    public ProblemDetail handleInvalidAttemptRequest(InvalidAttemptRequestException ex,
+                                                       HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "invalid-attempt-request"));
+        problem.setTitle("Invalid attempt request");
         problem.setInstance(URI.create(request.getRequestURI()));
         return problem;
     }
