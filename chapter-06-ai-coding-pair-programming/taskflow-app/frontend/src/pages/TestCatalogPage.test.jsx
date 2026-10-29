@@ -58,6 +58,6 @@ describe("Test catalog — Part selection preview", () => {
     await user.click(screen.getByRole("button", { name: "Preview selection" }));
 
     expect(screen.getByRole("heading", { name: "Your selected Parts" })).toBeInTheDocument();
-    expect(fetchMock.mock.calls.some(([url]) => url === "/attempts" && fetchMock.mock.calls.some(([, options]) => options?.method === "POST"))).toBe(false);
+    expect(fetchMock.mock.calls.some(([, options]) => options?.method === "POST")).toBe(false);
   });
 });
