@@ -31,8 +31,8 @@ engcoach:
   question-bank:
     # Opt-in local-only starter data. Leave false for normal/production deployments.
     seed-samples: ${ENGCOACH_SEED_SAMPLE_QUESTIONS:false}
-    # One-time import from the public GitHub-hosted original simulation bank.
-    # Enable only for an empty database; it never merges into an existing bank.
+    # Opt-in additive import from the public GitHub-hosted TOEIC-style simulation banks.
+    # Existing questions are preserved; matching rows are skipped on repeated imports.
     import-remote: ${ENGCOACH_IMPORT_REMOTE_QUESTION_BANK:false}
 
 server:
