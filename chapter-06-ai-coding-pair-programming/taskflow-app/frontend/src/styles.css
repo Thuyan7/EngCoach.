@@ -262,3 +262,78 @@ button, input{font-family:inherit;}
 .success-msg{padding:14px 16px;border-radius:var(--radius-control);border:1px solid #A9D4B5;background:#EAF7ED;color:#205B31;font-size:13.5px;line-height:1.6;}
 .success-msg a{color:#205B31;font-weight:800;}
 @media(max-width:640px){.practice-feature{align-items:stretch;flex-direction:column;padding:20px}.practice-feature>.btn{width:100%}.practice-feature-points{flex-direction:column;gap:6px}}
+
+
+/* ---- Mock-test countdown ring (S12), matching the approved Chapter 4 prototype ---- */
+.mock-test-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:24px;
+}
+.mock-test-heading{min-width:0;}
+.mock-test-timer{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  flex-shrink:0;
+  min-width:112px;
+}
+.timer-wrap{
+  position:relative;
+  width:104px;
+  height:104px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.timer-ring{
+  position:absolute;
+  inset:0;
+  width:104px;
+  height:104px;
+  transform:rotate(-90deg);
+  overflow:visible;
+}
+.timer-ring circle{
+  fill:none;
+  stroke-width:6;
+}
+.timer-ring-track{stroke:var(--border);}
+.timer-ring-value{
+  stroke:var(--primary);
+  stroke-linecap:round;
+  transition:stroke-dashoffset .4s ease,stroke .3s ease;
+}
+.timer-ring-value--warning{stroke:var(--warning);}
+.timer-ring-value--danger{
+  stroke:var(--danger);
+  filter:drop-shadow(0 0 5px rgba(163,45,45,.35));
+}
+.timer-digits{
+  color:var(--primary);
+  font-size:23px;
+  font-weight:800;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.timer-digits--warning{color:var(--warning);}
+.timer-digits--danger{color:var(--danger);}
+.timer-label{
+  margin:4px 0 0;
+  color:var(--text-secondary);
+  font-size:12px;
+  text-align:center;
+}
+@keyframes timerPulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+.timer-digits--danger{animation:timerPulse 1s ease-in-out infinite;}
+@media(max-width:600px){
+  .mock-test-head{gap:12px;}
+  .mock-test-timer{min-width:88px;}
+  .timer-wrap,.timer-ring{width:88px;height:88px;}
+  .timer-digits{font-size:19px;}
+}
+@media(prefers-reduced-motion:reduce){
+  .timer-digits--danger{animation:none;}
+  .timer-ring-value{transition:none;}
+}
