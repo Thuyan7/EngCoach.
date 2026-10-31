@@ -7,6 +7,9 @@ import { useAuth } from "../auth/AuthContext.jsx";
 // questions (id, prompt, options — never the answer key), the saved answers
 // and the status; each answer is auto-saved with PUT.
 const letter = (i) => String.fromCharCode(65 + i);
+const MOCK_TEST_DURATION_SECONDS = 7200;
+const TIMER_RADIUS = 46;
+const TIMER_CIRCUMFERENCE = 2 * Math.PI * TIMER_RADIUS;
 const formatTime = (seconds) => {
   const safeSeconds = Math.max(0, Math.floor(seconds));
   const minutes = Math.floor(safeSeconds / 60);
@@ -202,20 +205,40 @@ export default function TestPage() {
 
   return (
     <>
-      <div className="page-head">
-        <h1>{attempt.type === "MOCK_TEST" ? "Mock test" : `${attempt.part} practice`}</h1>
-        <p>
-          {answeredCount} of {questions.length} answered
-        </p>
+      <div className={`page-head${attempt.type === "MOCK_TEST" ? " mock-test-head" : ""}`}>
+        <div className="mock-test-heading">
+          <h1>{attempt.type === "MOCK_TEST" ? "Mock test" : `${attempt.part} practice`}</h1>
+          <p>
+            {answeredCount} of {questions.length} answered
+          </p>
+        </div>
         {attempt.type === "MOCK_TEST" && remainingSeconds !== null && attempt.status === "IN_PROGRESS" && (
-          <p
-            className={`save-status countdown${remainingSeconds < 60 ? " countdown--critical" : remainingSeconds < 300 ? " countdown--warning" : ""}`}
+          <div
+            className="mock-test-timer"
             role="timer"
             aria-label="Time remaining"
             data-time-state={remainingSeconds < 60 ? "critical" : remainingSeconds < 300 ? "warning" : "normal"}
           >
-            Time remaining: {formatTime(remainingSeconds)}
-          </p>
+            <span className="visually-hidden">Time remaining: {formatTime(remainingSeconds)}</span>
+            <div className="timer-wrap">
+              <svg className="timer-ring" viewBox="0 0 104 104" aria-hidden="true" data-testid="mock-timer-ring">
+                <circle className="timer-ring-track" cx="52" cy="52" r="46" />
+                <circle
+                  className={`timer-ring-value${remainingSeconds < 60 ? " timer-ring-value--danger" : remainingSeconds < 300 ? " timer-ring-value--warning" : ""}`}
+                  cx="52"
+                  cy="52"
+                  r="46"
+                  strokeDasharray={TIMER_CIRCUMFERENCE}
+                  strokeDashoffset={TIMER_CIRCUMFERENCE * (1 - Math.min(remainingSeconds, MOCK_TEST_DURATION_SECONDS) / MOCK_TEST_DURATION_SECONDS)}
+                  data-testid="mock-timer-ring-value"
+                />
+              </svg>
+              <span className={`timer-digits${remainingSeconds < 60 ? " timer-digits--danger" : remainingSeconds < 300 ? " timer-digits--warning" : ""}`}>
+                {formatTime(remainingSeconds)}
+              </span>
+            </div>
+            <p className="timer-label">Time remaining</p>
+          </div>
         )}
       </div>
 
