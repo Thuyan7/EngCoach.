@@ -359,6 +359,10 @@ describe("Test screen (S7b)", () => {
       expect(await screen.findByRole("timer", { name: "Time remaining" })).toHaveTextContent("Time remaining: 61:01");
       expect(screen.getByRole("timer", { name: "Time remaining" })).toHaveAttribute("data-time-state", "normal");
       expect(screen.getByRole("heading", { name: "Mock test" })).toBeInTheDocument();
+      const ring = screen.getByTestId("mock-timer-ring-value");
+      expect(ring).toHaveAttribute("stroke-dasharray");
+      expect(ring).toHaveAttribute("stroke-dashoffset");
+      expect(screen.getByText("61:01")).toBeInTheDocument();
     });
 
     it.each([[299, "warning"], [59, "critical"]])(
@@ -373,6 +377,9 @@ describe("Test screen (S7b)", () => {
         expect(await screen.findByRole("timer", { name: "Time remaining" })).toHaveAttribute(
           "data-time-state",
           expectedState,
+        );
+        expect(screen.getByTestId("mock-timer-ring-value").className.baseVal).toContain(
+          expectedState === "warning" ? "timer-ring-value--warning" : "timer-ring-value--danger",
         );
       },
     );
