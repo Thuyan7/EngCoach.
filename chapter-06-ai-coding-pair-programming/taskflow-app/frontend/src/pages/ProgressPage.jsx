@@ -65,7 +65,8 @@ export default function ProgressPage() {
     }
 
     wasDialogOpenRef.current = true;
-    cancelRef.current?.focus();
+    if (deleting) dialogRef.current?.focus();
+    else cancelRef.current?.focus();
 
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -266,6 +267,7 @@ export default function ProgressPage() {
             ref={dialogRef}
             className="delete-dialog"
             role="dialog"
+            tabIndex={-1}
             aria-modal="true"
             aria-labelledby="delete-heading"
             aria-describedby="delete-description"
