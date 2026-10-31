@@ -27,6 +27,10 @@ export default function ProgressPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const cancelRef = useRef(null);
+  const dialogRef = useRef(null);
+  const triggerRef = useRef(null);
+  const historyHeadingRef = useRef(null);
+  const wasDialogOpenRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,11 +55,44 @@ export default function ProgressPage() {
   }, [token, signOut, reloadKey]);
 
   useEffect(() => {
-    if (!selected) return undefined;
+    if (!selected) {
+      if (wasDialogOpenRef.current) {
+        wasDialogOpenRef.current = false;
+        if (triggerRef.current?.isConnected) triggerRef.current.focus();
+        else historyHeadingRef.current?.focus();
+      }
+      return undefined;
+    }
+
+    wasDialogOpenRef.current = true;
     cancelRef.current?.focus();
+
     const onKeyDown = (event) => {
-      if (event.key === "Escape" && !deleting) closeDialog();
+      if (event.key === "Escape") {
+        if (!deleting) closeDialog();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const focusable = dialogRef.current?.querySelectorAll(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable?.length) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !dialogRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialogRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
     };
+
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
     // closeDialog is intentionally local to the active dialog lifecycle.
@@ -186,7 +223,7 @@ export default function ProgressPage() {
           <section aria-labelledby="history-heading">
             <div className="history-card card">
               <div className="history-title">
-                <h2 id="history-heading">Attempt history</h2>
+                <h2 id="history-heading" ref={historyHeadingRef} tabIndex={-1}>Attempt history</h2>
                 <span className="history-count">{history.attempts.length} {history.attempts.length === 1 ? "attempt" : "attempts"}</span>
               </div>
               <ul className="history-list">
@@ -209,7 +246,7 @@ export default function ProgressPage() {
                         className="icon-btn"
                         aria-label={`Delete attempt: ${name}, ${formatDate(attempt.startedAt)}, score ${attempt.score ?? "unavailable"}`}
                         disabled={deleting}
-                        onClick={() => { setSelected(attempt); setDeleteError(""); }}
+                        onClick={(event) => { triggerRef.current = event.currentTarget; setSelected(attempt); setDeleteError(""); }}
                       >
                         <span aria-hidden="true">×</span>
                       </button>
@@ -226,6 +263,7 @@ export default function ProgressPage() {
       {selected && (
         <div className="delete-backdrop">
           <section
+            ref={dialogRef}
             className="delete-dialog"
             role="dialog"
             aria-modal="true"
