@@ -378,7 +378,7 @@ describe("Test screen (S7b)", () => {
           "data-time-state",
           expectedState,
         );
-        expect(screen.getByTestId("mock-timer-ring-value").className.baseVal).toContain(
+        expect(screen.getByTestId("mock-timer-ring-value").getAttribute("class")).toContain(
           expectedState === "warning" ? "timer-ring-value--warning" : "timer-ring-value--danger",
         );
       },
