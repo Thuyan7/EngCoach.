@@ -64,7 +64,32 @@ describe("Progress screen (S10b)", () => {
     expect(await screen.findByText("Full mock test")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Delete attempt: Part 5/ })).not.toBeInTheDocument();
     expect(screen.getByText("1 attempt")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Attempt history" })).toHaveFocus();
     expect(fetchMock.mock.calls.find(([, init]) => init?.method === "DELETE")[0]).toBe("/attempts/12");
+  });
+
+  it("traps keyboard focus in the delete dialog and restores focus when cancelled", async () => {
+    const user = userEvent.setup();
+    routeFetch({ "GET /attempts": () => jsonResponse(200, attempts) });
+    renderApp("/progress");
+
+    const trigger = await screen.findByRole("button", { name: /Delete attempt: Part 5/ });
+    await user.click(trigger);
+
+    const cancel = screen.getByRole("button", { name: "Cancel" });
+    const confirm = screen.getByRole("button", { name: "Delete attempt" });
+    expect(cancel).toHaveFocus();
+
+    await user.tab();
+    expect(confirm).toHaveFocus();
+    await user.tab();
+    expect(cancel).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(confirm).toHaveFocus();
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
   });
 
   it("delete failure keeps the row and lets the user retry", async () => {
