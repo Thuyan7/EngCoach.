@@ -20,6 +20,14 @@ import com.engcoach.common.ExplanationRetryNotAllowedException;
 import com.engcoach.common.PartHasNoQuestionsException;
 import com.engcoach.parts.Question;
 import com.engcoach.parts.QuestionRepository;
+import com.engcoach.tests.TestQuestion;
+import com.engcoach.tests.TestQuestionRepository;
+import com.engcoach.tests.QuestionGroup;
+import com.engcoach.tests.QuestionGroupRepository;
+import com.engcoach.tests.TestPart;
+import com.engcoach.tests.TestPartRepository;
+import com.engcoach.tests.ToeicTest;
+import com.engcoach.tests.ToeicTestRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +35,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Slice S6a: starting a Part practice (or mock test) attempt, and
@@ -92,50 +103,87 @@ public class AttemptsService {
     private final QuestionRepository questionRepository;
     private final AttemptGradingService attemptGradingService;
     private final AnthropicExplanationService explanationService;
+    private final ToeicTestRepository toeicTestRepository;
+    private final TestPartRepository testPartRepository;
+    private final TestQuestionRepository testQuestionRepository;
+    private final QuestionGroupRepository questionGroupRepository;
 
     public AttemptsService(AttemptRepository attemptRepository,
                             AnswerRepository answerRepository,
                             QuestionRepository questionRepository,
                             AttemptGradingService attemptGradingService,
-                            AnthropicExplanationService explanationService) {
+                            AnthropicExplanationService explanationService,
+                            ToeicTestRepository toeicTestRepository, TestPartRepository testPartRepository,
+                            TestQuestionRepository testQuestionRepository, QuestionGroupRepository questionGroupRepository) {
         this.attemptRepository = attemptRepository;
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
         this.attemptGradingService = attemptGradingService;
         this.explanationService = explanationService;
+        this.toeicTestRepository = toeicTestRepository;
+        this.testPartRepository = testPartRepository;
+        this.testQuestionRepository = testQuestionRepository;
+        this.questionGroupRepository = questionGroupRepository;
     }
 
     @Transactional
     public AttemptResponse startAttempt(Long userId, StartAttemptRequest request) {
         String type = request.getType();
+        if ("TEST".equals(type)) {
+            return startSelectedTest(userId, request);
+        }
+        if (!"PART_PRACTICE".equals(type) && !"MOCK_TEST".equals(type)) {
+            throw new IllegalArgumentException("Unsupported attempt type.");
+        }
         String part = "PART_PRACTICE".equals(type) ? request.getPart() : null;
-
         Attempt existing = attemptRepository
                 .findFirstByUserIdAndTypeAndPartAndStatus(userId, type, part, Attempt.STATUS_IN_PROGRESS)
                 .orElse(null);
-        if (existing != null) {
-            return AttemptResponse.from(existing);
-        }
+        if (existing != null) return AttemptResponse.from(existing);
 
         if ("PART_PRACTICE".equals(type)) {
-            if (!questionRepository.existsByPart(part)) {
-                throw new PartHasNoQuestionsException(part);
-            }
-        } else if ("MOCK_TEST".equals(type) && questionRepository.count() == 0) {
-            // Approved S11 design decision #3: same "don't create an
-            // empty, unplayable attempt" rule S6a already applied to a
-            // single empty Part, generalized to "the entire question
-            // bank is empty" for a mock test.
+            if (!questionRepository.existsByPart(part)) throw new PartHasNoQuestionsException(part);
+        } else if (questionRepository.count() == 0) {
             throw new PartHasNoQuestionsException();
         }
 
-        // Approved S11 design decision #4: a MOCK_TEST attempt gets a
-        // fixed time limit; PART_PRACTICE stays untimed (null), unchanged.
         Integer timeLimitSeconds = "MOCK_TEST".equals(type) ? MOCK_TEST_TIME_LIMIT_SECONDS : null;
-        Attempt attempt = new Attempt(userId, type, part, Attempt.STATUS_IN_PROGRESS, Instant.now(),
-                timeLimitSeconds);
-        attempt = attemptRepository.save(attempt);
-        return AttemptResponse.from(attempt);
+        Attempt attempt = new Attempt(userId, type, part, Attempt.STATUS_IN_PROGRESS, Instant.now(), timeLimitSeconds);
+        return AttemptResponse.from(attemptRepository.save(attempt));
+    }
+
+    private AttemptResponse startSelectedTest(Long userId, StartAttemptRequest request) {
+        if (request.getTestId() == null || request.getParts() == null || request.getParts().isEmpty()) {
+            throw new PartHasNoQuestionsException();
+        }
+        ToeicTest test = toeicTestRepository.findById(request.getTestId())
+                .filter(ToeicTest::isPublished).orElseThrow(AttemptNotFoundException::new);
+        List<TestPart> availableParts = testPartRepository.findByTestIdOrderBySortOrderAsc(test.getId());
+        Set<String> requested = Set.copyOf(request.getParts());
+        if (requested.size() != request.getParts().size()) throw new PartHasNoQuestionsException();
+        List<String> selected = availableParts.stream().map(TestPart::getPart)
+                .filter(requested::contains).toList();
+        if (selected.isEmpty() || selected.size() != requested.size()) throw new PartHasNoQuestionsException();
+
+        String selectedKey = String.join(",", selected);
+        Attempt existing = attemptRepository.findFirstByUserIdAndTestIdAndSelectedPartsAndStatus(
+                userId, test.getId(), selectedKey, Attempt.STATUS_IN_PROGRESS).orElse(null);
+        if (existing != null) return AttemptResponse.from(existing);
+
+        List<TestQuestion> links = testQuestionRepository.findByTestIdOrderBySortOrderAsc(test.getId());
+        Map<Long, Question> byId = new HashMap<>();
+        questionRepository.findAllById(links.stream().map(TestQuestion::getQuestionId).toList())
+                .forEach(question -> byId.put(question.getId(), question));
+        long assignedCount = links.stream().map(link -> byId.get(link.getQuestionId()))
+                .filter(java.util.Objects::nonNull)
+                .filter(question -> selected.contains(question.getPart())).count();
+        if (assignedCount == 0) throw new PartHasNoQuestionsException();
+
+        int durationSeconds = availableParts.stream().filter(part -> selected.contains(part.getPart()))
+                .mapToInt(TestPart::getDurationSeconds).sum();
+        Attempt attempt = new Attempt(userId, "TEST", null, Attempt.STATUS_IN_PROGRESS, Instant.now(),
+                durationSeconds, test.getId(), selectedKey);
+        return AttemptResponse.from(attemptRepository.save(attempt));
     }
 
     @Transactional
@@ -158,7 +206,10 @@ public class AttemptsService {
                 .orElseThrow(InvalidAnswerException::new);
         boolean belongsToAttempt = "MOCK_TEST".equals(attempt.getType())
                 || ("PART_PRACTICE".equals(attempt.getType())
-                    && attempt.getPart() != null && attempt.getPart().equals(question.getPart()));
+                    && attempt.getPart() != null && attempt.getPart().equals(question.getPart()))
+                || ("TEST".equals(attempt.getType()) && attempt.getTestId() != null
+                    && selectedParts(attempt).contains(question.getPart())
+                    && testQuestionRepository.existsByTestIdAndQuestionId(attempt.getTestId(), questionId));
         if (!belongsToAttempt || !QuestionView.from(question).options().contains(request.getChosenOption())) {
             throw new InvalidAnswerException();
         }
@@ -173,6 +224,11 @@ public class AttemptsService {
         answer = answerRepository.save(answer);
 
         return AnswerResponse.from(answer);
+    }
+
+    private List<String> selectedParts(Attempt attempt) {
+        return attempt.getSelectedParts() == null || attempt.getSelectedParts().isBlank()
+                ? List.of() : List.of(attempt.getSelectedParts().split(","));
     }
 
     private boolean isTimeExpired(Attempt attempt, Instant now) {
@@ -204,12 +260,27 @@ public class AttemptsService {
         // questions are the whole bank (same "whatever grading uses, the
         // detail view shows" precedent, extended to MOCK_TEST now that it
         // has a real assigned question set too — approved S11 decision #1).
-        List<Question> assignedQuestions = "PART_PRACTICE".equals(attempt.getType()) && attempt.getPart() != null
-                ? questionRepository.findByPartOrderByIdAsc(attempt.getPart())
-                : "MOCK_TEST".equals(attempt.getType())
-                        ? questionRepository.findAllByOrderByIdAsc()
-                        : List.of();
-        List<QuestionView> questions = assignedQuestions.stream().map(QuestionView::from).toList();
+        List<QuestionView> questions;
+        if ("TEST".equals(attempt.getType()) && attempt.getTestId() != null) {
+            List<TestQuestion> links = testQuestionRepository.findByTestIdOrderBySortOrderAsc(attempt.getTestId());
+            Map<Long, Question> byId = new HashMap<>();
+            questionRepository.findAllById(links.stream().map(TestQuestion::getQuestionId).toList())
+                    .forEach(question -> byId.put(question.getId(), question));
+            List<TestQuestion> selectedLinks = links.stream().filter(link -> {
+                Question question = byId.get(link.getQuestionId());
+                return question != null && selectedParts(attempt).contains(question.getPart());
+            }).toList();
+            Map<Long, QuestionGroup> groups = new HashMap<>();
+            questionGroupRepository.findAllById(selectedLinks.stream().map(TestQuestion::getGroupId)
+                    .filter(java.util.Objects::nonNull).toList()).forEach(group -> groups.put(group.getId(), group));
+            questions = selectedLinks.stream().map(link -> QuestionView.from(byId.get(link.getQuestionId()),
+                    link.getGroupId() == null ? null : groups.get(link.getGroupId()))).toList();
+        } else {
+            List<Question> assignedQuestions = "PART_PRACTICE".equals(attempt.getType()) && attempt.getPart() != null
+                    ? questionRepository.findByPartOrderByIdAsc(attempt.getPart())
+                    : "MOCK_TEST".equals(attempt.getType()) ? questionRepository.findAllByOrderByIdAsc() : List.of();
+            questions = assignedQuestions.stream().map(QuestionView::from).toList();
+        }
 
         return AttemptDetailResponse.from(attempt, remainingSeconds, answers, questions);
     }
