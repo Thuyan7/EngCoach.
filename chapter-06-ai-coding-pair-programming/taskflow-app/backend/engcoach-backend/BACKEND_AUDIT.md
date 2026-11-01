@@ -64,3 +64,14 @@ Audit baseline: `main` at commit `0d67a58273384e0c9b8e364efed93c34f8cd4018` (202
 ## 5. Verification
 
 The latest `main` workflow at the audit baseline reported success for both backend Maven tests and frontend tests/build. The new timeout regression tests added alongside this audit require a fresh CI run before they can be considered verified. No claim is made here that the current working changes have already passed Maven.
+
+
+## 6. Follow-up changes on the working branch
+
+- Added `question-bank/toeic-mock-bank.json`: exactly 200 TOEIC-style questions across all seven Parts (6/25/39/30/30/16/54). The seeder validates the exact distribution and answer-option consistency before inserting.
+- Added `audioText` to the Question entity and attempt-detail payload. Parts 1-4 contain 100 listening scripts; the frontend plays them using browser speech synthesis. This is generated TTS, not a set of recorded MP3 files, and voice quality depends on the browser/OS.
+- Added six Part 1 images with upstream image provenance and a license notice. Five are generated workplace scenes; one is a Pexels photograph under the Pexels License.
+- The seeder remains opt-in and only inserts when `questions` is empty. A local database containing the previous 12 sample rows must be backed up and have its question rows cleared before loading the 200-question set. Never do this against production data.
+- The timeout change in this PR rejects new or modified answers at/after the server deadline with 409 Conflict. The submit endpoint remains callable after expiry to grade saved answers; this does not add server-side background auto-finalization.
+
+The relational integrity gaps in §1 (explicit foreign keys, unique attempt/question answer constraint, and versioned schema migrations) remain open and should be handled separately after checking existing database contents.

@@ -11,8 +11,10 @@ import jakarta.persistence.Table;
 /**
  * Maps 1:1 to the {@code Question} entity in
  * chapter-05-ai-for-software-design-architecture/design/data-model.mmd.
- * Core fields: id, part, prompt, options, correct_option. Optional passage
- * and media URLs support TOEIC reading/listening material. The options field
+ * Core fields: id, part, prompt, options, correct_option. Optional passage,
+ * image/audio URLs, and an audioText script support TOEIC reading/listening material.
+ * audioText is used by the frontend's browser speech-synthesis fallback when
+ * no hosted audioUrl is available. The options field
  * remains a JSON array of strings so the existing grading contract stays
  * unchanged; correctOption must exactly match one of those strings.
  */
