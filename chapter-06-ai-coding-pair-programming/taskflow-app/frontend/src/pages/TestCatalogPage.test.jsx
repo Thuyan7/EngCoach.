@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { renderApp, routeFetch, signIn } from "../test/helpers.jsx";
@@ -33,9 +33,11 @@ describe("Test catalog — Part selection preview", () => {
     expect(screen.getByText("4 of 7 Parts selected")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Your selected Parts" })).toBeInTheDocument();
     expect(screen.getByText(/This is a UI preview only/)).toBeInTheDocument();
-    expect(screen.getByText("Short Talks")).toBeInTheDocument();
-    expect(screen.getByText("Part 4")).toBeInTheDocument();
-    expect(screen.queryByText("Part 1 — Photographs")).not.toBeInTheDocument();
+    // "Part 4" also appears in the selectable grid, so look only inside the preview.
+    const preview = screen.getByRole("region", { name: "Your selected Parts" });
+    expect(within(preview).getByText("Part 4")).toBeInTheDocument();
+    expect(within(preview).getByText(/Short Talks/)).toBeInTheDocument();
+    expect(within(preview).queryByText(/Photographs/)).not.toBeInTheDocument();
   });
 
   it("select all and clear selection work, and an empty selection cannot be previewed", async () => {
