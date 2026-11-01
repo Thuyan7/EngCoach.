@@ -20,6 +20,15 @@ class RemoteQuestionBankImporterTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
+    void partOneSourcesIncludeAllFourPublishedImageBatches() {
+        assertEquals(4, RemoteQuestionBankImporter.PART_ONE_SOURCE_URLS.size());
+        assertTrue(RemoteQuestionBankImporter.PART_ONE_SOURCE_URLS.stream()
+                .anyMatch(url -> url.endsWith("question-bank-v31.js")));
+        assertTrue(RemoteQuestionBankImporter.PART_ONE_SOURCE_URLS.stream()
+                .anyMatch(url -> url.endsWith("question-bank-v34.js")));
+    }
+
+    @Test
     void parsesJsonArrayWrappedInJavascriptAssignment() throws IOException {
         JsonNode bank = RemoteQuestionBankImporter.parseBankArray(
                 "window.BUILTIN_BANK = [{\"part\":\"5\",\"prompt\":\"Choose.\","
