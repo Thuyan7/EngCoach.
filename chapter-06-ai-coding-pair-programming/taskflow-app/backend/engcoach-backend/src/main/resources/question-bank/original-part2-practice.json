@@ -1,0 +1,362 @@
+[
+  {
+    "part": "Part 2",
+    "prompt": "Where is the client meeting scheduled?",
+    "options": [
+      "In the main conference room.",
+      "At three o'clock.",
+      "Mr. Collins is."
+    ],
+    "correctOption": "In the main conference room.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Where is the client meeting scheduled? In the main conference room. At three o'clock. Mr. Collins is.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Who will prepare the sales report?",
+    "options": [
+      "The accounting department will.",
+      "It was sold yesterday.",
+      "On the second floor."
+    ],
+    "correctOption": "The accounting department will.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Who will prepare the sales report? The accounting department will. It was sold yesterday. On the second floor.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "When does the maintenance team arrive?",
+    "options": [
+      "Near the loading dock.",
+      "Tomorrow morning.",
+      "The building manager."
+    ],
+    "correctOption": "Near the loading dock.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "When does the maintenance team arrive? Near the loading dock. Tomorrow morning. The building manager.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Why was the shipment delayed?",
+    "options": [
+      "Because of heavy traffic.",
+      "At the warehouse.",
+      "About fifty boxes."
+    ],
+    "correctOption": "Because of heavy traffic.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Why was the shipment delayed? Because of heavy traffic. At the warehouse. About fifty boxes.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "How can I get a copy of the presentation?",
+    "options": [
+      "I'll email it to you.",
+      "In the large auditorium.",
+      "The marketing team."
+    ],
+    "correctOption": "I'll email it to you.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "How can I get a copy of the presentation? I'll email it to you. In the large auditorium. The marketing team.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Which printer should I use?",
+    "options": [
+      "The one beside the reception desk.",
+      "Before the meeting.",
+      "Yes, I printed it."
+    ],
+    "correctOption": "The one beside the reception desk.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Which printer should I use? The one beside the reception desk. Before the meeting. Yes, I printed it.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Where can visitors park?",
+    "options": [
+      "In the underground garage.",
+      "For about an hour.",
+      "The visitor badge."
+    ],
+    "correctOption": "In the underground garage.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Where can visitors park? In the underground garage. For about an hour. The visitor badge.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Would you like me to reserve a table for lunch?",
+    "options": [
+      "Yes, that would be helpful.",
+      "At the front entrance.",
+      "The menu looks good."
+    ],
+    "correctOption": "Yes, that would be helpful.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Would you like me to reserve a table for lunch? Yes, that would be helpful. At the front entrance. The menu looks good.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Has the new software been installed yet?",
+    "options": [
+      "Not until next week.",
+      "By the IT department.",
+      "On my desktop."
+    ],
+    "correctOption": "Not until next week.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Has the new software been installed yet? Not until next week. By the IT department. On my desktop.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Who is leading today's training session?",
+    "options": [
+      "Ms. Rivera from Human Resources.",
+      "In the training center.",
+      "For two days."
+    ],
+    "correctOption": "Ms. Rivera from Human Resources.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Who is leading today's training session? Ms. Rivera from Human Resources. In the training center. For two days.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "How often does the shuttle bus run?",
+    "options": [
+      "Every twenty minutes.",
+      "At the north gate.",
+      "A new bus driver."
+    ],
+    "correctOption": "Every twenty minutes.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "How often does the shuttle bus run? Every twenty minutes. At the north gate. A new bus driver.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Why don't we review the budget this afternoon?",
+    "options": [
+      "That sounds like a good idea.",
+      "The budget office.",
+      "It was reduced."
+    ],
+    "correctOption": "That sounds like a good idea.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Why don't we review the budget this afternoon? That sounds like a good idea. The budget office. It was reduced.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Did you receive the revised contract?",
+    "options": [
+      "Yes, it arrived this morning.",
+      "The legal department.",
+      "On the top shelf."
+    ],
+    "correctOption": "Yes, it arrived this morning.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Did you receive the revised contract? Yes, it arrived this morning. The legal department. On the top shelf.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Where should I send these invoices?",
+    "options": [
+      "To the finance department.",
+      "By the end of the month.",
+      "Three copies, please."
+    ],
+    "correctOption": "To the finance department.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Where should I send these invoices? To the finance department. By the end of the month. Three copies, please.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "What time is the product demonstration?",
+    "options": [
+      "It starts at half past two.",
+      "In the exhibition hall.",
+      "The new product."
+    ],
+    "correctOption": "It starts at half past two.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "What time is the product demonstration? It starts at half past two. In the exhibition hall. The new product.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Could you help me move these boxes?",
+    "options": [
+      "Of course. Where should they go?",
+      "They were delivered yesterday.",
+      "About twelve boxes."
+    ],
+    "correctOption": "Of course. Where should they go?",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Could you help me move these boxes? Of course. Where should they go? They were delivered yesterday. About twelve boxes.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Who approved the travel expenses?",
+    "options": [
+      "The department director did.",
+      "Last Thursday.",
+      "At the airport."
+    ],
+    "correctOption": "The department director did.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Who approved the travel expenses? The department director did. Last Thursday. At the airport.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Why is the cafeteria closed today?",
+    "options": [
+      "It's being renovated.",
+      "At noon.",
+      "The daily special."
+    ],
+    "correctOption": "It's being renovated.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Why is the cafeteria closed today? It's being renovated. At noon. The daily special.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Which candidate has the most experience?",
+    "options": [
+      "The applicant with the logistics background.",
+      "Next Wednesday.",
+      "The interview room."
+    ],
+    "correctOption": "The applicant with the logistics background.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Which candidate has the most experience? The applicant with the logistics background. Next Wednesday. The interview room.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Have the meeting minutes been distributed?",
+    "options": [
+      "Yes, I sent them this morning.",
+      "In the boardroom.",
+      "The meeting lasted an hour."
+    ],
+    "correctOption": "Yes, I sent them this morning.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Have the meeting minutes been distributed? Yes, I sent them this morning. In the boardroom. The meeting lasted an hour.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Where did you put the spare keys?",
+    "options": [
+      "In the top drawer of my desk.",
+      "I need them tomorrow.",
+      "Two spare copies."
+    ],
+    "correctOption": "In the top drawer of my desk.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Where did you put the spare keys? In the top drawer of my desk. I need them tomorrow. Two spare copies.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Would you prefer a morning or afternoon appointment?",
+    "options": [
+      "The morning would be better.",
+      "At the downtown clinic.",
+      "Dr. Patel is available."
+    ],
+    "correctOption": "The morning would be better.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Would you prefer a morning or afternoon appointment? The morning would be better. At the downtown clinic. Dr. Patel is available.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "How long will the installation take?",
+    "options": [
+      "Approximately three hours.",
+      "The installation team.",
+      "In the main office."
+    ],
+    "correctOption": "Approximately three hours.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "How long will the installation take? Approximately three hours. The installation team. In the main office.",
+    "source": "EngCoach original practice material"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Isn't the conference registration deadline tomorrow?",
+    "options": [
+      "Actually, it was extended to Friday.",
+      "At the registration desk.",
+      "About two hundred people."
+    ],
+    "correctOption": "Actually, it was extended to Friday.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Isn't the conference registration deadline tomorrow? Actually, it was extended to Friday. At the registration desk. About two hundred people.",
+    "source": "EngCoach original practice material"
+  }
+]
