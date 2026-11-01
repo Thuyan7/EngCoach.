@@ -37,9 +37,8 @@ image and audio URLs are left empty rather than pointing to unlicensed assets.
 
 The opt-in remote importer is documented in
 `backend/engcoach-backend/QUESTION_BANK_SOURCES.md`. It currently imports
-400 questions from Parts 2–7 plus the Part 1 image set (8 questions) from
+400 questions from Parts 2–7 plus the Part 1 image set (25 questions) from
 TOEIC Question Ocean. The upstream repository describes a larger 908-question
-built-in bank, so this importer is not yet a complete 908-question import.
+built-in bank, so this importer is not yet a complete 908-question import. It currently imports 425 rows in total.
 The 400-question data file contains listening transcript text for some items
-but no direct playable MP3 URLs; browser speech synthesis or an additional
-licensed audio source is still needed for real audio playback.
+and no direct playable MP3 URLs; the source website uses browser speech synthesis. A separate licensed audio source with verified question-to-audio timing is still needed for real recorded audio playback.
