@@ -1,6 +1,7 @@
 package com.engcoach.attempts.dto;
 
 import com.engcoach.parts.Question;
+import com.engcoach.tests.QuestionGroup;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -19,15 +20,24 @@ import java.util.List;
  * entries in options.
  */
 public record QuestionView(Long id, String prompt, List<String> options,
-                           String passage, String imageUrl, String audioUrl, String audioText) {
+                           String passage, String imageUrl, String audioUrl, String audioText,
+                           Long groupId, String groupType, String groupContent) {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    public static QuestionView from(Question question, QuestionGroup group) {
+        QuestionView base = from(question);
+        if (group == null) return base;
+        return new QuestionView(base.id(), base.prompt(), base.options(), base.passage(), base.imageUrl(),
+                base.audioUrl(), base.audioText(), group.getId(), group.getGroupType(), group.getSharedContent());
+    }
 
     public static QuestionView from(Question question) {
         try {
             List<String> options = MAPPER.readValue(question.getOptions(), new TypeReference<List<String>>() { });
             return new QuestionView(question.getId(), question.getPrompt(), options,
-                    question.getPassage(), question.getImageUrl(), question.getAudioUrl(), question.getAudioText());
+                    question.getPassage(), question.getImageUrl(), question.getAudioUrl(), question.getAudioText(),
+                    null, null, null);
         } catch (Exception e) {
             // A malformed options value is a data error in the question bank,
             // not something the caller can fix; name the question so it can

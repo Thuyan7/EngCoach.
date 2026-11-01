@@ -18,6 +18,9 @@ public interface AttemptRepository extends JpaRepository<Attempt, Long> {
     Optional<Attempt> findFirstByUserIdAndTypeAndPartAndStatus(
             Long userId, String type, String part, String status);
 
+    Optional<Attempt> findFirstByUserIdAndTestIdAndSelectedPartsAndStatus(
+            Long userId, Long testId, String selectedParts, String status);
+
     /**
      * S10a: backs {@code GET /attempts} (history). Approved decision #1:
      * only {@code SUBMITTED} attempts appear in history (feature-spec §7:

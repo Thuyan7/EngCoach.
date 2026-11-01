@@ -28,6 +28,8 @@ public record AttemptDetailResponse(
         String status,
         Instant startedAt,
         Long remainingSeconds,
+        Long testId,
+        List<String> selectedParts,
         List<SavedAnswer> answers,
         List<QuestionView> questions
 ) {
@@ -46,6 +48,9 @@ public record AttemptDetailResponse(
                 attempt.getStatus(),
                 attempt.getStartedAt(),
                 remainingSeconds,
+                attempt.getTestId(),
+                attempt.getSelectedParts() == null || attempt.getSelectedParts().isBlank()
+                        ? List.of() : List.of(attempt.getSelectedParts().split(",")),
                 answers.stream().map(SavedAnswer::from).toList(),
                 questions
         );

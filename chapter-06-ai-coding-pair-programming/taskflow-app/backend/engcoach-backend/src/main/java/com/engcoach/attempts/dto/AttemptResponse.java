@@ -3,6 +3,7 @@ package com.engcoach.attempts.dto;
 import com.engcoach.attempts.Attempt;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Response body for {@code POST /attempts} (both the "created" and the
@@ -15,15 +16,23 @@ public record AttemptResponse(
         String type,
         String part,
         String status,
-        Instant startedAt
+        Instant startedAt,
+        Long testId,
+        List<String> selectedParts
 ) {
+    private static List<String> splitParts(String parts) {
+        return parts == null || parts.isBlank() ? List.of() : List.of(parts.split(","));
+    }
+
     public static AttemptResponse from(Attempt attempt) {
         return new AttemptResponse(
                 attempt.getId(),
                 attempt.getType(),
                 attempt.getPart(),
                 attempt.getStatus(),
-                attempt.getStartedAt()
+                attempt.getStartedAt(),
+                attempt.getTestId(),
+                splitParts(attempt.getSelectedParts())
         );
     }
 }
