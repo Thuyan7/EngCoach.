@@ -9,7 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.nullValue;
@@ -69,6 +72,9 @@ class AttemptsControllerTest {
     @Autowired
     private QuestionRepository questionRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
@@ -90,6 +96,52 @@ class AttemptsControllerTest {
         Question question = questionRepository.save(new Question(part, "Prompt text.",
                 "[\"A\",\"B\",\"C\",\"D\"]", "A"));
         return question.getId();
+    }
+
+    private void expireAttempt(long attemptId) {
+        jdbcTemplate.update("UPDATE attempts SET started_at = ? WHERE id = ?",
+                Timestamp.from(Instant.now().minusSeconds(AttemptsService.MOCK_TEST_TIME_LIMIT_SECONDS + 1L)),
+                attemptId);
+    }
+
+    @Test
+    void saveAnswer_afterMockTestExpires_returns409AndDoesNotPersist() throws Exception {
+        String token = registerAndGetToken("timeout-no-answer@example.com");
+        Long questionId = seedQuestion("Part 2");
+        long attemptId = startAttemptAndGetId(token, Map.of("type", "MOCK_TEST"));
+        expireAttempt(attemptId);
+
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + questionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isConflict());
+
+        mockMvc.perform(get("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.remainingSeconds").value(0))
+                .andExpect(jsonPath("$.answers").isEmpty());
+    }
+
+    @Test
+    void saveAnswer_afterMockTestExpires_cannotOverwritePreviouslySavedAnswer() throws Exception {
+        String token = registerAndGetToken("timeout-overwrite@example.com");
+        Long questionId = seedQuestion("Part 2");
+        long attemptId = startAttemptAndGetId(token, Map.of("type", "MOCK_TEST"));
+
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + questionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                .andExpect(status().isOk());
+        expireAttempt(attemptId);
+
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + questionId)
+                        .header("Authorization", "Bearer " + token).contentType("application/json")
+                        .content(objectMapper.writeValueAsString(Map.of("chosenOption", "B"))))
+                .andExpect(status().isConflict());
+
+        mockMvc.perform(get("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.answers[0].chosenOption").value("A"));
     }
 
     @Test
