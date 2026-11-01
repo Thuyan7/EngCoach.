@@ -10,8 +10,33 @@
 
 ## Import behavior
 
-The importer is opt-in via `ENGCOACH_IMPORT_REMOTE_QUESTION_BANK=true`. It fetches the upstream JavaScript data file and parses its embedded JSON array. It runs only when the `questions` table is empty; it does not merge, overwrite, or update an existing bank.
+The importer is opt-in via `ENGCOACH_IMPORT_REMOTE_QUESTION_BANK=true`. It
+fetches the upstream JavaScript bank and maps its embedded question objects
+into EngCoach's existing `questions` table. It is additive and skips rows
+that already exist by (Part, prompt), or by image URL for Part 1; it does not
+replace or delete existing questions.
 
-The current importer reads the base `question-bank.js` file only. That file currently provides 400 questions across Parts 2–7. It does **not** provide a complete 908-question bank, Part 1 image questions, or direct audio-file URLs. Audio transcripts and image metadata are not automatically converted into playable media. Therefore, this first integration is a real remote-source import, but it is not yet sufficient to promise a complete 200-question mock test with all Listening media.
+The current importer reads:
 
-Do not enable `ENGCOACH_SEED_SAMPLE_QUESTIONS=true` at the same time. For a clean first import, use an empty EngCoach question table and disable the local sample seeder. Existing data is deliberately preserved.
+- `question-bank.js`: 400 questions across Parts 2–7.
+- `question-bank-v31.js` through `question-bank-v34.js`: 25 Part 1 image questions.
+
+That is **425 questions**, covering all seven Parts, not the full upstream
+908-question built-in bank. The remaining versioned question-bank scripts are
+not yet imported. The Part 1 photographs are referenced by public raw GitHub
+URLs; the image files are not copied into EngCoach's own static storage.
+
+### Listening-media limitation
+
+The 400-question base file contains `audioText` transcripts for 164 rows, but
+contains no `audioUrl` values or playable MP3 files. The upstream practice site
+uses browser speech synthesis for listening playback. Therefore, the current
+import provides some Listening transcript text, **not real recorded audio**.
+The Part 1 source provides photographs and answer choices, not question audio.
+For authentic recorded Listening media, a separate licensed audio source and
+verified question-to-audio timestamps are still required.
+
+Do not enable `ENGCOACH_SEED_SAMPLE_QUESTIONS=true` at the same time. For a
+clean first import, disable the sample seeder. The importer preserves existing
+rows, but it does not yet update an already-imported row when upstream content
+changes.
