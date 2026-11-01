@@ -7,7 +7,7 @@ No separate endpoint or alternate storage model is introduced.
 
 The original sample Reading set is in
 `backend/engcoach-backend/src/main/resources/question-bank/sample-reading-bank.json`.
-It contains six original practice questions across Parts 5, 6 and 7; it is not
+It contains twelve original practice questions across Parts 5, 6 and 7; it is not
 official ETS material and is not copied from a third-party question bank.
 
 To insert it into an **empty local database**, set this environment variable

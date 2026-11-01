@@ -112,7 +112,7 @@
     "audioUrl": null
   },
   {
-    "part": "Part 6",
+    "part": "Part 7",
     "passage": "NOTICE: PARKING LOT MAINTENANCE\n\nThe east parking lot will be closed on Saturday from 7:00 a.m. to 3:00 p.m. for line repainting. Employees should use the west lot during this period. The west lot entrance is on Pine Street. We apologize for the inconvenience.",
     "prompt": "Where should employees park on Saturday morning?",
     "options": [
@@ -126,7 +126,7 @@
     "audioUrl": null
   },
   {
-    "part": "Part 6",
+    "part": "Part 7",
     "passage": "NOTICE: PARKING LOT MAINTENANCE\n\nThe east parking lot will be closed on Saturday from 7:00 a.m. to 3:00 p.m. for line repainting. Employees should use the west lot during this period. The west lot entrance is on Pine Street. We apologize for the inconvenience.",
     "prompt": "Why will the east parking lot be closed?",
     "options": [
