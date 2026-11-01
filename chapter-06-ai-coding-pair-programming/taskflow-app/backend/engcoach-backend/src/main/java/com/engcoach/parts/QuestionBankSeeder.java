@@ -11,6 +11,7 @@ import com.engcoach.tests.TestQuestionRepository;
 import com.engcoach.tests.ToeicTest;
 import com.engcoach.tests.ToeicTestRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -39,6 +40,7 @@ public class QuestionBankSeeder implements CommandLineRunner {
     private final TestQuestionRepository testQuestionRepository;
     private final QuestionGroupRepository questionGroupRepository;
 
+    @Autowired
     public QuestionBankSeeder(QuestionRepository questionRepository, ObjectMapper objectMapper,
                               ResourceLoader resourceLoader, ToeicTestRepository toeicTestRepository,
                               TestPartRepository testPartRepository, TestQuestionRepository testQuestionRepository,
@@ -50,6 +52,18 @@ public class QuestionBankSeeder implements CommandLineRunner {
         this.testPartRepository = testPartRepository;
         this.testQuestionRepository = testQuestionRepository;
         this.questionGroupRepository = questionGroupRepository;
+    }
+
+    // Retained for focused seeder unit tests that only verify question-row validation.
+    public QuestionBankSeeder(QuestionRepository questionRepository, ObjectMapper objectMapper,
+                              ResourceLoader resourceLoader) {
+        this.questionRepository = questionRepository;
+        this.objectMapper = objectMapper;
+        this.resourceLoader = resourceLoader;
+        this.toeicTestRepository = null;
+        this.testPartRepository = null;
+        this.testQuestionRepository = null;
+        this.questionGroupRepository = null;
     }
 
     @Override
@@ -70,7 +84,9 @@ public class QuestionBankSeeder implements CommandLineRunner {
                         row.passage(), row.imageUrl(), row.audioUrl(), row.audioText()));
             }
             List<Question> savedQuestions = questionRepository.saveAll(questions);
-            createFirstTest(savedQuestions);
+            if (toeicTestRepository != null) {
+                createFirstTest(savedQuestions);
+            }
         } catch (IOException e) {
             throw new IllegalStateException("Could not load the sample question bank from " + RESOURCE_PATH, e);
         }
