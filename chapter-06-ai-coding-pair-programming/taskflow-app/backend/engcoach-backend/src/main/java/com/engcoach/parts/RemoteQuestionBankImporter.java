@@ -119,8 +119,6 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
     }
 
     boolean shouldSkip(Question question, Set<String> sourceKeys) {
-        // Part 1 questions intentionally share the same instruction prompt, so
-        // their image URL—not the prompt—identifies a unique question.
         boolean isImageQuestion = "Part 1".equals(question.getPart())
                 && question.getImageUrl() != null && !question.getImageUrl().isBlank();
         String key = isImageQuestion
@@ -147,10 +145,6 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         return parseArrayAt(javascript, start);
     }
 
-    /**
-     * Parses a named JavaScript array declaration while respecting quoted strings
-     * and nested arrays. The source bank uses JSON-compatible objects in this array.
-     */
     static JsonNode parseNamedArray(String javascript, String declaration) throws IOException {
         int declarationIndex = javascript.indexOf(declaration);
         if (declarationIndex < 0) {
@@ -214,8 +208,6 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         String passage = optionalText(row, "passage");
         String part = "Part " + partNumber;
         String optionsJson = objectMapper.writeValueAsString(choices);
-        // Keep transcript separate from a playable audio URL; the frontend may
-        // choose speech synthesis or display a transcript during review.
         String audioText = optionalText(row, "audioText");
         String audioUrl = optionalText(row, "audioUrl");
         return new Question(part, prompt, optionsJson, choices.get(answerIndex),
@@ -229,7 +221,6 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         int answerIndex = readAnswerIndex(row, choices.size());
         String imagePath = requiredText(row, "image");
 
-        // Only allow known repository-relative Part 1 assets; never accept arbitrary URLs.
         if (!imagePath.startsWith("assets/part1/") || imagePath.contains("..")
                 || imagePath.indexOf((char) 92) >= 0) {
             throw new IOException("Part 1 question contains an invalid image path");
@@ -238,264 +229,7 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
         String prompt = "Look at the picture and select the sentence that best describes it.";
         String imageUrl = RAW_SOURCE_BASE + imagePath;
         String optionsJson = objectMapper.writeValueAsString(choices);
-        // Part 1 is picture-based. The upstream source synthesizes audioText
-        // from the answer choices, which is not an actual listening transcript.
-        // Do not expose those choices as audio/transcript content.
-        return new Question("Part 1", prompt, optionsJson, choices.get(answerIndex),
-                null, imageUrl, null, null);
-    }
-
-    private List<String> readChoices(JsonNode row) throws IOException {
-        JsonNode choicesNode = row.get("choices");
-        if (choicesNode == null || !choicesNode.isArray() || choicesNode.size() < 2) {
-            throw new IOException("Question has no valid choices");
-        }
-
-        List<String> choices = new ArrayList<>();
-        for (JsonNode choice : choicesNode) {
-            if (!choice.isTextual() || choice.asText().isBlank()) {
-                throw new IOException("Question contains an empty or invalid choice");
-            }
-            choices.add(choice.asText());
-        }
-        return choices;
-    }
-
-    private static int readAnswerIndex(JsonNode row, int choicesCount) throws IOException {
-        JsonNode answerNode = row.get("answer");
-        if (answerNode == null || !answerNode.canConvertToInt()) {
-            throw new IOException("Question has no numeric answer index");
-        }
-        int answerIndex = answerNode.asInt();
-        if (answerIndex < 0 || answerIndex >= choicesCount) {
-            throw new IOException("Question answer index is outside the choices array");
-        }
-        return answerIndex;
-    }
-
-    private static String requiredText(JsonNode row, String field) throws IOException {
-        JsonNode value = row.get(field);
-        if (value == null || !value.isTextual() || value.asText().isBlank()) {
-            throw new IOException("Question is missing required field: " + field);
-        }
-        return value.asText();
-    }
-
-    private static String optionalText(JsonNode row, String field) {
-        JsonNode value = row.get(field);
-        return value == null || value.isNull() ? "" : value.asText("");
-    }
-}
-) {
-                int end = i + 1;
-                while (end < source.length()
-                        && (Character.isJavaIdentifierPart(source.charAt(end)) || source.charAt(end) == '
-        boolean inString = false;
-        boolean escaped = false;
-        for (int i = 0; i < json.length(); i++) {
-            char ch = json.charAt(i);
-            if (inString) {
-                cleaned.append(ch);
-                if (escaped) {
-                    escaped = false;
-                } else if (ch == 92) {
-                    escaped = true;
-                } else if (ch == '"') {
-                    inString = false;
-                }
-                continue;
-            }
-            if (ch == '"') {
-                inString = true;
-                cleaned.append(ch);
-            } else if (ch == ',') {
-                int next = i + 1;
-                while (next < json.length() && Character.isWhitespace(json.charAt(next))) {
-                    next++;
-                }
-                if (next < json.length() && json.charAt(next) != ']' && json.charAt(next) != '}') {
-                    cleaned.append(ch);
-                }
-            } else {
-                cleaned.append(ch);
-            }
-        }
-        return cleaned.toString();
-    }
-
-    Question mapQuestion(JsonNode row) throws IOException {
-        String partNumber = requiredText(row, "part");
-        String prompt = requiredText(row, "prompt");
-        List<String> choices = readChoices(row);
-        int answerIndex = readAnswerIndex(row, choices.size());
-
-        String passage = optionalText(row, "passage");
-        String part = "Part " + partNumber;
-        String optionsJson = objectMapper.writeValueAsString(choices);
-        // Keep transcript separate from a playable audio URL; the frontend may
-        // choose speech synthesis or display a transcript during review.
-        String audioText = optionalText(row, "audioText");
-        String audioUrl = optionalText(row, "audioUrl");
-        return new Question(part, prompt, optionsJson, choices.get(answerIndex),
-                passage.isBlank() ? null : passage, null,
-                audioUrl.isBlank() ? null : audioUrl,
-                audioText.isBlank() ? null : audioText);
-    }
-
-    Question mapPartOneQuestion(JsonNode row) throws IOException {
-        List<String> choices = readChoices(row);
-        int answerIndex = readAnswerIndex(row, choices.size());
-        String imagePath = requiredText(row, "image");
-
-        // Only allow known repository-relative Part 1 assets; never accept arbitrary URLs.
-        if (!imagePath.startsWith("assets/part1/") || imagePath.contains("..")
-                || imagePath.indexOf((char) 92) >= 0) {
-            throw new IOException("Part 1 question contains an invalid image path");
-        }
-
-        String prompt = "Look at the picture and select the sentence that best describes it.";
-        String imageUrl = RAW_SOURCE_BASE + imagePath;
-        String optionsJson = objectMapper.writeValueAsString(choices);
-        // Part 1 is picture-based. The upstream source synthesizes audioText
-        // from the answer choices, which is not an actual listening transcript.
-        // Do not expose those choices as audio/transcript content.
-        return new Question("Part 1", prompt, optionsJson, choices.get(answerIndex),
-                null, imageUrl, null, null);
-    }
-
-    private List<String> readChoices(JsonNode row) throws IOException {
-        JsonNode choicesNode = row.get("choices");
-        if (choicesNode == null || !choicesNode.isArray() || choicesNode.size() < 2) {
-            throw new IOException("Question has no valid choices");
-        }
-
-        List<String> choices = new ArrayList<>();
-        for (JsonNode choice : choicesNode) {
-            if (!choice.isTextual() || choice.asText().isBlank()) {
-                throw new IOException("Question contains an empty or invalid choice");
-            }
-            choices.add(choice.asText());
-        }
-        return choices;
-    }
-
-    private static int readAnswerIndex(JsonNode row, int choicesCount) throws IOException {
-        JsonNode answerNode = row.get("answer");
-        if (answerNode == null || !answerNode.canConvertToInt()) {
-            throw new IOException("Question has no numeric answer index");
-        }
-        int answerIndex = answerNode.asInt();
-        if (answerIndex < 0 || answerIndex >= choicesCount) {
-            throw new IOException("Question answer index is outside the choices array");
-        }
-        return answerIndex;
-    }
-
-    private static String requiredText(JsonNode row, String field) throws IOException {
-        JsonNode value = row.get(field);
-        if (value == null || !value.isTextual() || value.asText().isBlank()) {
-            throw new IOException("Question is missing required field: " + field);
-        }
-        return value.asText();
-    }
-
-    private static String optionalText(JsonNode row, String field) {
-        JsonNode value = row.get(field);
-        return value == null || value.isNull() ? "" : value.asText("");
-    }
-}
-)) {
-                    end++;
-                }
-                int next = end;
-                while (next < source.length() && Character.isWhitespace(source.charAt(next))) {
-                    next++;
-                }
-                if (next < source.length() && source.charAt(next) == ':') {
-                    normalized.append('"').append(source, i, end).append('"');
-                } else {
-                    normalized.append(source, i, end);
-                }
-                i = end;
-                continue;
-            }
-            normalized.append(ch);
-            i++;
-        }
-        return normalized.toString();
-    }
-
-    private static String removeTrailingCommas(String json) {
-        StringBuilder cleaned = new StringBuilder(json.length());
-        boolean inString = false;
-        boolean escaped = false;
-        for (int i = 0; i < json.length(); i++) {
-            char ch = json.charAt(i);
-            if (inString) {
-                cleaned.append(ch);
-                if (escaped) {
-                    escaped = false;
-                } else if (ch == 92) {
-                    escaped = true;
-                } else if (ch == '"') {
-                    inString = false;
-                }
-                continue;
-            }
-            if (ch == '"') {
-                inString = true;
-                cleaned.append(ch);
-            } else if (ch == ',') {
-                int next = i + 1;
-                while (next < json.length() && Character.isWhitespace(json.charAt(next))) {
-                    next++;
-                }
-                if (next < json.length() && json.charAt(next) != ']' && json.charAt(next) != '}') {
-                    cleaned.append(ch);
-                }
-            } else {
-                cleaned.append(ch);
-            }
-        }
-        return cleaned.toString();
-    }
-
-    Question mapQuestion(JsonNode row) throws IOException {
-        String partNumber = requiredText(row, "part");
-        String prompt = requiredText(row, "prompt");
-        List<String> choices = readChoices(row);
-        int answerIndex = readAnswerIndex(row, choices.size());
-
-        String passage = optionalText(row, "passage");
-        String part = "Part " + partNumber;
-        String optionsJson = objectMapper.writeValueAsString(choices);
-        // Keep transcript separate from a playable audio URL; the frontend may
-        // choose speech synthesis or display a transcript during review.
-        String audioText = optionalText(row, "audioText");
-        String audioUrl = optionalText(row, "audioUrl");
-        return new Question(part, prompt, optionsJson, choices.get(answerIndex),
-                passage.isBlank() ? null : passage, null,
-                audioUrl.isBlank() ? null : audioUrl,
-                audioText.isBlank() ? null : audioText);
-    }
-
-    Question mapPartOneQuestion(JsonNode row) throws IOException {
-        List<String> choices = readChoices(row);
-        int answerIndex = readAnswerIndex(row, choices.size());
-        String imagePath = requiredText(row, "image");
-
-        // Only allow known repository-relative Part 1 assets; never accept arbitrary URLs.
-        if (!imagePath.startsWith("assets/part1/") || imagePath.contains("..")
-                || imagePath.indexOf((char) 92) >= 0) {
-            throw new IOException("Part 1 question contains an invalid image path");
-        }
-
-        String prompt = "Look at the picture and select the sentence that best describes it.";
-        String imageUrl = RAW_SOURCE_BASE + imagePath;
-        String optionsJson = objectMapper.writeValueAsString(choices);
-        // Part 1 is picture-based. The upstream source synthesizes audioText
-        // from the answer choices, which is not an actual listening transcript.
-        // Do not expose those choices as audio/transcript content.
+        // The source synthesizes Part 1 audioText from answer choices, not a real transcript.
         return new Question("Part 1", prompt, optionsJson, choices.get(answerIndex),
                 null, imageUrl, null, null);
     }
