@@ -14,6 +14,7 @@ import com.engcoach.common.AnswerNotFoundException;
 import com.engcoach.common.AttemptAccessDeniedException;
 import com.engcoach.common.AttemptNotFoundException;
 import com.engcoach.common.AttemptNotInProgressException;
+import com.engcoach.common.AttemptTimeExpiredException;
 import com.engcoach.common.InvalidAnswerException;
 import com.engcoach.common.InvalidAttemptRequestException;
 import com.engcoach.common.ExplanationRetryNotAllowedException;
@@ -160,6 +161,11 @@ public class AttemptsService {
         if (!Attempt.STATUS_IN_PROGRESS.equals(attempt.getStatus())) {
             throw new AttemptNotInProgressException();
         }
+        // Enforce the mock-test deadline on the server, not only in the UI.
+        // A final submit remains allowed after expiry so saved answers can be graded.
+        if (isTimeExpired(attempt, Instant.now())) {
+            throw new AttemptTimeExpiredException();
+        }
 
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(InvalidAnswerException::new);
@@ -180,6 +186,12 @@ public class AttemptsService {
         answer = answerRepository.save(answer);
 
         return AnswerResponse.from(answer);
+    }
+
+    private boolean isTimeExpired(Attempt attempt, Instant now) {
+        Integer limitSeconds = attempt.getTimeLimitSeconds();
+        return limitSeconds != null
+                && !now.isBefore(attempt.getStartedAt().plusSeconds(limitSeconds));
     }
 
     /**
