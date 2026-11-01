@@ -32,8 +32,12 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
 
     static final String SOURCE_URL =
             "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/question-bank.js";
-    static final String PART_ONE_SOURCE_URL =
-            "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/question-bank-v31.js";
+    static final List<String> PART_ONE_SOURCE_URLS = List.of(
+            "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/question-bank-v31.js",
+            "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/question-bank-v32.js",
+            "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/question-bank-v33.js",
+            "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/question-bank-v34.js"
+    );
     private static final String RAW_SOURCE_BASE =
             "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/";
 
@@ -54,9 +58,8 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
     public void run(String... args) {
         try {
             JsonNode generalBank = fetchBank(SOURCE_URL, false);
-            JsonNode partOneBank = fetchBank(PART_ONE_SOURCE_URL, true);
-            if (generalBank.isEmpty() && partOneBank.isEmpty()) {
-                throw new IllegalStateException("Remote question banks were empty; no rows were imported");
+            if (generalBank.isEmpty()) {
+                throw new IllegalStateException("Remote question bank was empty; no rows were imported");
             }
 
             List<Question> questionsToInsert = new ArrayList<>();
@@ -72,20 +75,25 @@ public class RemoteQuestionBankImporter implements CommandLineRunner {
                 }
             }
 
-            for (JsonNode row : partOneBank) {
-                Question question = mapPartOneQuestion(row);
-                if (shouldSkip(question, sourceKeys)) {
-                    skipped++;
-                } else {
-                    questionsToInsert.add(question);
+            int partOneCount = 0;
+            for (String partOneSourceUrl : PART_ONE_SOURCE_URLS) {
+                JsonNode partOneBank = fetchBank(partOneSourceUrl, true);
+                for (JsonNode row : partOneBank) {
+                    Question question = mapPartOneQuestion(row);
+                    if (shouldSkip(question, sourceKeys)) {
+                        skipped++;
+                    } else {
+                        questionsToInsert.add(question);
+                        partOneCount++;
+                    }
                 }
             }
 
             if (!questionsToInsert.isEmpty()) {
                 questionRepository.saveAll(questionsToInsert);
             }
-            System.out.printf("Remote TOEIC question-bank import complete: added %d, skipped %d duplicates, sources %s and %s%n",
-                    questionsToInsert.size(), skipped, SOURCE_URL, PART_ONE_SOURCE_URL);
+            System.out.printf("Remote TOEIC question-bank import complete: added %d (including %d Part 1 image items), skipped %d duplicates, source %s and Part 1 sources %s%n",
+                    questionsToInsert.size(), partOneCount, skipped, SOURCE_URL, PART_ONE_SOURCE_URLS);
         } catch (IOException e) {
             throw new IllegalStateException("Could not read or parse the remote TOEIC question banks", e);
         } catch (InterruptedException e) {
