@@ -22,7 +22,7 @@ function playQuestionAudio(text) {
     return;
   }
   window.speechSynthesis.cancel();
-  const spokenText = text.replace(/(?:^|\\s)[MW]:\\s*/g, " ");
+  const spokenText = text.replace(/(?:^|\s)[MW]:\s*/g, " ");
   const utterance = new window.SpeechSynthesisUtterance(spokenText);
   utterance.lang = "en-US";
   utterance.rate = 0.92;
