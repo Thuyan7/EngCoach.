@@ -81,6 +81,16 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(AttemptTimeExpiredException.class)
+    public ProblemDetail handleAttemptTimeExpired(AttemptTimeExpiredException ex,
+                                                    HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "attempt-time-expired"));
+        problem.setTitle("Attempt time has expired");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
     @ExceptionHandler(AttemptNotInProgressException.class)
     public ProblemDetail handleAttemptNotInProgress(AttemptNotInProgressException ex,
                                                       HttpServletRequest request) {
