@@ -236,6 +236,7 @@ paths:
         "200": { description: Answer saved (re-answering the same question overwrites the prior value) }
         "403": { description: Attempt belongs to another user (RFC 9457 problem) }
         "404": { description: Attempt does not exist (RFC 9457 problem) }
+        "409": { description: Mock-test time limit has expired; no further answers can be saved (RFC 9457 problem) }
 
   /attempts/{id}/submit:
     post:
