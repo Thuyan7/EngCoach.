@@ -26,6 +26,12 @@ That is **425 questions**, covering all seven Parts, not the full upstream
 not yet imported. The Part 1 photographs are referenced by public raw GitHub
 URLs; the image files are not copied into EngCoach's own static storage.
 
+Each imported row is normalized as follows: the upstream zero-based `answer`
+index selects the matching entry from `choices`; those choices are serialized
+as the EngCoach `options` JSON array, and the selected choice string is stored
+as `correct_option`. Listening `audioText` is kept separately from the
+playable `audioUrl` field so a transcript is never mistaken for an audio file.
+
 ### Listening-media limitation
 
 The 400-question base file contains `audioText` transcripts for 164 rows, but
