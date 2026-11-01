@@ -7,7 +7,7 @@ No separate endpoint or alternate storage model is introduced.
 
 The original sample Reading set is in
 `backend/engcoach-backend/src/main/resources/question-bank/sample-reading-bank.json`.
-It contains six original practice questions across Parts 5, 6 and 7; it is not
+It contains twelve original practice questions across Parts 5, 6 and 7; it is not
 official ETS material and is not copied from a third-party question bank.
 
 To insert it into an **empty local database**, set this environment variable
@@ -24,12 +24,22 @@ enabled on later starts. Do not enable sample seeding against production data.
 
 ## Question fields
 
-Existing fields remain unchanged. Optional `passage`, `imageUrl` and
-`audioUrl` fields support shared reading context and media for future Listening
-content. They are nullable, so existing database rows remain valid. The attempt
+Existing fields remain unchanged. Optional `passage`, `imageUrl`, `audioUrl` and `audioText` fields support shared reading context, image prompts, playable media URLs and listening transcripts. They are nullable, so existing database rows remain valid. The attempt
 detail DTO returns these fields but never returns `correctOption`; answer keys
 remain server-side until submission/grading.
 
 `options` remains a JSON array of option strings, and `correctOption` must
 match one of those strings exactly. The sample set currently exercises Reading;
 image and audio URLs are left empty rather than pointing to unlicensed assets.
+
+
+## Remote TOEIC-style source
+
+The opt-in remote importer is documented in
+`backend/engcoach-backend/QUESTION_BANK_SOURCES.md`. It currently imports
+400 questions from Parts 2–7 plus the Part 1 image set (8 questions) from
+TOEIC Question Ocean. The upstream repository describes a larger 908-question
+built-in bank, so this importer is not yet a complete 908-question import.
+The 400-question data file contains listening transcript text for some items
+but no direct playable MP3 URLs; browser speech synthesis or an additional
+licensed audio source is still needed for real audio playback.
