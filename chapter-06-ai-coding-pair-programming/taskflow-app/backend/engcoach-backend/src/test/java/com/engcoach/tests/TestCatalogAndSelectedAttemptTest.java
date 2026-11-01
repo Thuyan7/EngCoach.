@@ -51,8 +51,12 @@ class TestCatalogAndSelectedAttemptTest {
     }
 
     private Long question(String part, String prompt) {
-        return questionRepository.save(new Question(part, prompt,
-                "[\\"A\\",\\"B\\",\\"C\\",\\"D\\"]", "A")).getId();
+        try {
+            String options = objectMapper.writeValueAsString(List.of("A", "B", "C", "D"));
+            return questionRepository.save(new Question(part, prompt, options, "A")).getId();
+        } catch (Exception exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 
     private Long createTest(Long part5Question, Long part7Question) {
