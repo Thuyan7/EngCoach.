@@ -16,6 +16,19 @@ const formatTime = (seconds) => {
   const remainder = safeSeconds % 60;
   return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
 };
+
+function playQuestionAudio(text) {
+  if (typeof window === "undefined" || !window.speechSynthesis || typeof window.SpeechSynthesisUtterance !== "function") {
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const spokenText = text.replace(/(?:^|\\s)[MW]:\\s*/g, " ");
+  const utterance = new window.SpeechSynthesisUtterance(spokenText);
+  utterance.lang = "en-US";
+  utterance.rate = 0.92;
+  window.speechSynthesis.speak(utterance);
+}
+
 export default function TestPage() {
   const { attemptId } = useParams();
   const { token, signOut } = useAuth();
@@ -280,6 +293,13 @@ export default function TestPage() {
               alt={`Illustration for question ${index + 1}`}
               loading="lazy"
             />
+          )}
+          {question.audioText && !question.audioUrl && (
+            <div className="question-media-audio">
+              <button type="button" className="btn btn-secondary" onClick={() => playQuestionAudio(question.audioText)}>
+                Play listening audio
+              </button>
+            </div>
           )}
           {question.audioUrl && (
             <div className="question-media-audio">

@@ -52,6 +52,24 @@ describe("Test screen (S7b)", () => {
     expect(screen.queryByText(/correctOption/i)).not.toBeInTheDocument();
   });
 
+  it("offers browser speech playback when a listening script is supplied", async () => {
+    const detail = attemptDetail({
+      questions: [{
+        id: 101,
+        prompt: "Choose the best response.",
+        options: ["Before noon.", "At the front desk.", "The blue folder."],
+        passage: null,
+        imageUrl: null,
+        audioUrl: null,
+        audioText: "When will the shipment arrive?",
+      }],
+    });
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, detail) });
+    renderApp("/practice/7");
+
+    expect(await screen.findByRole("button", { name: "Play listening audio" })).toBeInTheDocument();
+  });
+
   it("answering calls PUT /attempts/{id}/answers/{questionId} with the chosen option and shows Saved", async () => {
     const user = userEvent.setup();
     const fetchMock = routeFetch({

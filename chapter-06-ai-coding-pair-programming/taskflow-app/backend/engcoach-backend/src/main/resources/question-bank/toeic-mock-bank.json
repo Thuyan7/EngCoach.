@@ -1,0 +1,2977 @@
+[
+  {
+    "part": "Part 1",
+    "prompt": "Choose the statement that best describes the photograph.",
+    "options": [
+      "The employees are reviewing documents around a conference table.",
+      "A speaker is addressing a large audience.",
+      "The chairs are being stacked against a wall.",
+      "A meal is being served outdoors."
+    ],
+    "correctOption": "The employees are reviewing documents around a conference table.",
+    "passage": null,
+    "imageUrl": "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/assets/part1/meeting-ai-v2.jpg",
+    "audioUrl": null,
+    "audioText": "A. The employees are reviewing documents around a conference table. B. A speaker is addressing a large audience. C. The chairs are being stacked against a wall. D. A meal is being served outdoors."
+  },
+  {
+    "part": "Part 1",
+    "prompt": "Choose the statement that best describes the photograph.",
+    "options": [
+      "A server is carrying a tray of food.",
+      "A customer is paying at a self-service kiosk.",
+      "The tables are being moved outside.",
+      "A chef is washing dishes."
+    ],
+    "correctOption": "A server is carrying a tray of food.",
+    "passage": null,
+    "imageUrl": "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/assets/part1/restaurant-ai-v2.jpg",
+    "audioUrl": null,
+    "audioText": "A. A server is carrying a tray of food. B. A customer is paying at a self-service kiosk. C. The tables are being moved outside. D. A chef is washing dishes."
+  },
+  {
+    "part": "Part 1",
+    "prompt": "Choose the statement that best describes the photograph.",
+    "options": [
+      "A technician is repairing a ceiling light.",
+      "A man is operating an office printer.",
+      "Several people are waiting in line.",
+      "A stack of paper is being delivered."
+    ],
+    "correctOption": "A man is operating an office printer.",
+    "passage": null,
+    "imageUrl": "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/assets/part1/printer-ai-v2.jpg",
+    "audioUrl": null,
+    "audioText": "A. A technician is repairing a ceiling light. B. A man is operating an office printer. C. Several people are waiting in line. D. A stack of paper is being delivered."
+  },
+  {
+    "part": "Part 1",
+    "prompt": "Choose the statement that best describes the photograph.",
+    "options": [
+      "A receptionist is speaking on the telephone.",
+      "A customer is signing a delivery receipt.",
+      "A visitor is waiting beside an elevator.",
+      "An employee is cleaning a window."
+    ],
+    "correctOption": "A receptionist is speaking on the telephone.",
+    "passage": null,
+    "imageUrl": "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/assets/part1/reception-ai-v3.jpg",
+    "audioUrl": null,
+    "audioText": "A. A receptionist is speaking on the telephone. B. A customer is signing a delivery receipt. C. A visitor is waiting beside an elevator. D. An employee is cleaning a window."
+  },
+  {
+    "part": "Part 1",
+    "prompt": "Choose the statement that best describes the photograph.",
+    "options": [
+      "A technician is inspecting solar panels.",
+      "Workers are painting a building exterior.",
+      "A driver is loading luggage into a car.",
+      "A group is planting trees beside a road."
+    ],
+    "correctOption": "A technician is inspecting solar panels.",
+    "passage": null,
+    "imageUrl": "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/assets/part1/solar-ai-v3.jpg",
+    "audioUrl": null,
+    "audioText": "A. A technician is inspecting solar panels. B. Workers are painting a building exterior. C. A driver is loading luggage into a car. D. A group is planting trees beside a road."
+  },
+  {
+    "part": "Part 1",
+    "prompt": "Choose the statement that best describes the photograph.",
+    "options": [
+      "A worker is arranging products on store shelves.",
+      "Several people are unloading boxes from a truck.",
+      "Workers are stacking boxes in a warehouse.",
+      "A customer is pushing a shopping cart."
+    ],
+    "correctOption": "Workers are stacking boxes in a warehouse.",
+    "passage": null,
+    "imageUrl": "https://raw.githubusercontent.com/kdeppaei/toeic-question-ocean/main/assets/part1/warehouse.jpg",
+    "audioUrl": null,
+    "audioText": "A. A worker is arranging products on store shelves. B. Several people are unloading boxes from a truck. C. Workers are stacking boxes in a warehouse. D. A customer is pushing a shopping cart."
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "Ms. Park from the sales department.",
+      "It starts at ten.",
+      "In the main auditorium."
+    ],
+    "correctOption": "Ms. Park from the sales department.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Who will lead the presentation?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "On the top shelf beside the printer.",
+      "Yes, I signed them.",
+      "About twenty pages."
+    ],
+    "correctOption": "On the top shelf beside the printer.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Where did you put the signed contracts?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "Sometime before noon.",
+      "They repaired the elevator.",
+      "At the loading dock."
+    ],
+    "correctOption": "Sometime before noon.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "When is the maintenance crew expected to arrive?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "The director's flight was delayed.",
+      "In Conference Room B.",
+      "For about an hour."
+    ],
+    "correctOption": "The director's flight was delayed.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Why was the meeting postponed?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "Once every three months.",
+      "By a certified technician.",
+      "The inspection was thorough."
+    ],
+    "correctOption": "Once every three months.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "How often is the equipment inspected?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "Not at all. I'll send it right away.",
+      "Yes, the schedule changed.",
+      "It was revised yesterday."
+    ],
+    "correctOption": "Not at all. I'll send it right away.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Would you mind sending me the revised schedule?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "No, the printer stopped working.",
+      "They were very expensive.",
+      "At the post office."
+    ],
+    "correctOption": "No, the printer stopped working.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Haven't the invoices been mailed yet?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "Certainly. What time would you prefer?",
+      "The table is made of wood.",
+      "Six people attended yesterday."
+    ],
+    "correctOption": "Certainly. What time would you prefer?",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Could you reserve a table for six tonight?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "The expressway is usually faster.",
+      "Our flight leaves at seven.",
+      "I took a taxi yesterday."
+    ],
+    "correctOption": "The expressway is usually faster.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Which route should we take to the airport?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "It closes at eight, so we still have time.",
+      "The sandwiches are on the counter.",
+      "I opened the window."
+    ],
+    "correctOption": "It closes at eight, so we still have time.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Do you know whether the cafeteria is still open?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "That sounds like a good idea.",
+      "The proposal was approved.",
+      "Lunch is included."
+    ],
+    "correctOption": "That sounds like a good idea.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Why don't we review the proposal after lunch?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "Twenty should be enough.",
+      "The copier is downstairs.",
+      "I copied it this morning."
+    ],
+    "correctOption": "Twenty should be enough.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "How many copies of the report do we need?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "No, he has another appointment.",
+      "The trade show was successful.",
+      "He works in marketing."
+    ],
+    "correctOption": "No, he has another appointment.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Isn't Mr. Gomez attending the trade show?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "I think it belongs to Ms. Lee.",
+      "It's raining heavily.",
+      "The door is locked."
+    ],
+    "correctOption": "I think it belongs to Ms. Lee.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Whose umbrella is this by the door?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "I'll check what is available.",
+      "The flight was canceled.",
+      "The aisle is narrow."
+    ],
+    "correctOption": "I'll check what is available.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Could I get an aisle seat, please?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "It's much easier to move around now.",
+      "The office moved last month.",
+      "On the third floor."
+    ],
+    "correctOption": "It's much easier to move around now.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "What do you think of the new office layout?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "It's printed on the last page.",
+      "The warranty lasts two years.",
+      "I bought it online."
+    ],
+    "correctOption": "It's printed on the last page.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Where can I find the warranty information?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "Call now, in case the office closes early.",
+      "The supplier called yesterday.",
+      "Tomorrow is a holiday."
+    ],
+    "correctOption": "Call now, in case the office closes early.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Should I call the supplier now or wait until tomorrow?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "It went better than I expected.",
+      "At the corporate office.",
+      "The interviewer arrived early."
+    ],
+    "correctOption": "It went better than I expected.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "How was your interview this morning?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "Not yet, but they expect to finish today.",
+      "The budget meeting is upstairs.",
+      "Yes, it was very costly."
+    ],
+    "correctOption": "Not yet, but they expect to finish today.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Has the finance department approved the budget?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "Early next month.",
+      "At the front desk.",
+      "It has a blue cover."
+    ],
+    "correctOption": "Early next month.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "When will the new catalog be available?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "Yes, that would be helpful.",
+      "The copier was repaired.",
+      "I paid by credit card."
+    ],
+    "correctOption": "Yes, that would be helpful.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Would you like me to make a copy of the receipt?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "No, the replacement hasn't arrived yet.",
+      "The part costs thirty dollars.",
+      "Yesterday was very busy."
+    ],
+    "correctOption": "No, the replacement hasn't arrived yet.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Didn't the technician replace this part yesterday?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "Someone in the accounting department.",
+      "For a three-day trip.",
+      "The ticket was refundable."
+    ],
+    "correctOption": "Someone in the accounting department.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Who should I contact about my travel reimbursement?"
+  },
+  {
+    "part": "Part 2",
+    "prompt": "Choose the best response.",
+    "options": [
+      "That might attract more customers.",
+      "The entrance closes at nine.",
+      "The display was expensive."
+    ],
+    "correctOption": "That might attract more customers.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Why don't we move the display closer to the entrance?"
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What are the speakers mainly discussing?",
+    "options": [
+      "A change to a presentation",
+      "A new product price",
+      "A hiring decision",
+      "A travel reimbursement"
+    ],
+    "correctOption": "A change to a presentation",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: Hi, Daniel. The client moved tomorrow's product presentation from 10 A.M. to 2 P.M. M: Thanks for letting me know. I'll update the room reservation and notify the design team. W: Great. Please ask them to bring the revised brochures."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What will the man do?",
+    "options": [
+      "Reserve a room and contact a team",
+      "Print employee badges",
+      "Meet a supplier at the airport",
+      "Cancel a product launch"
+    ],
+    "correctOption": "Reserve a room and contact a team",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: Hi, Daniel. The client moved tomorrow's product presentation from 10 A.M. to 2 P.M. M: Thanks for letting me know. I'll update the room reservation and notify the design team. W: Great. Please ask them to bring the revised brochures."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What does the woman ask the design team to bring?",
+    "options": [
+      "Revised brochures",
+      "Expense reports",
+      "Laptop warranties",
+      "Customer surveys"
+    ],
+    "correctOption": "Revised brochures",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: Hi, Daniel. The client moved tomorrow's product presentation from 10 A.M. to 2 P.M. M: Thanks for letting me know. I'll update the room reservation and notify the design team. W: Great. Please ask them to bring the revised brochures."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "Where most likely does the woman work?",
+    "options": [
+      "At a hotel",
+      "At a factory",
+      "At a bank",
+      "At a museum"
+    ],
+    "correctOption": "At a hotel",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: Good afternoon. I have a reservation under the name Chen, but my flight arrives after midnight. W: That's fine. I'll mark your reservation for late arrival. Would you also like us to arrange airport transportation? M: Yes, please. That would be very helpful."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What concern does the man mention?",
+    "options": [
+      "He will arrive very late",
+      "His room is too small",
+      "His payment was rejected",
+      "His luggage is missing"
+    ],
+    "correctOption": "He will arrive very late",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: Good afternoon. I have a reservation under the name Chen, but my flight arrives after midnight. W: That's fine. I'll mark your reservation for late arrival. Would you also like us to arrange airport transportation? M: Yes, please. That would be very helpful."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What service does the man request?",
+    "options": [
+      "Airport transportation",
+      "Laundry repair",
+      "Conference catering",
+      "Package delivery"
+    ],
+    "correctOption": "Airport transportation",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: Good afternoon. I have a reservation under the name Chen, but my flight arrives after midnight. W: That's fine. I'll mark your reservation for late arrival. Would you also like us to arrange airport transportation? M: Yes, please. That would be very helpful."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "Why will the delivery be late?",
+    "options": [
+      "Because of severe weather",
+      "Because payment is missing",
+      "Because the order was canceled",
+      "Because the warehouse is full"
+    ],
+    "correctOption": "Because of severe weather",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: We received a message from our shipping company. The office chairs won't arrive until Friday because of a storm. M: That's a problem. The new employees start on Thursday. W: We can move some chairs from the training room temporarily."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What will happen on Thursday?",
+    "options": [
+      "New employees will begin work",
+      "The chairs will be repaired",
+      "A storm will reach the city",
+      "The training room will close"
+    ],
+    "correctOption": "New employees will begin work",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: We received a message from our shipping company. The office chairs won't arrive until Friday because of a storm. M: That's a problem. The new employees start on Thursday. W: We can move some chairs from the training room temporarily."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What does the woman suggest?",
+    "options": [
+      "Using chairs from another room",
+      "Buying desks online",
+      "Postponing employee training",
+      "Calling every supplier"
+    ],
+    "correctOption": "Using chairs from another room",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: We received a message from our shipping company. The office chairs won't arrive until Friday because of a storm. M: That's a problem. The new employees start on Thursday. W: We can move some chairs from the training room temporarily."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What is the purpose of the conversation?",
+    "options": [
+      "To conduct a job interview",
+      "To negotiate a sales contract",
+      "To revise a travel itinerary",
+      "To inspect a branch office"
+    ],
+    "correctOption": "To conduct a job interview",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: Ms. Owens, your résumé shows extensive experience in international sales. Could you tell me about your work in Singapore? W: Certainly. I managed a team of twelve and helped increase regional revenue by eighteen percent. M: Impressive. The next step is a video interview with our vice president."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What did the woman accomplish in Singapore?",
+    "options": [
+      "She increased regional revenue",
+      "She opened twelve stores",
+      "She designed a new product",
+      "She reduced travel costs"
+    ],
+    "correctOption": "She increased regional revenue",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: Ms. Owens, your résumé shows extensive experience in international sales. Could you tell me about your work in Singapore? W: Certainly. I managed a team of twelve and helped increase regional revenue by eighteen percent. M: Impressive. The next step is a video interview with our vice president."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What will the woman most likely do next?",
+    "options": [
+      "Have another interview",
+      "Submit an expense report",
+      "Attend a trade show",
+      "Train new employees"
+    ],
+    "correctOption": "Have another interview",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: Ms. Owens, your résumé shows extensive experience in international sales. Could you tell me about your work in Singapore? W: Certainly. I managed a team of twelve and helped increase regional revenue by eighteen percent. M: Impressive. The next step is a video interview with our vice president."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What problem is mentioned?",
+    "options": [
+      "A machine is leaking",
+      "A lounge is overcrowded",
+      "A repair bill is missing",
+      "A sign was printed incorrectly"
+    ],
+    "correctOption": "A machine is leaking",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: The coffee machine in the employee lounge is leaking again. M: I'll call the repair company, but they may not come until tomorrow. W: In that case, let's put up a sign and move the smaller machine from the second floor."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What will the man probably do?",
+    "options": [
+      "Contact a repair company",
+      "Order more coffee",
+      "Clean the second floor",
+      "Replace an employee"
+    ],
+    "correctOption": "Contact a repair company",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: The coffee machine in the employee lounge is leaking again. M: I'll call the repair company, but they may not come until tomorrow. W: In that case, let's put up a sign and move the smaller machine from the second floor."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What does the woman propose?",
+    "options": [
+      "Moving another machine",
+      "Closing the building",
+      "Canceling tomorrow's meeting",
+      "Buying a refrigerator"
+    ],
+    "correctOption": "Moving another machine",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: The coffee machine in the employee lounge is leaking again. M: I'll call the repair company, but they may not come until tomorrow. W: In that case, let's put up a sign and move the smaller machine from the second floor."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What are the speakers concerned about?",
+    "options": [
+      "A low purchase rate",
+      "A delayed advertisement",
+      "A lack of website visitors",
+      "A shortage of products"
+    ],
+    "correctOption": "A low purchase rate",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: The online advertisement attracted more visitors than expected, but few of them completed a purchase. W: Perhaps the checkout process is too complicated. We should ask the Web team to review it. M: Agreed. I'll also compare our prices with those of our competitors."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What does the woman suggest?",
+    "options": [
+      "Reviewing the checkout process",
+      "Hiring more salespeople",
+      "Closing the online store",
+      "Changing the company logo"
+    ],
+    "correctOption": "Reviewing the checkout process",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: The online advertisement attracted more visitors than expected, but few of them completed a purchase. W: Perhaps the checkout process is too complicated. We should ask the Web team to review it. M: Agreed. I'll also compare our prices with those of our competitors."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What will the man compare?",
+    "options": [
+      "Product prices",
+      "Employee schedules",
+      "Shipping routes",
+      "Advertising images"
+    ],
+    "correctOption": "Product prices",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: The online advertisement attracted more visitors than expected, but few of them completed a purchase. W: Perhaps the checkout process is too complicated. We should ask the Web team to review it. M: Agreed. I'll also compare our prices with those of our competitors."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "Why is the woman calling?",
+    "options": [
+      "To change an order quantity",
+      "To report damaged notebooks",
+      "To request a refund",
+      "To apply for a job"
+    ],
+    "correctOption": "To change an order quantity",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: Hello, I'm calling about order 7615. We need thirty notebooks instead of twenty. M: I can update the quantity, but the delivery date may move from Tuesday to Wednesday. W: Wednesday is fine, as long as the boxes arrive before noon."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What may change?",
+    "options": [
+      "The delivery date",
+      "The product color",
+      "The payment method",
+      "The shipping address"
+    ],
+    "correctOption": "The delivery date",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: Hello, I'm calling about order 7615. We need thirty notebooks instead of twenty. M: I can update the quantity, but the delivery date may move from Tuesday to Wednesday. W: Wednesday is fine, as long as the boxes arrive before noon."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What does the woman require?",
+    "options": [
+      "Delivery before noon",
+      "A lower price",
+      "Separate invoices",
+      "Tuesday delivery"
+    ],
+    "correctOption": "Delivery before noon",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: Hello, I'm calling about order 7615. We need thirty notebooks instead of twenty. M: I can update the quantity, but the delivery date may move from Tuesday to Wednesday. W: Wednesday is fine, as long as the boxes arrive before noon."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What problem does the man mention?",
+    "options": [
+      "A projector image is too dark",
+      "A presentation file is missing",
+      "A conference room is locked",
+      "Several attendees are late"
+    ],
+    "correctOption": "A projector image is too dark",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: I tested the projector in Conference Room C, but the image is still too dark. W: The larger projector is available in Room A. We could move the presentation there. M: Good idea. I'll tell the attendees about the room change."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What does the woman suggest?",
+    "options": [
+      "Using another room",
+      "Buying a new computer",
+      "Printing the slides",
+      "Postponing the meeting"
+    ],
+    "correctOption": "Using another room",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: I tested the projector in Conference Room C, but the image is still too dark. W: The larger projector is available in Room A. We could move the presentation there. M: Good idea. I'll tell the attendees about the room change."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What will the man do?",
+    "options": [
+      "Notify the attendees",
+      "Repair the projector",
+      "Reserve a restaurant",
+      "Cancel the presentation"
+    ],
+    "correctOption": "Notify the attendees",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: I tested the projector in Conference Room C, but the image is still too dark. W: The larger projector is available in Room A. We could move the presentation there. M: Good idea. I'll tell the attendees about the room change."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What are the speakers discussing?",
+    "options": [
+      "Adding another training session",
+      "Canceling a customer order",
+      "Moving to a new office",
+      "Hiring a workshop instructor"
+    ],
+    "correctOption": "Adding another training session",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: The customer service workshop is almost full. Should we add a second session next week? M: Yes. Wednesday afternoon is open in the training room. W: Great. I'll ask Human Resources to send another announcement."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "When is the training room available?",
+    "options": [
+      "Wednesday afternoon",
+      "Monday morning",
+      "Friday evening",
+      "Saturday afternoon"
+    ],
+    "correctOption": "Wednesday afternoon",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: The customer service workshop is almost full. Should we add a second session next week? M: Yes. Wednesday afternoon is open in the training room. W: Great. I'll ask Human Resources to send another announcement."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What will the woman ask Human Resources to do?",
+    "options": [
+      "Send another announcement",
+      "Reserve a restaurant",
+      "Interview a candidate",
+      "Prepare customer invoices"
+    ],
+    "correctOption": "Send another announcement",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: The customer service workshop is almost full. Should we add a second session next week? M: Yes. Wednesday afternoon is open in the training room. W: Great. I'll ask Human Resources to send another announcement."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What problem is mentioned?",
+    "options": [
+      "A refrigerator is not cold enough",
+      "A bakery order is late",
+      "A kitchen employee is absent",
+      "A restaurant is overcrowded"
+    ],
+    "correctOption": "A refrigerator is not cold enough",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: The refrigerator in the restaurant kitchen isn't maintaining the correct temperature. W: I called the service company, but their technician cannot come until Friday. M: Then we should move the dairy products to the smaller refrigerator in the bakery."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "When can the technician come?",
+    "options": [
+      "On Friday",
+      "This afternoon",
+      "On Monday",
+      "Tomorrow morning"
+    ],
+    "correctOption": "On Friday",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: The refrigerator in the restaurant kitchen isn't maintaining the correct temperature. W: I called the service company, but their technician cannot come until Friday. M: Then we should move the dairy products to the smaller refrigerator in the bakery."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What does the man suggest?",
+    "options": [
+      "Moving some food",
+      "Buying new equipment immediately",
+      "Closing the bakery",
+      "Canceling a delivery"
+    ],
+    "correctOption": "Moving some food",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: The refrigerator in the restaurant kitchen isn't maintaining the correct temperature. W: I called the service company, but their technician cannot come until Friday. M: Then we should move the dairy products to the smaller refrigerator in the bakery."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What are the speakers arranging?",
+    "options": [
+      "A flight",
+      "A dinner menu",
+      "A product delivery",
+      "A training schedule"
+    ],
+    "correctOption": "A flight",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: I found a morning flight to Osaka, but it leaves at six ten. M: That's early. Is there a later flight that arrives before the conference dinner? W: Yes, one leaves at nine and arrives at noon. It costs thirty dollars more."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "Why does the man prefer a later flight?",
+    "options": [
+      "The first flight leaves very early",
+      "He needs a cheaper ticket",
+      "The conference has been canceled",
+      "He wants to arrive after dinner"
+    ],
+    "correctOption": "The first flight leaves very early",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: I found a morning flight to Osaka, but it leaves at six ten. M: That's early. Is there a later flight that arrives before the conference dinner? W: Yes, one leaves at nine and arrives at noon. It costs thirty dollars more."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What is said about the nine o'clock flight?",
+    "options": [
+      "It costs more",
+      "It arrives in the evening",
+      "It has no available seats",
+      "It requires two transfers"
+    ],
+    "correctOption": "It costs more",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: I found a morning flight to Osaka, but it leaves at six ten. M: That's early. Is there a later flight that arrives before the conference dinner? W: Yes, one leaves at nine and arrives at noon. It costs thirty dollars more."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What issue are the speakers discussing?",
+    "options": [
+      "Blurry website images",
+      "Incorrect product prices",
+      "A delayed shipment",
+      "A missing customer review"
+    ],
+    "correctOption": "Blurry website images",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: The product photos on our website look blurry on mobile phones. W: I can resize the image files this afternoon. We should also test the pages on several screen sizes. M: Good. Please finish before the online sale begins tomorrow."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What does the woman propose doing?",
+    "options": [
+      "Testing different screen sizes",
+      "Replacing all products",
+      "Hiring a photographer today",
+      "Closing the website"
+    ],
+    "correctOption": "Testing different screen sizes",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: The product photos on our website look blurry on mobile phones. W: I can resize the image files this afternoon. We should also test the pages on several screen sizes. M: Good. Please finish before the online sale begins tomorrow."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "When should the work be completed?",
+    "options": [
+      "Before tomorrow's online sale",
+      "By the end of next month",
+      "After a customer survey",
+      "Before today's lunch"
+    ],
+    "correctOption": "Before tomorrow's online sale",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "M: The product photos on our website look blurry on mobile phones. W: I can resize the image files this afternoon. We should also test the pages on several screen sizes. M: Good. Please finish before the online sale begins tomorrow."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What will happen on Monday?",
+    "options": [
+      "A team will move to another floor",
+      "A directory will be printed for sale",
+      "A delivery company will close",
+      "The lobby will be renovated"
+    ],
+    "correctOption": "A team will move to another floor",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: The accounting team is moving to the sixth floor on Monday. M: Then we need to update the directory in the lobby. W: I'll also send a message to our regular delivery companies."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "What does the man say needs to be updated?",
+    "options": [
+      "The lobby directory",
+      "The accounting software",
+      "The delivery schedule",
+      "The company website"
+    ],
+    "correctOption": "The lobby directory",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: The accounting team is moving to the sixth floor on Monday. M: Then we need to update the directory in the lobby. W: I'll also send a message to our regular delivery companies."
+  },
+  {
+    "part": "Part 3",
+    "prompt": "Whom will the woman contact?",
+    "options": [
+      "Regular delivery companies",
+      "New accounting applicants",
+      "Building inspectors",
+      "Conference attendees"
+    ],
+    "correctOption": "Regular delivery companies",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "W: The accounting team is moving to the sixth floor on Monday. M: Then we need to update the directory in the lobby. W: I'll also send a message to our regular delivery companies."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What is the purpose of the announcement?",
+    "options": [
+      "To report a train delay",
+      "To advertise a new station",
+      "To explain a ticket price increase",
+      "To recruit maintenance workers"
+    ],
+    "correctOption": "To report a train delay",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Attention passengers. The 8:15 train to Riverside will depart twenty minutes late because maintenance crews are inspecting the tracks. Passengers may use their current tickets on the 8:30 express train at no additional charge."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Why is the train delayed?",
+    "options": [
+      "The tracks are being inspected",
+      "The driver is absent",
+      "A ticket machine is broken",
+      "Heavy rain flooded the station"
+    ],
+    "correctOption": "The tracks are being inspected",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Attention passengers. The 8:15 train to Riverside will depart twenty minutes late because maintenance crews are inspecting the tracks. Passengers may use their current tickets on the 8:30 express train at no additional charge."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What may passengers do?",
+    "options": [
+      "Take an express train without paying extra",
+      "Request a hotel room",
+      "Exchange tickets next week",
+      "Board at a different city"
+    ],
+    "correctOption": "Take an express train without paying extra",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Attention passengers. The 8:15 train to Riverside will depart twenty minutes late because maintenance crews are inspecting the tracks. Passengers may use their current tickets on the 8:30 express train at no additional charge."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Why is the speaker calling?",
+    "options": [
+      "To discuss an order",
+      "To schedule an interview",
+      "To announce a store opening",
+      "To collect a late payment"
+    ],
+    "correctOption": "To discuss an order",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Hello, this is Karen from Apex Office Supplies. I'm calling about order 5842. The blue folders are temporarily out of stock, so we can send green ones today or ship the blue folders next Monday. Please call me before 4 P.M. to let me know which option you prefer."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What item is unavailable?",
+    "options": [
+      "Blue folders",
+      "Green chairs",
+      "Printer paper",
+      "Desk lamps"
+    ],
+    "correctOption": "Blue folders",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Hello, this is Karen from Apex Office Supplies. I'm calling about order 5842. The blue folders are temporarily out of stock, so we can send green ones today or ship the blue folders next Monday. Please call me before 4 P.M. to let me know which option you prefer."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What does the speaker request?",
+    "options": [
+      "A decision before 4 P.M.",
+      "A new purchase order",
+      "A delivery address",
+      "A product brochure"
+    ],
+    "correctOption": "A decision before 4 P.M.",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Hello, this is Karen from Apex Office Supplies. I'm calling about order 5842. The blue folders are temporarily out of stock, so we can send green ones today or ship the blue folders next Monday. Please call me before 4 P.M. to let me know which option you prefer."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Where is the announcement being made?",
+    "options": [
+      "At a museum",
+      "At a restaurant",
+      "At a factory",
+      "At an airport"
+    ],
+    "correctOption": "At a museum",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Welcome to the City Design Museum. The photography exhibit on the second floor opens at 10:30. Guided tours begin every hour in the main lobby. Please note that food and beverages are not permitted inside the galleries."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "When does the photography exhibit open?",
+    "options": [
+      "At 10:30",
+      "At 9:00",
+      "At noon",
+      "At 1:30"
+    ],
+    "correctOption": "At 10:30",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Welcome to the City Design Museum. The photography exhibit on the second floor opens at 10:30. Guided tours begin every hour in the main lobby. Please note that food and beverages are not permitted inside the galleries."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What is prohibited in the galleries?",
+    "options": [
+      "Food and drinks",
+      "Photography",
+      "Guided tours",
+      "Children"
+    ],
+    "correctOption": "Food and drinks",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Welcome to the City Design Museum. The photography exhibit on the second floor opens at 10:30. Guided tours begin every hour in the main lobby. Please note that food and beverages are not permitted inside the galleries."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What will be closed?",
+    "options": [
+      "A stairwell",
+      "A cafeteria",
+      "A loading dock",
+      "An elevator"
+    ],
+    "correctOption": "A stairwell",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "This is a reminder that the west stairwell will be closed tomorrow from 9 A.M. until 1 P.M. for safety inspections. During that time, employees should use the elevators near the cafeteria or the east stairwell. Deliveries should enter through the loading dock on Pine Street."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What should employees use?",
+    "options": [
+      "The elevators or east stairwell",
+      "The Pine Street entrance only",
+      "The west stairwell",
+      "The emergency exit"
+    ],
+    "correctOption": "The elevators or east stairwell",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "This is a reminder that the west stairwell will be closed tomorrow from 9 A.M. until 1 P.M. for safety inspections. During that time, employees should use the elevators near the cafeteria or the east stairwell. Deliveries should enter through the loading dock on Pine Street."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Where should deliveries enter?",
+    "options": [
+      "Through the loading dock",
+      "Through the cafeteria",
+      "Through the main lobby",
+      "Through the west stairwell"
+    ],
+    "correctOption": "Through the loading dock",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "This is a reminder that the west stairwell will be closed tomorrow from 9 A.M. until 1 P.M. for safety inspections. During that time, employees should use the elevators near the cafeteria or the east stairwell. Deliveries should enter through the loading dock on Pine Street."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What has changed?",
+    "options": [
+      "A department has moved",
+      "The store has closed",
+      "Parking fees have increased",
+      "A product has been recalled"
+    ],
+    "correctOption": "A department has moved",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Good morning, shoppers. Beginning today, the home appliance department has moved from the third floor to the newly renovated second floor. To celebrate, all small kitchen appliances are fifteen percent off through Sunday. Please ask a sales associate for assistance."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What is discounted?",
+    "options": [
+      "Small kitchen appliances",
+      "All furniture",
+      "Delivery services",
+      "Restaurant meals"
+    ],
+    "correctOption": "Small kitchen appliances",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Good morning, shoppers. Beginning today, the home appliance department has moved from the third floor to the newly renovated second floor. To celebrate, all small kitchen appliances are fifteen percent off through Sunday. Please ask a sales associate for assistance."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Until when is the discount offered?",
+    "options": [
+      "Through Sunday",
+      "Until noon today",
+      "For one month",
+      "Through Friday"
+    ],
+    "correctOption": "Through Sunday",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Good morning, shoppers. Beginning today, the home appliance department has moved from the third floor to the newly renovated second floor. To celebrate, all small kitchen appliances are fifteen percent off through Sunday. Please ask a sales associate for assistance."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What should listeners do first?",
+    "options": [
+      "Sign an attendance sheet",
+      "Go to the cafeteria",
+      "Put on safety equipment",
+      "Watch an outdoor demonstration"
+    ],
+    "correctOption": "Sign an attendance sheet",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Before we begin today's safety workshop, please sign the attendance sheet near the entrance and collect a training booklet. The morning session will end at eleven forty-five, followed by lunch in the cafeteria. The afternoon demonstration will take place outdoors, so please bring your identification badge."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What happens after the morning session?",
+    "options": [
+      "Lunch is served",
+      "A test is given",
+      "The workshop ends",
+      "A bus departs"
+    ],
+    "correctOption": "Lunch is served",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Before we begin today's safety workshop, please sign the attendance sheet near the entrance and collect a training booklet. The morning session will end at eleven forty-five, followed by lunch in the cafeteria. The afternoon demonstration will take place outdoors, so please bring your identification badge."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Why should listeners bring an identification badge?",
+    "options": [
+      "The afternoon activity is outdoors",
+      "They need to borrow a booklet",
+      "The cafeteria requires payment",
+      "The entrance is being repaired"
+    ],
+    "correctOption": "The afternoon activity is outdoors",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Before we begin today's safety workshop, please sign the attendance sheet near the entrance and collect a training booklet. The morning session will end at eleven forty-five, followed by lunch in the cafeteria. The afternoon demonstration will take place outdoors, so please bring your identification badge."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What will happen tomorrow?",
+    "options": [
+      "The water will be turned off temporarily",
+      "The fourth floor will close permanently",
+      "Employees will move offices",
+      "A new restroom will open"
+    ],
+    "correctOption": "The water will be turned off temporarily",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Employees on the fourth floor should be aware that the water supply will be turned off tomorrow from ten A.M. until noon while a pipe is replaced. Restrooms on the third and fifth floors will remain available. Please direct any questions to the facilities department."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Which restrooms will remain available?",
+    "options": [
+      "Those on the third and fifth floors",
+      "Only those on the fourth floor",
+      "Those near the cafeteria",
+      "Only those in the lobby"
+    ],
+    "correctOption": "Those on the third and fifth floors",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Employees on the fourth floor should be aware that the water supply will be turned off tomorrow from ten A.M. until noon while a pipe is replaced. Restrooms on the third and fifth floors will remain available. Please direct any questions to the facilities department."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Whom should employees contact with questions?",
+    "options": [
+      "The facilities department",
+      "The accounting department",
+      "The security office",
+      "The cafeteria manager"
+    ],
+    "correctOption": "The facilities department",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Employees on the fourth floor should be aware that the water supply will be turned off tomorrow from ten A.M. until noon while a pipe is replaced. Restrooms on the third and fifth floors will remain available. Please direct any questions to the facilities department."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Where will the keynote speech take place?",
+    "options": [
+      "In the Grand Hall",
+      "In a hotel restaurant",
+      "In the registration office",
+      "In a small workshop room"
+    ],
+    "correctOption": "In the Grand Hall",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Thank you for attending the Regional Entrepreneurs Conference. The keynote speech will begin in the Grand Hall at nine thirty. After the speech, participants may choose from three smaller workshops. A schedule and room map are included inside your name badge holder."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What may participants do after the speech?",
+    "options": [
+      "Attend one of three workshops",
+      "Leave for the airport",
+      "Collect a refund",
+      "Meet the keynote speaker privately"
+    ],
+    "correctOption": "Attend one of three workshops",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Thank you for attending the Regional Entrepreneurs Conference. The keynote speech will begin in the Grand Hall at nine thirty. After the speech, participants may choose from three smaller workshops. A schedule and room map are included inside your name badge holder."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Where can participants find a room map?",
+    "options": [
+      "Inside the name badge holder",
+      "At the parking entrance",
+      "On the conference website only",
+      "Under their seats"
+    ],
+    "correctOption": "Inside the name badge holder",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Thank you for attending the Regional Entrepreneurs Conference. The keynote speech will begin in the Grand Hall at nine thirty. After the speech, participants may choose from three smaller workshops. A schedule and room map are included inside your name badge holder."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "When is the showroom closed?",
+    "options": [
+      "On Sunday",
+      "On Saturday",
+      "On Monday",
+      "Every afternoon"
+    ],
+    "correctOption": "On Sunday",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Thank you for calling Martin's Furniture. Our showroom is open Monday through Saturday from nine to six. For information about an existing delivery, press one. To schedule a design consultation, press two. To speak with a billing representative, remain on the line."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "What should callers do to arrange a design consultation?",
+    "options": [
+      "Press two",
+      "Press one",
+      "Visit the showroom",
+      "Remain on the line"
+    ],
+    "correctOption": "Press two",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Thank you for calling Martin's Furniture. Our showroom is open Monday through Saturday from nine to six. For information about an existing delivery, press one. To schedule a design consultation, press two. To speak with a billing representative, remain on the line."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Why should a caller remain on the line?",
+    "options": [
+      "To speak with a billing representative",
+      "To change a delivery address",
+      "To hear store hours again",
+      "To order new furniture"
+    ],
+    "correctOption": "To speak with a billing representative",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Thank you for calling Martin's Furniture. Our showroom is open Monday through Saturday from nine to six. For information about an existing delivery, press one. To schedule a design consultation, press two. To speak with a billing representative, remain on the line."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Where should passengers go?",
+    "options": [
+      "Gate 16",
+      "Gate 20",
+      "The baggage office",
+      "The ticket counter"
+    ],
+    "correctOption": "Gate 16",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Passengers traveling on Flight 482 to Vancouver should proceed to Gate 16. Boarding will begin at five forty instead of five twenty because the aircraft arrived late. Passengers requiring assistance may speak with an agent at the service desk beside the gate."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Why will boarding begin late?",
+    "options": [
+      "The aircraft arrived late",
+      "The weather is severe",
+      "The gate is being repaired",
+      "The crew is in a meeting"
+    ],
+    "correctOption": "The aircraft arrived late",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Passengers traveling on Flight 482 to Vancouver should proceed to Gate 16. Boarding will begin at five forty instead of five twenty because the aircraft arrived late. Passengers requiring assistance may speak with an agent at the service desk beside the gate."
+  },
+  {
+    "part": "Part 4",
+    "prompt": "Where can passengers request assistance?",
+    "options": [
+      "At a service desk beside the gate",
+      "At the parking office",
+      "Inside the aircraft",
+      "At the baggage carousel"
+    ],
+    "correctOption": "At a service desk beside the gate",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": "Passengers traveling on Flight 482 to Vancouver should proceed to Gate 16. Boarding will begin at five forty instead of five twenty because the aircraft arrived late. Passengers requiring assistance may speak with an agent at the service desk beside the gate."
+  },
+  {
+    "part": "Part 5",
+    "prompt": "All expense reports must be submitted _____ Friday to receive reimbursement this month.",
+    "options": [
+      "on",
+      "by",
+      "with",
+      "during"
+    ],
+    "correctOption": "by",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Ms. Huang is responsible _____ training newly hired employees.",
+    "options": [
+      "of",
+      "with",
+      "for",
+      "to"
+    ],
+    "correctOption": "for",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Many customers are interested _____ the company's new membership program.",
+    "options": [
+      "at",
+      "in",
+      "for",
+      "on"
+    ],
+    "correctOption": "in",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The new software is capable of _____ large amounts of data.",
+    "options": [
+      "process",
+      "processed",
+      "processing",
+      "to process"
+    ],
+    "correctOption": "processing",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Ms. Patel _____ director of operations since last January.",
+    "options": [
+      "is",
+      "was",
+      "has been",
+      "will be"
+    ],
+    "correctOption": "has been",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The outdoor event was canceled _____ heavy rain.",
+    "options": [
+      "because",
+      "because of",
+      "although",
+      "despite"
+    ],
+    "correctOption": "because of",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The downtown branch will remain open, _____ the airport branch will close early.",
+    "options": [
+      "whereas",
+      "unless",
+      "because",
+      "therefore"
+    ],
+    "correctOption": "whereas",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The consultant was _____ recommended by several former clients.",
+    "options": [
+      "high",
+      "higher",
+      "highly",
+      "height"
+    ],
+    "correctOption": "highly",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The company expects online sales to _____ significantly next quarter.",
+    "options": [
+      "increase",
+      "increased",
+      "increasing",
+      "increases"
+    ],
+    "correctOption": "increase",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Applicants _____ have at least three years of experience will be given priority.",
+    "options": [
+      "who",
+      "whom",
+      "whose",
+      "which"
+    ],
+    "correctOption": "who",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The shipment will arrive on time _____ the weather becomes severe.",
+    "options": [
+      "if",
+      "unless",
+      "because",
+      "despite"
+    ],
+    "correctOption": "unless",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "_____ several delays, the construction project was completed within budget.",
+    "options": [
+      "Although",
+      "Despite",
+      "Because",
+      "Unless"
+    ],
+    "correctOption": "Despite",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Final _____ from the finance department is required before the purchase can be made.",
+    "options": [
+      "approve",
+      "approved",
+      "approval",
+      "approving"
+    ],
+    "correctOption": "approval",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The new filing system allows employees to locate documents more _____.",
+    "options": [
+      "efficient",
+      "efficiency",
+      "efficiently",
+      "efficiencies"
+    ],
+    "correctOption": "efficiently",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The orientation session is scheduled _____ at 9:30 A.M.",
+    "options": [
+      "begin",
+      "began",
+      "to begin",
+      "beginning"
+    ],
+    "correctOption": "to begin",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Either the sales manager or her assistants _____ attending the trade show.",
+    "options": [
+      "is",
+      "are",
+      "was",
+      "has"
+    ],
+    "correctOption": "are",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Neither the printer nor the copy machines _____ functioning properly.",
+    "options": [
+      "is",
+      "are",
+      "has",
+      "was"
+    ],
+    "correctOption": "are",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The seminar will cover not only customer service but also _____ management.",
+    "options": [
+      "time",
+      "timely",
+      "timing",
+      "timed"
+    ],
+    "correctOption": "time",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Additional information _____ available on the company's website.",
+    "options": [
+      "are",
+      "were",
+      "is",
+      "have"
+    ],
+    "correctOption": "is",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "By the time the manager arrived, the interview panel _____ the final candidate.",
+    "options": [
+      "already selected",
+      "has already selected",
+      "had already selected",
+      "will select"
+    ],
+    "correctOption": "had already selected",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The company installed energy-efficient lighting _____ electricity costs.",
+    "options": [
+      "reduce",
+      "reduced",
+      "reducing",
+      "to reduce"
+    ],
+    "correctOption": "to reduce",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "_____ the quarterly report, Mr. Diaz sent it to the board members.",
+    "options": [
+      "Completed",
+      "Completing",
+      "Having completed",
+      "To completing"
+    ],
+    "correctOption": "Having completed",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The updated policy, _____ was announced yesterday, takes effect immediately.",
+    "options": [
+      "who",
+      "which",
+      "where",
+      "what"
+    ],
+    "correctOption": "which",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Customers _____ orders were damaged will receive replacements at no charge.",
+    "options": [
+      "who",
+      "whose",
+      "which",
+      "whom"
+    ],
+    "correctOption": "whose",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The annual meeting, at _____ shareholders vote on major proposals, will be held in June.",
+    "options": [
+      "that",
+      "where",
+      "which",
+      "what"
+    ],
+    "correctOption": "which",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "If I _____ in charge of the project, I would revise the schedule.",
+    "options": [
+      "am",
+      "was",
+      "were",
+      "had been"
+    ],
+    "correctOption": "were",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "_____ we known about the road closure, we would have taken another route.",
+    "options": [
+      "If",
+      "Were",
+      "Had",
+      "Should"
+    ],
+    "correctOption": "Had",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "All applications must _____ electronically through the company portal.",
+    "options": [
+      "submit",
+      "be submitted",
+      "submitted",
+      "be submitting"
+    ],
+    "correctOption": "be submitted",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "Of the three candidates interviewed, Ms. Walker was the _____ qualified.",
+    "options": [
+      "more",
+      "most",
+      "much",
+      "very"
+    ],
+    "correctOption": "most",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 5",
+    "prompt": "The new procedure requires _____ steps than the previous one.",
+    "options": [
+      "few",
+      "fewer",
+      "less",
+      "little"
+    ],
+    "correctOption": "fewer",
+    "passage": null,
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "The company gym will close at 7 P.M. on Thursday so that new exercise equipment can be _____.",
+    "options": [
+      "install",
+      "installed",
+      "installing",
+      "installation"
+    ],
+    "correctOption": "installed",
+    "passage": "The company gym will close at 7 P.M. on Thursday so that new exercise equipment can be _____. Members should remove all personal belongings from the lockers _____ Wednesday evening. _____ the closure, employees may use the fitness center at the West Avenue branch. Normal operating hours will _____ on Friday morning.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "Members should remove all personal belongings from the lockers _____ Wednesday evening.",
+    "options": [
+      "by",
+      "among",
+      "during",
+      "from"
+    ],
+    "correctOption": "by",
+    "passage": "The company gym will close at 7 P.M. on Thursday so that new exercise equipment can be _____. Members should remove all personal belongings from the lockers _____ Wednesday evening. _____ the closure, employees may use the fitness center at the West Avenue branch. Normal operating hours will _____ on Friday morning.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "_____ the closure, employees may use the fitness center at the West Avenue branch.",
+    "options": [
+      "During",
+      "Despite",
+      "Unless",
+      "Therefore"
+    ],
+    "correctOption": "During",
+    "passage": "The company gym will close at 7 P.M. on Thursday so that new exercise equipment can be _____. Members should remove all personal belongings from the lockers _____ Wednesday evening. _____ the closure, employees may use the fitness center at the West Avenue branch. Normal operating hours will _____ on Friday morning.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "Normal operating hours will _____ on Friday morning.",
+    "options": [
+      "resume",
+      "resumes",
+      "resumed",
+      "resumption"
+    ],
+    "correctOption": "resume",
+    "passage": "The company gym will close at 7 P.M. on Thursday so that new exercise equipment can be _____. Members should remove all personal belongings from the lockers _____ Wednesday evening. _____ the closure, employees may use the fitness center at the West Avenue branch. Normal operating hours will _____ on Friday morning.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "Customers who purchased the Model X electric kettle between March 1 and April 15 should stop _____ it immediately.",
+    "options": [
+      "use",
+      "used",
+      "using",
+      "to used"
+    ],
+    "correctOption": "using",
+    "passage": "Customers who purchased the Model X electric kettle between March 1 and April 15 should stop _____ it immediately. A small number of units may overheat _____ the water level is too low. Affected customers can return the kettle to any authorized store for a full _____. Additional information, including a list of serial numbers, is _____ on our website.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "A small number of units may overheat _____ the water level is too low.",
+    "options": [
+      "if",
+      "despite",
+      "during",
+      "because of"
+    ],
+    "correctOption": "if",
+    "passage": "Customers who purchased the Model X electric kettle between March 1 and April 15 should stop _____ it immediately. A small number of units may overheat _____ the water level is too low. Affected customers can return the kettle to any authorized store for a full _____. Additional information, including a list of serial numbers, is _____ on our website.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "Affected customers can return the kettle to any authorized store for a full _____.",
+    "options": [
+      "refund",
+      "refundable",
+      "refunding",
+      "refunded"
+    ],
+    "correctOption": "refund",
+    "passage": "Customers who purchased the Model X electric kettle between March 1 and April 15 should stop _____ it immediately. A small number of units may overheat _____ the water level is too low. Affected customers can return the kettle to any authorized store for a full _____. Additional information, including a list of serial numbers, is _____ on our website.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "Additional information, including a list of serial numbers, is _____ on our website.",
+    "options": [
+      "available",
+      "availability",
+      "availably",
+      "avail"
+    ],
+    "correctOption": "available",
+    "passage": "Customers who purchased the Model X electric kettle between March 1 and April 15 should stop _____ it immediately. A small number of units may overheat _____ the water level is too low. Affected customers can return the kettle to any authorized store for a full _____. Additional information, including a list of serial numbers, is _____ on our website.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "The annual staff picnic will be held at Lakeview Park on Saturday, June 21. Employees may bring immediate family members at no additional _____.",
+    "options": [
+      "charge",
+      "charged",
+      "charging",
+      "charges"
+    ],
+    "correctOption": "charge",
+    "passage": "The annual staff picnic will be held at Lakeview Park on Saturday, June 21. Employees may bring immediate family members at no additional _____. Lunch and beverages will be provided, _____ participants are encouraged to bring sunscreen. Anyone planning to attend should complete the online form _____ June 13. In the event of heavy rain, the picnic will be _____ to the following Saturday.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "Lunch and beverages will be provided, _____ participants are encouraged to bring sunscreen.",
+    "options": [
+      "but",
+      "because of",
+      "unless",
+      "therefore"
+    ],
+    "correctOption": "but",
+    "passage": "The annual staff picnic will be held at Lakeview Park on Saturday, June 21. Employees may bring immediate family members at no additional _____. Lunch and beverages will be provided, _____ participants are encouraged to bring sunscreen. Anyone planning to attend should complete the online form _____ June 13. In the event of heavy rain, the picnic will be _____ to the following Saturday.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "Anyone planning to attend should complete the online form _____ June 13.",
+    "options": [
+      "by",
+      "among",
+      "through",
+      "during"
+    ],
+    "correctOption": "by",
+    "passage": "The annual staff picnic will be held at Lakeview Park on Saturday, June 21. Employees may bring immediate family members at no additional _____. Lunch and beverages will be provided, _____ participants are encouraged to bring sunscreen. Anyone planning to attend should complete the online form _____ June 13. In the event of heavy rain, the picnic will be _____ to the following Saturday.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "In the event of heavy rain, the picnic will be _____ to the following Saturday.",
+    "options": [
+      "postponed",
+      "postpone",
+      "postponing",
+      "postponement"
+    ],
+    "correctOption": "postponed",
+    "passage": "The annual staff picnic will be held at Lakeview Park on Saturday, June 21. Employees may bring immediate family members at no additional _____. Lunch and beverages will be provided, _____ participants are encouraged to bring sunscreen. Anyone planning to attend should complete the online form _____ June 13. In the event of heavy rain, the picnic will be _____ to the following Saturday.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "The customer portal has been redesigned to make account information easier to _____.",
+    "options": [
+      "locate",
+      "located",
+      "locating",
+      "location"
+    ],
+    "correctOption": "locate",
+    "passage": "The customer portal has been redesigned to make account information easier to _____. Users can now download invoices, update contact details, and _____ service appointments online. Customers who experience difficulty signing in should first _____ their browser cache. If the problem continues, technical support can be reached _____ phone or e-mail.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "Users can now download invoices, update contact details, and _____ service appointments online.",
+    "options": [
+      "schedule",
+      "scheduled",
+      "scheduling",
+      "scheduler"
+    ],
+    "correctOption": "schedule",
+    "passage": "The customer portal has been redesigned to make account information easier to _____. Users can now download invoices, update contact details, and _____ service appointments online. Customers who experience difficulty signing in should first _____ their browser cache. If the problem continues, technical support can be reached _____ phone or e-mail.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "Customers who experience difficulty signing in should first _____ their browser cache.",
+    "options": [
+      "clear",
+      "cleared",
+      "clearing",
+      "clarity"
+    ],
+    "correctOption": "clear",
+    "passage": "The customer portal has been redesigned to make account information easier to _____. Users can now download invoices, update contact details, and _____ service appointments online. Customers who experience difficulty signing in should first _____ their browser cache. If the problem continues, technical support can be reached _____ phone or e-mail.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 6",
+    "prompt": "If the problem continues, technical support can be reached _____ phone or e-mail.",
+    "options": [
+      "by",
+      "on",
+      "from",
+      "between"
+    ],
+    "correctOption": "by",
+    "passage": "The customer portal has been redesigned to make account information easier to _____. Users can now download invoices, update contact details, and _____ service appointments online. Customers who experience difficulty signing in should first _____ their browser cache. If the problem continues, technical support can be reached _____ phone or e-mail.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Why was the e-mail sent?",
+    "options": [
+      "To announce an elevator inspection",
+      "To request rent payments",
+      "To advertise office space",
+      "To recruit delivery drivers"
+    ],
+    "correctOption": "To announce an elevator inspection",
+    "passage": "From: Maria Lopez\nTo: Building Tenants\nSubject: Elevator Inspection\n\nThe two elevators in the east lobby will be inspected on Tuesday, September 14, between 9:00 A.M. and noon. During this period, please use the elevators near the west entrance. Delivery companies should be told to use the loading dock elevator, which will remain in service. We apologize for the temporary inconvenience.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "When will the inspection end?",
+    "options": [
+      "At noon",
+      "At 9 A.M.",
+      "On Monday",
+      "At midnight"
+    ],
+    "correctOption": "At noon",
+    "passage": "From: Maria Lopez\nTo: Building Tenants\nSubject: Elevator Inspection\n\nThe two elevators in the east lobby will be inspected on Tuesday, September 14, between 9:00 A.M. and noon. During this period, please use the elevators near the west entrance. Delivery companies should be told to use the loading dock elevator, which will remain in service. We apologize for the temporary inconvenience.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What should delivery companies use?",
+    "options": [
+      "The loading dock elevator",
+      "The east lobby elevators",
+      "The stairs near the west entrance",
+      "A nearby parking garage"
+    ],
+    "correctOption": "The loading dock elevator",
+    "passage": "From: Maria Lopez\nTo: Building Tenants\nSubject: Elevator Inspection\n\nThe two elevators in the east lobby will be inspected on Tuesday, September 14, between 9:00 A.M. and noon. During this period, please use the elevators near the west entrance. Delivery companies should be told to use the loading dock elevator, which will remain in service. We apologize for the temporary inconvenience.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What is being advertised?",
+    "options": [
+      "A weekend meeting package",
+      "A restaurant opening",
+      "An employee training course",
+      "A transportation service"
+    ],
+    "correctOption": "A weekend meeting package",
+    "passage": "Harbor View Business Hotel\nWeekend Conference Package\n\nReserve a meeting room for Saturday or Sunday and receive:\n• Complimentary wireless Internet\n• Coffee service for up to 20 guests\n• A 15 percent discount on guest rooms\n• Free parking for the event organizer\n\nReservations must be made at least ten days in advance. Call 555-0184 or visit harborviewhotel.example.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What is free for the event organizer?",
+    "options": [
+      "Parking",
+      "Guest rooms",
+      "Lunch",
+      "Printing"
+    ],
+    "correctOption": "Parking",
+    "passage": "Harbor View Business Hotel\nWeekend Conference Package\n\nReserve a meeting room for Saturday or Sunday and receive:\n• Complimentary wireless Internet\n• Coffee service for up to 20 guests\n• A 15 percent discount on guest rooms\n• Free parking for the event organizer\n\nReservations must be made at least ten days in advance. Call 555-0184 or visit harborviewhotel.example.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What is required?",
+    "options": [
+      "Booking at least ten days early",
+      "Having more than 20 guests",
+      "Paying only in cash",
+      "Staying for two nights"
+    ],
+    "correctOption": "Booking at least ten days early",
+    "passage": "Harbor View Business Hotel\nWeekend Conference Package\n\nReserve a meeting room for Saturday or Sunday and receive:\n• Complimentary wireless Internet\n• Coffee service for up to 20 guests\n• A 15 percent discount on guest rooms\n• Free parking for the event organizer\n\nReservations must be made at least ten days in advance. Call 555-0184 or visit harborviewhotel.example.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What did Northstar Electronics announce?",
+    "options": [
+      "Plans to open a research center",
+      "A product recall",
+      "The closure of a factory",
+      "A change in leadership"
+    ],
+    "correctOption": "Plans to open a research center",
+    "passage": "Northstar Electronics announced yesterday that it will open a research center in Taichung early next year. The facility will focus on energy-efficient sensors for household appliances. According to Chief Executive Mina Ross, the location was selected because of its access to engineering talent and nearby manufacturing partners. The company expects to hire approximately 120 employees during the center's first year of operation.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Why was Taichung selected?",
+    "options": [
+      "It offers engineering talent and manufacturing partners",
+      "It has the lowest office rent",
+      "It is close to the company's headquarters",
+      "It provides free transportation"
+    ],
+    "correctOption": "It offers engineering talent and manufacturing partners",
+    "passage": "Northstar Electronics announced yesterday that it will open a research center in Taichung early next year. The facility will focus on energy-efficient sensors for household appliances. According to Chief Executive Mina Ross, the location was selected because of its access to engineering talent and nearby manufacturing partners. The company expects to hire approximately 120 employees during the center's first year of operation.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "How many employees may be hired in the first year?",
+    "options": [
+      "About 120",
+      "About 20",
+      "About 1,200",
+      "About 12"
+    ],
+    "correctOption": "About 120",
+    "passage": "Northstar Electronics announced yesterday that it will open a research center in Taichung early next year. The facility will focus on energy-efficient sensors for household appliances. According to Chief Executive Mina Ross, the location was selected because of its access to engineering talent and nearby manufacturing partners. The company expects to hire approximately 120 employees during the center's first year of operation.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Why did Mr. Wu write the letter?",
+    "options": [
+      "To report problems with an order",
+      "To request a price list",
+      "To change a delivery address",
+      "To cancel a meeting"
+    ],
+    "correctOption": "To report problems with an order",
+    "passage": "Dear Customer Service,\n\nI ordered a standing desk from your website on May 3. The desk arrived yesterday, but one of the metal legs was damaged and the assembly instructions were missing. I have attached photographs of the damaged part. Please send a replacement leg and a copy of the instructions as soon as possible. My order number is SD-7741.\n\nSincerely,\nKevin Wu",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What was missing?",
+    "options": [
+      "Assembly instructions",
+      "A desktop surface",
+      "A payment receipt",
+      "Photographs"
+    ],
+    "correctOption": "Assembly instructions",
+    "passage": "Dear Customer Service,\n\nI ordered a standing desk from your website on May 3. The desk arrived yesterday, but one of the metal legs was damaged and the assembly instructions were missing. I have attached photographs of the damaged part. Please send a replacement leg and a copy of the instructions as soon as possible. My order number is SD-7741.\n\nSincerely,\nKevin Wu",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What did Mr. Wu attach?",
+    "options": [
+      "Photographs",
+      "A warranty card",
+      "A new order form",
+      "A shipping label"
+    ],
+    "correctOption": "Photographs",
+    "passage": "Dear Customer Service,\n\nI ordered a standing desk from your website on May 3. The desk arrived yesterday, but one of the metal legs was damaged and the assembly instructions were missing. I have attached photographs of the damaged part. Please send a replacement leg and a copy of the instructions as soon as possible. My order number is SD-7741.\n\nSincerely,\nKevin Wu",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What is the workshop about?",
+    "options": [
+      "Reducing waste at work",
+      "Preparing financial reports",
+      "Improving public speaking",
+      "Repairing office equipment"
+    ],
+    "correctOption": "Reducing waste at work",
+    "passage": "The Green Workplace Committee invites employees to join a lunchtime workshop on reducing office waste. The workshop will be held in Room 402 on October 6 from 12:15 to 1:00 P.M. Participants will learn how to set up paper-reduction goals and organize reusable supply stations. A light lunch will be provided. Because seating is limited to 35 people, employees should register through the internal portal by October 2.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What will participants receive?",
+    "options": [
+      "A light lunch",
+      "A travel allowance",
+      "A printed certificate",
+      "Free office furniture"
+    ],
+    "correctOption": "A light lunch",
+    "passage": "The Green Workplace Committee invites employees to join a lunchtime workshop on reducing office waste. The workshop will be held in Room 402 on October 6 from 12:15 to 1:00 P.M. Participants will learn how to set up paper-reduction goals and organize reusable supply stations. A light lunch will be provided. Because seating is limited to 35 people, employees should register through the internal portal by October 2.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Why should employees register early?",
+    "options": [
+      "Seating is limited",
+      "The fee will increase",
+      "Managers must approve attendance",
+      "The room may change"
+    ],
+    "correctOption": "Seating is limited",
+    "passage": "The Green Workplace Committee invites employees to join a lunchtime workshop on reducing office waste. The workshop will be held in Room 402 on October 6 from 12:15 to 1:00 P.M. Participants will learn how to set up paper-reduction goals and organize reusable supply stations. A light lunch will be provided. Because seating is limited to 35 people, employees should register through the internal portal by October 2.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Why will the library close early?",
+    "options": [
+      "To install computer equipment",
+      "To hold a private event",
+      "To repair the café",
+      "To train new librarians"
+    ],
+    "correctOption": "To install computer equipment",
+    "passage": "NOTICE\nThe Lakeside Library will close at 6 P.M. instead of 9 P.M. on Friday, November 19, so that new computer equipment can be installed. The library will reopen at its usual time on Saturday.\n\nE-MAIL\nFrom: Jordan Kim\nTo: Study Group\nI just saw the library notice. Since we planned to meet Friday at 7, let's use the café across from the library instead. It has a large table in the back, but we should arrive early because it becomes crowded after dinner.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What does Jordan suggest?",
+    "options": [
+      "Meeting at a café",
+      "Changing the meeting to Saturday",
+      "Using the library in the morning",
+      "Canceling the study group"
+    ],
+    "correctOption": "Meeting at a café",
+    "passage": "NOTICE\nThe Lakeside Library will close at 6 P.M. instead of 9 P.M. on Friday, November 19, so that new computer equipment can be installed. The library will reopen at its usual time on Saturday.\n\nE-MAIL\nFrom: Jordan Kim\nTo: Study Group\nI just saw the library notice. Since we planned to meet Friday at 7, let's use the café across from the library instead. It has a large table in the back, but we should arrive early because it becomes crowded after dinner.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Why should the group arrive early?",
+    "options": [
+      "The café gets crowded",
+      "The library doors will be locked",
+      "The computer installation starts early",
+      "The café closes before dinner"
+    ],
+    "correctOption": "The café gets crowded",
+    "passage": "NOTICE\nThe Lakeside Library will close at 6 P.M. instead of 9 P.M. on Friday, November 19, so that new computer equipment can be installed. The library will reopen at its usual time on Saturday.\n\nE-MAIL\nFrom: Jordan Kim\nTo: Study Group\nI just saw the library notice. Since we planned to meet Friday at 7, let's use the café across from the library instead. It has a large table in the back, but we should arrive early because it becomes crowded after dinner.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What is one duty of the position?",
+    "options": [
+      "Managing website updates",
+      "Repairing computer hardware",
+      "Selling insurance policies",
+      "Planning international flights"
+    ],
+    "correctOption": "Managing website updates",
+    "passage": "Digital Content Coordinator\n\nPine & Row Publishing is seeking a detail-oriented coordinator to manage website updates and prepare weekly newsletters. Candidates should have at least two years of experience with content management systems and strong written communication skills. Familiarity with basic HTML is preferred but not required. The position is full-time and includes health insurance, paid leave, and a transportation allowance. Applications received by March 18 will receive priority consideration.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What is preferred but not required?",
+    "options": [
+      "Basic HTML knowledge",
+      "Two years of experience",
+      "Writing ability",
+      "Availability for full-time work"
+    ],
+    "correctOption": "Basic HTML knowledge",
+    "passage": "Digital Content Coordinator\n\nPine & Row Publishing is seeking a detail-oriented coordinator to manage website updates and prepare weekly newsletters. Candidates should have at least two years of experience with content management systems and strong written communication skills. Familiarity with basic HTML is preferred but not required. The position is full-time and includes health insurance, paid leave, and a transportation allowance. Applications received by March 18 will receive priority consideration.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "How can applicants receive priority?",
+    "options": [
+      "Apply by March 18",
+      "Provide three references",
+      "Accept a lower salary",
+      "Visit the office in person"
+    ],
+    "correctOption": "Apply by March 18",
+    "passage": "Digital Content Coordinator\n\nPine & Row Publishing is seeking a detail-oriented coordinator to manage website updates and prepare weekly newsletters. Candidates should have at least two years of experience with content management systems and strong written communication skills. Familiarity with basic HTML is preferred but not required. The position is full-time and includes health insurance, paid leave, and a transportation allowance. Applications received by March 18 will receive priority consideration.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "How much do the two keyboards cost in total?",
+    "options": [
+      "$136",
+      "$68",
+      "$42",
+      "$178"
+    ],
+    "correctOption": "$136",
+    "passage": "Order Confirmation: #B-19084\n\nItems:\n2 × Ergonomic Keyboard — $68 each\n1 × Wireless Mouse — $42\nStandard delivery — Free\n\nEstimated delivery: June 10–12\nShipping address: 28 Maple Avenue, Suite 5\n\nTo change or cancel this order, contact customer service within 24 hours of purchase. Returns are accepted within 30 days after delivery, provided that the items are unused and in their original packaging.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What is the delivery charge?",
+    "options": [
+      "There is no charge",
+      "$42",
+      "$24",
+      "$30"
+    ],
+    "correctOption": "There is no charge",
+    "passage": "Order Confirmation: #B-19084\n\nItems:\n2 × Ergonomic Keyboard — $68 each\n1 × Wireless Mouse — $42\nStandard delivery — Free\n\nEstimated delivery: June 10–12\nShipping address: 28 Maple Avenue, Suite 5\n\nTo change or cancel this order, contact customer service within 24 hours of purchase. Returns are accepted within 30 days after delivery, provided that the items are unused and in their original packaging.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Under what condition may an item be returned?",
+    "options": [
+      "It is unused and in its original packaging",
+      "It was purchased more than 30 days ago",
+      "It has been repaired by the customer",
+      "It was delivered to a business address"
+    ],
+    "correctOption": "It is unused and in its original packaging",
+    "passage": "Order Confirmation: #B-19084\n\nItems:\n2 × Ergonomic Keyboard — $68 each\n1 × Wireless Mouse — $42\nStandard delivery — Free\n\nEstimated delivery: June 10–12\nShipping address: 28 Maple Avenue, Suite 5\n\nTo change or cancel this order, contact customer service within 24 hours of purchase. Returns are accepted within 30 days after delivery, provided that the items are unused and in their original packaging.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What is changing next month?",
+    "options": [
+      "How supply requests are submitted",
+      "Where employees receive deliveries",
+      "The price of office furniture",
+      "The date of the monthly meeting"
+    ],
+    "correctOption": "How supply requests are submitted",
+    "passage": "From: Olivia Grant\nTo: All Department Assistants\nSubject: Monthly Supply Orders\n\nBeginning next month, office supply requests must be submitted through the new purchasing portal. Requests received by the twentieth will be included in that month's order. A short online tutorial is available on the employee website. Please contact Purchasing if your department needs an item that is not listed in the portal.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What should an employee do if an item is not listed?",
+    "options": [
+      "Contact the purchasing department",
+      "Order it from a personal account",
+      "Wait until the following year",
+      "Ask the delivery driver"
+    ],
+    "correctOption": "Contact the purchasing department",
+    "passage": "From: Olivia Grant\nTo: All Department Assistants\nSubject: Monthly Supply Orders\n\nBeginning next month, office supply requests must be submitted through the new purchasing portal. Requests received by the twentieth will be included in that month's order. A short online tutorial is available on the employee website. Please contact Purchasing if your department needs an item that is not listed in the portal.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "How long is the course?",
+    "options": [
+      "Four weeks",
+      "Four days",
+      "Two months",
+      "One year"
+    ],
+    "correctOption": "Four weeks",
+    "passage": "BrightPath Language Center\nSummer Business English Intensive\n\nImprove presentation, negotiation, and e-mail writing skills in four weeks. Classes meet Monday through Thursday from 6:30 to 8:30 P.M. All course materials are included. Register by May 20 to receive a ten percent early-registration discount. A free placement interview is required before the first class.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "How can a student receive a discount?",
+    "options": [
+      "Register by May 20",
+      "Attend every evening",
+      "Bring personal materials",
+      "Skip the placement interview"
+    ],
+    "correctOption": "Register by May 20",
+    "passage": "BrightPath Language Center\nSummer Business English Intensive\n\nImprove presentation, negotiation, and e-mail writing skills in four weeks. Classes meet Monday through Thursday from 6:30 to 8:30 P.M. All course materials are included. Register by May 20 to receive a ten percent early-registration discount. A free placement interview is required before the first class.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Which transaction now requires special approval?",
+    "options": [
+      "A refund over $300",
+      "Every product exchange",
+      "A purchase made online",
+      "A return made on Friday"
+    ],
+    "correctOption": "A refund over $300",
+    "passage": "To: Regional Store Managers\nFrom: Elaine Ford, Operations Director\nSubject: Revised Return Procedure\n\nEffective immediately, refunds for purchases over $300 require approval from a regional manager. Store employees should continue to process exchanges according to the existing policy. A revised return form has been uploaded to the company intranet. Please destroy any unused copies of the previous form by Friday.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What should employees do by Friday?",
+    "options": [
+      "Discard old return forms",
+      "Upload customer receipts",
+      "Change the exchange policy",
+      "Contact every regional manager"
+    ],
+    "correctOption": "Discard old return forms",
+    "passage": "To: Regional Store Managers\nFrom: Elaine Ford, Operations Director\nSubject: Revised Return Procedure\n\nEffective immediately, refunds for purchases over $300 require approval from a regional manager. Store employees should continue to process exchanges according to the existing policy. A revised return form has been uploaded to the company intranet. Please destroy any unused copies of the previous form by Friday.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What happened on Saturday?",
+    "options": [
+      "A theater reopened",
+      "A director was hired",
+      "A renovation began",
+      "A ticket counter closed"
+    ],
+    "correctOption": "A theater reopened",
+    "passage": "After a six-month renovation, the historic Milton Theater reopened on Saturday. Improvements include wider seats, upgraded sound equipment, and a new ticket counter. Theater director Paul Ingram said that most of the building's original interior design was preserved. The theater will present local productions during the week and touring performances on weekends.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What was mostly preserved?",
+    "options": [
+      "The original interior design",
+      "The old sound equipment",
+      "The previous seating arrangement",
+      "The weekend schedule"
+    ],
+    "correctOption": "The original interior design",
+    "passage": "After a six-month renovation, the historic Milton Theater reopened on Saturday. Improvements include wider seats, upgraded sound equipment, and a new ticket counter. Theater director Paul Ingram said that most of the building's original interior design was preserved. The theater will present local productions during the week and touring performances on weekends.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Why will Route 18 skip Central Market?",
+    "options": [
+      "Road construction",
+      "A public holiday",
+      "A vehicle inspection",
+      "A market event"
+    ],
+    "correctOption": "Road construction",
+    "passage": "ONLINE NOTICE\nDue to road construction, City Bus Route 18 will not stop at Central Market from July 3 through July 7. Passengers should use the temporary stop on Oak Street, one block east of the market.\n\nTEXT MESSAGE\nMia: I was going to take Route 18 to meet you at Central Market tomorrow, but the stop is closed.\nJon: Get off at the temporary Oak Street stop. I'll meet you there at 1:15. It's next to a pharmacy.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Where will Jon meet Mia?",
+    "options": [
+      "At the Oak Street stop",
+      "Inside Central Market",
+      "At the bus company's office",
+      "One block west of the market"
+    ],
+    "correctOption": "At the Oak Street stop",
+    "passage": "ONLINE NOTICE\nDue to road construction, City Bus Route 18 will not stop at Central Market from July 3 through July 7. Passengers should use the temporary stop on Oak Street, one block east of the market.\n\nTEXT MESSAGE\nMia: I was going to take Route 18 to meet you at Central Market tomorrow, but the stop is closed.\nJon: Get off at the temporary Oak Street stop. I'll meet you there at 1:15. It's next to a pharmacy.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What service is being offered?",
+    "options": [
+      "Free technology assistance",
+      "Discounted computer sales",
+      "Professional photography",
+      "A full-day training course"
+    ],
+    "correctOption": "Free technology assistance",
+    "passage": "Community Technology Day\n\nThe Westfield Community Center will offer free thirty-minute consultations on Saturday, August 9. Volunteers will help residents set up e-mail accounts, install security updates, and organize digital photographs. Appointments are recommended, but walk-in visitors will be assisted if time permits. Participants should bring their own devices and charging cables.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What should participants bring?",
+    "options": [
+      "Their devices and charging cables",
+      "Printed photographs only",
+      "A membership payment",
+      "Their own desks"
+    ],
+    "correctOption": "Their devices and charging cables",
+    "passage": "Community Technology Day\n\nThe Westfield Community Center will offer free thirty-minute consultations on Saturday, August 9. Volunteers will help residents set up e-mail accounts, install security updates, and organize digital photographs. Appointments are recommended, but walk-in visitors will be assisted if time permits. Participants should bring their own devices and charging cables.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What has changed about the review?",
+    "options": [
+      "Its location",
+      "Its starting time",
+      "Its client",
+      "Its purpose"
+    ],
+    "correctOption": "Its location",
+    "passage": "From: Victor Chen\nTo: Product Development Team\nSubject: Prototype Review\n\nThe client has asked us to move Friday's prototype review from the downtown office to its manufacturing facility. The meeting will still begin at 10 A.M., but security registration may take up to twenty minutes. Please arrive by 9:30 and bring a government-issued photo ID. I have attached a map showing the visitor entrance and parking area.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Why should attendees arrive by 9:30?",
+    "options": [
+      "Security registration may take time",
+      "The meeting begins at 9:30",
+      "Parking closes at ten",
+      "They must inspect the prototype alone"
+    ],
+    "correctOption": "Security registration may take time",
+    "passage": "From: Victor Chen\nTo: Product Development Team\nSubject: Prototype Review\n\nThe client has asked us to move Friday's prototype review from the downtown office to its manufacturing facility. The meeting will still begin at 10 A.M., but security registration may take up to twenty minutes. Please arrive by 9:30 and bring a government-issued photo ID. I have attached a map showing the visitor entrance and parking area.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Why was the demonstration time changed?",
+    "options": [
+      "The client wants to tour the warehouse",
+      "The conference room is unavailable",
+      "The presenter has a flight delay",
+      "The handouts are not ready"
+    ],
+    "correctOption": "The client wants to tour the warehouse",
+    "passage": "From: Hannah Brooks\nTo: Sales Staff\nSubject: Friday Product Demonstration\n\nThe product demonstration scheduled for Friday will now begin at 1:30 P.M., thirty minutes later than originally planned. The client requested extra time to tour our warehouse before the presentation. Please update your calendars and arrive in Conference Room 2 by 1:15. Printed handouts will be available at the entrance.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "When should staff arrive?",
+    "options": [
+      "By 1:15 P.M.",
+      "At 1:30 P.M.",
+      "Thirty minutes after the presentation",
+      "Before the warehouse opens"
+    ],
+    "correctOption": "By 1:15 P.M.",
+    "passage": "From: Hannah Brooks\nTo: Sales Staff\nSubject: Friday Product Demonstration\n\nThe product demonstration scheduled for Friday will now begin at 1:30 P.M., thirty minutes later than originally planned. The client requested extra time to tour our warehouse before the presentation. Please update your calendars and arrive in Conference Room 2 by 1:15. Printed handouts will be available at the entrance.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What is included in the special?",
+    "options": [
+      "A safety check",
+      "New replacement parts",
+      "A bicycle rental",
+      "Home delivery"
+    ],
+    "correctOption": "A safety check",
+    "passage": "Oak Street Bicycle Repair\n\nSpring Tune-Up Special — $39\nService includes brake adjustment, tire inspection, chain cleaning, and a safety check. Bicycles dropped off before noon are usually ready by 5 P.M. the same day. The offer is valid through April 30 and does not include replacement parts. Appointments are recommended on Saturdays.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What is recommended on Saturdays?",
+    "options": [
+      "Making an appointment",
+      "Arriving after five",
+      "Purchasing replacement parts",
+      "Using a rental bicycle"
+    ],
+    "correctOption": "Making an appointment",
+    "passage": "Oak Street Bicycle Repair\n\nSpring Tune-Up Special — $39\nService includes brake adjustment, tire inspection, chain cleaning, and a safety check. Bicycles dropped off before noon are usually ready by 5 P.M. the same day. The offer is valid through April 30 and does not include replacement parts. Appointments are recommended on Saturdays.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What has Meridian Foods completed?",
+    "options": [
+      "A solar panel installation",
+      "The construction of a new factory",
+      "A product distribution contract",
+      "An employee transportation program"
+    ],
+    "correctOption": "A solar panel installation",
+    "passage": "Meridian Foods has completed the installation of solar panels at its largest distribution center. The system is expected to supply nearly forty percent of the facility's annual electricity needs. The company began the project last year as part of a broader plan to reduce operating costs and greenhouse-gas emissions. Additional installations are being considered for two other locations.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Why did the company begin the project?",
+    "options": [
+      "To reduce costs and emissions",
+      "To hire additional workers",
+      "To increase product prices",
+      "To replace two facilities"
+    ],
+    "correctOption": "To reduce costs and emissions",
+    "passage": "Meridian Foods has completed the installation of solar panels at its largest distribution center. The system is expected to supply nearly forty percent of the facility's annual electricity needs. The company began the project last year as part of a broader plan to reduce operating costs and greenhouse-gas emissions. Additional installations are being considered for two other locations.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What transportation will be provided?",
+    "options": [
+      "A free shuttle",
+      "Discounted train tickets",
+      "Bicycle rentals",
+      "Airport buses"
+    ],
+    "correctOption": "A free shuttle",
+    "passage": "The Downtown Art Walk will take place on the evening of May 18. More than twenty galleries will remain open until 10 P.M., and a free shuttle will operate between participating locations. Printed maps can be collected at the visitor center beginning at 4 P.M. Some workshops require advance registration, although admission to the galleries is free.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What may require advance registration?",
+    "options": [
+      "Some workshops",
+      "Gallery admission",
+      "The visitor center",
+      "The printed maps"
+    ],
+    "correctOption": "Some workshops",
+    "passage": "The Downtown Art Walk will take place on the evening of May 18. More than twenty galleries will remain open until 10 P.M., and a free shuttle will operate between participating locations. Printed maps can be collected at the visitor center beginning at 4 P.M. Some workshops require advance registration, although admission to the galleries is free.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What should personnel do with expired materials?",
+    "options": [
+      "Remove them",
+      "Relabel them",
+      "Place them outside Room 214",
+      "Send them to the auditor"
+    ],
+    "correctOption": "Remove them",
+    "passage": "To: Laboratory Personnel\nFrom: Safety Office\nSubject: Chemical Storage Audit\n\nA safety auditor will inspect all chemical storage cabinets on June 11. Before the inspection, please verify that containers are clearly labeled and that expired materials have been removed. A checklist is attached to this message. Completed checklists should be placed in the blue folder outside Room 214 by June 9.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Where should completed checklists be placed?",
+    "options": [
+      "In a blue folder",
+      "Inside each cabinet",
+      "At the building entrance",
+      "On the auditor's desk"
+    ],
+    "correctOption": "In a blue folder",
+    "passage": "To: Laboratory Personnel\nFrom: Safety Office\nSubject: Chemical Storage Audit\n\nA safety auditor will inspect all chemical storage cabinets on June 11. Before the inspection, please verify that containers are clearly labeled and that expired materials have been removed. A checklist is attached to this message. Completed checklists should be placed in the blue folder outside Room 214 by June 9.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "Why is a signature required?",
+    "options": [
+      "The package contains valuable electronics",
+      "The order was placed on Tuesday",
+      "The delivery address is incomplete",
+      "The customer requested a refund"
+    ],
+    "correctOption": "The package contains valuable electronics",
+    "passage": "Shipping Update — Order 90417\n\nYour order left our distribution center on Tuesday and is expected to arrive on Friday. A signature will be required at delivery because the package contains electronic equipment valued at more than $500. To authorize delivery to a neighbor or change the delivery date, visit the carrier's website before 8 P.M. on Thursday.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "By when must a delivery change be made?",
+    "options": [
+      "Before 8 P.M. Thursday",
+      "Before Tuesday morning",
+      "After the package arrives",
+      "By Friday evening"
+    ],
+    "correctOption": "Before 8 P.M. Thursday",
+    "passage": "Shipping Update — Order 90417\n\nYour order left our distribution center on Tuesday and is expected to arrive on Friday. A signature will be required at delivery because the package contains electronic equipment valued at more than $500. To authorize delivery to a neighbor or change the delivery date, visit the carrier's website before 8 P.M. on Thursday.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What is one responsibility of the position?",
+    "options": [
+      "Coordinating room reservations",
+      "Teaching spreadsheet courses",
+      "Repairing classroom equipment",
+      "Hiring university professors"
+    ],
+    "correctOption": "Coordinating room reservations",
+    "passage": "Facilities Scheduling Assistant\n\nRiverton University seeks an assistant to coordinate classroom reservations and maintain event calendars. The position requires excellent organizational skills and familiarity with spreadsheet software. Previous experience in an educational institution is preferred. The selected candidate will work from 8 A.M. to 4 P.M., Monday through Friday. Applications must include a résumé and a cover letter.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What experience is preferred?",
+    "options": [
+      "Work at an educational institution",
+      "Professional teaching certification",
+      "Building maintenance experience",
+      "Weekend customer service"
+    ],
+    "correctOption": "Work at an educational institution",
+    "passage": "Facilities Scheduling Assistant\n\nRiverton University seeks an assistant to coordinate classroom reservations and maintain event calendars. The position requires excellent organizational skills and familiarity with spreadsheet software. Previous experience in an educational institution is preferred. The selected candidate will work from 8 A.M. to 4 P.M., Monday through Friday. Applications must include a résumé and a cover letter.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What change is announced?",
+    "options": [
+      "The café will open earlier on weekdays",
+      "The café will stop accepting online orders",
+      "Breakfast will be served only on weekends",
+      "The mobile application will be replaced"
+    ],
+    "correctOption": "The café will open earlier on weekdays",
+    "passage": "RESTAURANT NOTICE\nBeginning September 1, Harbor Café will serve breakfast from 7 to 10 A.M. on weekdays. The café previously opened at 8 A.M. Online orders may be placed through the café's mobile application.\n\nMESSAGE\nLeah: Our client meeting starts at 8:30 on Tuesday. Harbor Café now opens at seven, so I'll order breakfast for the group.\nOwen: Great. Please include two vegetarian meals and have everything delivered to Meeting Room 5 by 8:15.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  },
+  {
+    "part": "Part 7",
+    "prompt": "What does Owen request?",
+    "options": [
+      "Two vegetarian meals",
+      "A table at the café",
+      "A meeting at seven",
+      "Five mobile applications"
+    ],
+    "correctOption": "Two vegetarian meals",
+    "passage": "RESTAURANT NOTICE\nBeginning September 1, Harbor Café will serve breakfast from 7 to 10 A.M. on weekdays. The café previously opened at 8 A.M. Online orders may be placed through the café's mobile application.\n\nMESSAGE\nLeah: Our client meeting starts at 8:30 on Tuesday. Harbor Café now opens at seven, so I'll order breakfast for the group.\nOwen: Great. Please include two vegetarian meals and have everything delivered to Meeting Room 5 by 8:15.",
+    "imageUrl": null,
+    "audioUrl": null,
+    "audioText": null
+  }
+]

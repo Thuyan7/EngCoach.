@@ -22,7 +22,7 @@ class QuestionViewTest {
                 "An office renovation",
                 "NOTICE TO STAFF: The second-floor offices will be renovated.",
                 "https://example.com/office.jpg",
-                "https://example.com/notice.mp3");
+                "https://example.com/notice.mp3", "The office will close at noon.");
 
         QuestionView view = QuestionView.from(question);
         JsonNode json = objectMapper.valueToTree(view);
@@ -34,6 +34,7 @@ class QuestionViewTest {
                 json.get("passage").asText());
         assertEquals("https://example.com/office.jpg", json.get("imageUrl").asText());
         assertEquals("https://example.com/notice.mp3", json.get("audioUrl").asText());
+        assertEquals("The office will close at noon.", json.get("audioText").asText());
         assertFalse(json.has("correctOption"), "The answer key must not be included in the attempt payload");
         assertTrue(json.has("options"));
     }

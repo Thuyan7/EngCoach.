@@ -19,7 +19,7 @@ import java.util.List;
  * entries in options.
  */
 public record QuestionView(Long id, String prompt, List<String> options,
-                           String passage, String imageUrl, String audioUrl) {
+                           String passage, String imageUrl, String audioUrl, String audioText) {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -27,7 +27,7 @@ public record QuestionView(Long id, String prompt, List<String> options,
         try {
             List<String> options = MAPPER.readValue(question.getOptions(), new TypeReference<List<String>>() { });
             return new QuestionView(question.getId(), question.getPrompt(), options,
-                    question.getPassage(), question.getImageUrl(), question.getAudioUrl());
+                    question.getPassage(), question.getImageUrl(), question.getAudioUrl(), question.getAudioText());
         } catch (Exception e) {
             // A malformed options value is a data error in the question bank,
             // not something the caller can fix; name the question so it can
