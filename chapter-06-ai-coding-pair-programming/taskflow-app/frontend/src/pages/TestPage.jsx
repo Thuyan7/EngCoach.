@@ -224,6 +224,11 @@ export default function TestPage() {
           <p>
             {answeredCount} of {questions.length} answered
           </p>
+          {attempt.type === "TEST" && Array.isArray(attempt.selectedParts) && attempt.selectedParts.length > 0 && (
+            <p className="muted-label" aria-label="Selected Test Parts">
+              Selected: {attempt.selectedParts.join(", ")}
+            </p>
+          )}
         </div>
         {["MOCK_TEST", "TEST"].includes(attempt.type) && remainingSeconds !== null && attempt.status === "IN_PROGRESS" && (
           <div
