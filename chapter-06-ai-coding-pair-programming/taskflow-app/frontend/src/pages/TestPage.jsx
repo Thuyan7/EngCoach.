@@ -133,7 +133,7 @@ export default function TestPage() {
   useEffect(() => {
     if (
       load.status !== "ready" ||
-      attempt?.type !== "MOCK_TEST" ||
+      !["MOCK_TEST", "TEST"].includes(attempt?.type) ||
       attempt.status !== "IN_PROGRESS" ||
       remainingSeconds === null ||
       submitState.status === "grading"
@@ -218,14 +218,14 @@ export default function TestPage() {
 
   return (
     <>
-      <div className={`page-head${attempt.type === "MOCK_TEST" ? " mock-test-head" : ""}`}>
+      <div className={`page-head${["MOCK_TEST", "TEST"].includes(attempt.type) ? " mock-test-head" : ""}`}>
         <div className="mock-test-heading">
-          <h1>{attempt.type === "MOCK_TEST" ? "Mock test" : `${attempt.part} practice`}</h1>
+          <h1>{attempt.type === "MOCK_TEST" ? "Mock test" : attempt.type === "TEST" ? (attempt.testTitle || "TOEIC Test") : `${attempt.part} practice`}</h1>
           <p>
             {answeredCount} of {questions.length} answered
           </p>
         </div>
-        {attempt.type === "MOCK_TEST" && remainingSeconds !== null && attempt.status === "IN_PROGRESS" && (
+        {["MOCK_TEST", "TEST"].includes(attempt.type) && remainingSeconds !== null && attempt.status === "IN_PROGRESS" && (
           <div
             className="mock-test-timer"
             role="timer"
@@ -242,7 +242,7 @@ export default function TestPage() {
                   cy="52"
                   r="46"
                   strokeDasharray={TIMER_CIRCUMFERENCE}
-                  strokeDashoffset={TIMER_CIRCUMFERENCE * (1 - Math.min(remainingSeconds, MOCK_TEST_DURATION_SECONDS) / MOCK_TEST_DURATION_SECONDS)}
+                  strokeDashoffset={TIMER_CIRCUMFERENCE * (1 - Math.min(remainingSeconds, attempt.timeLimitSeconds || MOCK_TEST_DURATION_SECONDS) / (attempt.timeLimitSeconds || MOCK_TEST_DURATION_SECONDS))}
                   data-testid="mock-timer-ring-value"
                 />
               </svg>
@@ -294,11 +294,17 @@ export default function TestPage() {
               loading="lazy"
             />
           )}
-          {question.audioText && !question.audioUrl && (
+          {(question.audioText || question.groupContent) && !question.audioUrl && (
             <div className="question-media-audio">
-              <button type="button" className="btn btn-secondary" onClick={() => playQuestionAudio(question.audioText)}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => playQuestionAudio(question.audioText || question.groupContent)}
+                aria-label={question.groupType ? `Play listening audio for ${question.groupType.toLowerCase()}` : "Play listening audio"}
+              >
                 Play listening audio
               </button>
+              <span className="muted-label">Computer-generated voice</span>
             </div>
           )}
           {question.audioUrl && (

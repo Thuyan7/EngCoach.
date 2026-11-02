@@ -70,6 +70,32 @@ describe("Test screen (S7b)", () => {
     expect(await screen.findByRole("button", { name: "Play listening audio" })).toBeInTheDocument();
   });
 
+  it("uses shared listening-group content when the individual question has no audio script", async () => {
+    const detail = attemptDetail({
+      type: "TEST",
+      testId: 12,
+      selectedParts: ["Part 3"],
+      timeLimitSeconds: 1020,
+      remainingSeconds: 1010,
+      questions: [{
+        id: 101,
+        prompt: "What does the woman ask?",
+        options: ["A delivery time", "A new invoice"],
+        audioUrl: null,
+        audioText: null,
+        groupId: 88,
+        groupType: "CONVERSATION",
+        groupContent: "W: Could you tell me when the order will arrive?",
+      }],
+    });
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, detail) });
+    renderApp("/practice/7");
+
+    expect(await screen.findByRole("heading", { name: "TOEIC Test" })).toBeInTheDocument();
+    expect(screen.getByRole("timer", { name: "Time remaining" })).toHaveTextContent("16:50");
+    expect(screen.getByRole("button", { name: "Play listening audio for conversation" })).toBeInTheDocument();
+  });
+
   it("answering calls PUT /attempts/{id}/answers/{questionId} with the chosen option and shows Saved", async () => {
     const user = userEvent.setup();
     const fetchMock = routeFetch({
