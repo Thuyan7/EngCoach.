@@ -96,6 +96,30 @@ describe("Test screen (S7b)", () => {
     expect(screen.getByRole("button", { name: "Play listening audio for conversation" })).toBeInTheDocument();
   });
 
+  it("shows the selected Parts and automatically submits a selected-Part Test at zero", async () => {
+    let submitted = false;
+    const fetchMock = routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST",
+        testId: 12,
+        selectedParts: ["Part 1", "Part 3"],
+        timeLimitSeconds: 1200,
+        remainingSeconds: 0,
+        status: submitted ? "SUBMITTED" : "IN_PROGRESS",
+      })),
+      "POST /attempts/7/submit": () => {
+        submitted = true;
+        return jsonResponse(200, { id: 7, status: "SUBMITTED", score: 2, totalQuestions: 8, answers: [] });
+      },
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByRole("heading", { name: "TOEIC Test" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Selected Test Parts")).toHaveTextContent("Selected: Part 1, Part 3");
+    expect(await screen.findByText("2 / 8")).toBeInTheDocument();
+    expect(fetchMock.mock.calls.filter(([url, init]) => url === "/attempts/7/submit" && init?.method === "POST")).toHaveLength(1);
+  });
+
   it("answering calls PUT /attempts/{id}/answers/{questionId} with the chosen option and shows Saved", async () => {
     const user = userEvent.setup();
     const fetchMock = routeFetch({
