@@ -11,8 +11,11 @@ const formatDate = (value) => {
     : new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
 };
 
-const attemptName = (attempt) =>
-  attempt.type === "MOCK_TEST" ? "Full mock test" : attempt.part || "Part practice";
+const attemptName = (attempt) => {
+  if (attempt.type === "MOCK_TEST") return "Full mock test";
+  if (attempt.type === "TEST") return `TOEIC Test #${attempt.testId ?? attempt.id}`;
+  return attempt.part || "Part practice";
+};
 
 const percent = (attempt) =>
   Number(attempt.totalQuestions) > 0 && Number.isFinite(Number(attempt.score))
@@ -237,6 +240,9 @@ export default function ProgressPage() {
                       <div className="history-meta">
                         <p className="history-name">{name}</p>
                         <p className="history-date">{formatDate(attempt.startedAt)} · Completed</p>
+                        {attempt.type === "TEST" && Array.isArray(attempt.selectedParts) && attempt.selectedParts.length > 0 && (
+                          <p className="history-date">Selected: {attempt.selectedParts.join(", ")}</p>
+                        )}
                       </div>
                       <div className="history-score">
                         <strong>{attempt.score ?? "—"} / {attempt.totalQuestions ?? "—"}</strong>
