@@ -28,6 +28,11 @@ describe("Practice Test catalog", () => {
         postedBody = JSON.parse(init.body);
         return jsonResponse(201, { id: 88, type: "TEST" });
       },
+      "GET /attempts/88": () => jsonResponse(200, {
+        id: 88, type: "TEST", testId: 21, selectedParts: ["Part 1", "Part 3"],
+        status: "IN_PROGRESS", remainingSeconds: 300, answers: [],
+        questions: [{ id: 1, prompt: "Look at the picture.", options: ["A", "B", "C", "D"] }],
+      }),
     });
     renderApp("/practice");
 
