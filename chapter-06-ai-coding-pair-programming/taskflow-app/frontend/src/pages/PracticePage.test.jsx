@@ -1,0 +1,79 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { jsonResponse, renderApp, routeFetch, signIn } from "../test/helpers.jsx";
+
+beforeEach(() => {
+  window.localStorage.clear();
+  signIn();
+});
+
+describe("Practice Test catalog", () => {
+  it("loads Tests, selects one or more Parts, and starts only the selected Parts", async () => {
+    const user = userEvent.setup();
+    let postedBody;
+    routeFetch({
+      "GET /parts": () => jsonResponse(200, ["Part 1", "Part 2"]),
+      "GET /tests": () => jsonResponse(200, [{
+        id: 21,
+        title: "TOEIC Practice Test 1",
+        description: "Sample test",
+        parts: [
+          { part: "Part 1", questionCount: 6, durationSeconds: 360 },
+          { part: "Part 2", questionCount: 25, durationSeconds: 600 },
+          { part: "Part 3", questionCount: 39, durationSeconds: 1020 },
+        ],
+      }]),
+      "POST /attempts": (init) => {
+        postedBody = JSON.parse(init.body);
+        return jsonResponse(201, { id: 88, type: "TEST" });
+      },
+    });
+    renderApp("/practice");
+
+    expect(await screen.findByRole("heading", { name: "TOEIC Practice Test 1" })).toBeInTheDocument();
+    expect(screen.getByText("3 Parts · 70 questions · 33 minutes")).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText(/Part 2/));
+    await user.click(screen.getByRole("button", { name: "Start selected Parts" }));
+
+    await waitFor(() => expect(postedBody).toEqual({ type: "TEST", testId: 21, parts: ["Part 1", "Part 3"] }));
+    expect(await screen.findByRole("heading", { name: "TOEIC Test" })).toBeInTheDocument();
+  });
+
+  it("allows deselecting all Parts but prevents starting an empty selection", async () => {
+    const user = userEvent.setup();
+    routeFetch({
+      "GET /parts": () => jsonResponse(200, []),
+      "GET /tests": () => jsonResponse(200, [{
+        id: 22, title: "Test 2", parts: [{ part: "Part 1", questionCount: 6, durationSeconds: 300 }],
+      }]),
+    });
+    renderApp("/practice");
+
+    await screen.findByRole("heading", { name: "Test 2" });
+    await user.click(screen.getByLabelText(/Part 1/));
+    expect(screen.getByRole("button", { name: "Start selected Parts" })).toBeDisabled();
+    expect(screen.getByText("0 Parts · 0 questions · 0 minutes")).toBeInTheDocument();
+  });
+
+  it("selects every Part with the Select all control", async () => {
+    const user = userEvent.setup();
+    routeFetch({
+      "GET /parts": () => jsonResponse(200, []),
+      "GET /tests": () => jsonResponse(200, [{
+        id: 23, title: "Test 3", parts: [
+          { part: "Part 1", questionCount: 6, durationSeconds: 300 },
+          { part: "Part 2", questionCount: 25, durationSeconds: 600 },
+        ],
+      }]),
+    });
+    renderApp("/practice");
+
+    await screen.findByRole("heading", { name: "Test 3" });
+    await user.click(screen.getByRole("button", { name: "Select all" }));
+    expect(screen.getByLabelText(/Part 1/)).toBeChecked();
+    expect(screen.getByLabelText(/Part 2/)).toBeChecked();
+    expect(screen.getByText("2 Parts · 31 questions · 15 minutes")).toBeInTheDocument();
+  });
+});
