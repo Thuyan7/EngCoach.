@@ -27,6 +27,30 @@ describe("Progress screen (S10b)", () => {
     expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe("Bearer jwt-abc");
   });
 
+
+  it("shows the Test title, selected Parts, and selected-scope score in history", async () => {
+    routeFetch({
+      "GET /attempts": () => jsonResponse(200, [{
+        id: 44,
+        type: "TEST",
+        testId: 3,
+        testTitle: "TOEIC Practice Test 3",
+        selectedParts: ["Part 1", "Part 3", "Part 7"],
+        status: "SUBMITTED",
+        score: 42,
+        totalQuestions: 99,
+        startedAt: "2026-10-30T08:00:00Z",
+      }]),
+    });
+    renderApp("/progress");
+
+    const row = await screen.findByText("TOEIC Test #3");
+    const historyRow = row.closest("li");
+    expect(within(historyRow).getByText("Selected: Part 1, Part 3, Part 7")).toBeInTheDocument();
+    expect(within(historyRow).getByText("42 / 99")).toBeInTheDocument();
+    expect(within(historyRow).getByText("42% correct")).toBeInTheDocument();
+  });
+
   it("shows a helpful empty state when there are no completed attempts", async () => {
     routeFetch({ "GET /attempts": () => jsonResponse(200, []) });
     renderApp("/progress");
