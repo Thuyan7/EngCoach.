@@ -1,0 +1,18 @@
+{
+  "title": "Fixture Generated Test",
+  "description": "Đề nhỏ dùng cho kiểm thử importer.",
+  "provenance": {"generator": "unit-test"},
+  "questions": [
+    {"number": 1, "part": "Part 1", "prompt": "Q1. Look at the photo.", "options": ["A man is typing.", "A woman is cooking.", "Cars are parked.", "A boat is docked."],
+     "correctOption": "Cars are parked.", "passage": null, "imageUrl": "/part1/pexels-1.jpg", "audioUrl": "/audio/test-01/t01-p1-g01.mp3",
+     "audioText": "Number 1. A. A man is typing.", "groupKey": "t01-p1-g01", "explanationVi": "x"},
+    {"number": 7, "part": "Part 3", "prompt": "What are they discussing?", "options": ["A budget", "A delivery", "A trip", "A hire"], "correctOption": "A delivery",
+     "passage": null, "imageUrl": null, "audioUrl": "/audio/test-01/t01-p3-g01.mp3", "audioText": "I need to ship the order.", "groupKey": "t01-p3-g01"},
+    {"number": 8, "part": "Part 3", "prompt": "When will it ship?", "options": ["Monday", "Tuesday", "Friday", "Sunday"], "correctOption": "Friday",
+     "passage": null, "imageUrl": null, "audioUrl": "/audio/test-01/t01-p3-g01.mp3", "audioText": "I need to ship the order.", "groupKey": "t01-p3-g01"},
+    {"number": 9, "part": "Part 5", "prompt": "The manager ______ the report yesterday.", "options": ["reviewed", "review", "reviewing", "reviews"], "correctOption": "reviewed",
+     "passage": null, "imageUrl": null, "audioUrl": null, "audioText": null, "groupKey": "t01-p5-b1", "skillTag": "verb_tense"},
+    {"number": 10, "part": "Part 7", "prompt": "What is the notice about?", "options": ["Parking", "Hiring", "Training", "Billing"], "correctOption": "Parking",
+     "passage": "Notice: the north lot closes Friday.", "imageUrl": null, "audioUrl": null, "audioText": null, "groupKey": "t01-p7-g01"}
+  ]
+}

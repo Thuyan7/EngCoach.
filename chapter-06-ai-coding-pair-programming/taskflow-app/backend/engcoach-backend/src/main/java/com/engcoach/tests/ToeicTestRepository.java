@@ -5,4 +5,6 @@ import java.util.List;
 
 public interface ToeicTestRepository extends JpaRepository<ToeicTest, Long> {
     List<ToeicTest> findByPublishedTrueOrderByIdAsc();
+
+    boolean existsByTitle(String title);
 }

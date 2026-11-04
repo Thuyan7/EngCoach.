@@ -1,0 +1,88 @@
+# EngCoach question generator (nhánh thử nghiệm)
+
+Công cụ sinh các đề TOEIC Listening & Reading hoàn chỉnh (200 câu, đủ 7 Part) bằng AI, để không phải tự nhập
+câu hỏi, đáp án hay audio. Nội dung là **nội dung gốc do AI viết theo cấu trúc TOEIC**, không lấy từ đề thật.
+Chạy trên máy của bạn; kết quả là các file `test-XX.json` mà backend nạp bằng `GeneratedTestImporter`.
+
+## Quy trình
+
+```
+kế hoạch đề (plan) -> LLM sinh từng unit -> kiểm tra schema/độ dài -> so trùng với kho + đề trước
+   -> giải mù bằng một lượt gọi LLM khác -> xáo option, cân bằng vị trí đáp án -> kiểm tra cấu trúc TOEIC
+   -> (Pexels) ảnh Part 1 -> (Kokoro) mp3 -> test-XX.json + report-XX.html
+```
+
+- Một đề gồm 59 unit (6 ảnh Part 1, 5 lô Part 2, 13 hội thoại Part 3, 10 bài nói Part 4, 6 lô Part 5, 4 bài Part 6,
+  15 bài Part 7). Cấu trúc lấy từ `qgen/toeic_spec.py` (đúng số câu, nhóm câu, số option, kiểu bài đọc Part 7).
+- Mỗi đề có chủ đề, tình huống, mức độ khác nhau, xác định theo `--seed` và số thứ tự đề.
+- Mỗi unit được lưu cache trong `work/`; nếu bị ngắt (hết hạn mức gọi API) chỉ cần chạy lại lệnh cũ.
+- Bài nào trùng gần như nguyên văn với đề trước hoặc kho hiện có (độ giống 3-gram từ 0,45 trở lên) sẽ bị sinh lại.
+- Bước giải mù: model thứ hai chỉ thấy bài và câu hỏi, không thấy đáp án; nếu chọn khác đáp án đã khai hoặc thấy mơ hồ
+  thì unit bị sinh lại (tối đa 3 lần, sau đó dừng và báo unit nào lỗi).
+
+## Chạy thử không cần key (LLM giả, ảnh giả)
+
+```bash
+cd chapter-06-ai-coding-pair-programming/taskflow-app/tools/question-generator
+python3 -m unittest discover -s tests -t .
+python3 -m qgen.cli plan --test 1
+python3 -m qgen.cli generate --tests 1-2 --mock --out out --work work
+```
+
+Chế độ `--mock` chỉ để thử pipeline; nội dung câu hỏi không có nghĩa thật.
+
+## Chạy thật
+
+Chỉ cần Python 3.10+ (phần sinh đề không dùng thư viện ngoài). Đặt key bằng biến môi trường, **không dán key vào chat
+hay commit vào Git**:
+
+| Biến | Ý nghĩa |
+|---|---|
+| `QGEN_API_KEY` | key của dịch vụ LLM |
+| `QGEN_BASE_URL` | mặc định Google AI Studio (`https://generativelanguage.googleapis.com/v1beta/openai`); Groq: `https://api.groq.com/openai/v1`; Ollama: `http://localhost:11434/v1` |
+| `QGEN_MODEL` | tên model, mặc định `gemini-2.0-flash` (kiểm tra tên model hiện có trên trang nhà cung cấp) |
+| `QGEN_RPM` | số lượt gọi tối đa mỗi phút, mặc định 10; chỉnh theo hạn mức của gói bạn dùng |
+| `PEXELS_API_KEY` | key Pexels miễn phí để lấy ảnh Part 1 |
+
+```bash
+export QGEN_API_KEY=...        # Windows PowerShell: $env:QGEN_API_KEY="..."
+export PEXELS_API_KEY=...
+python3 -m qgen.cli generate --tests 1-3
+```
+
+Ước lượng số lượt gọi cho mỗi đề: khoảng 59 lượt sinh + 200 lượt giải mù (mỗi câu một lượt) = khoảng 260 lượt, chưa tính
+sinh lại. Với `QGEN_RPM=10` là khoảng 26 phút mỗi đề. `--no-verify` bỏ bước giải mù (nhanh gấp khoảng 4 lần nhưng đáp án
+kém chắc chắn hơn). Hạn mức miễn phí theo ngày của từng nhà cung cấp có thể không đủ cho nhiều đề trong một ngày; nếu
+bị chặn, chạy lại hôm sau, cache sẽ giữ phần đã làm.
+
+### Audio (Kokoro TTS, chạy offline, giấy phép Apache-2.0)
+
+```bash
+pip install kokoro-onnx soundfile numpy      # cần thêm ffmpeg trong PATH
+mkdir models && cd models
+# tải kokoro-v1.0.onnx (khoảng 325 MB) và voices-v1.0.bin từ trang Releases của github.com/thewh1teagle/kokoro-onnx
+cd .. && python3 -m qgen.cli generate --tests 1 --audio
+```
+
+File mp3 ghi vào `frontend/public/audio/test-XX/`, ảnh vào `frontend/public/part1/`; trong JSON là đường dẫn
+`/audio/...` và `/part1/...` để Vite phục vụ. Mỗi đề cần khoảng 3-4 MB audio và ảnh. Có nên đưa các file này vào Git hay
+chỉ sinh khi build là quyết định của nhóm.
+
+### Nạp vào ứng dụng
+
+```bash
+python3 -m qgen.cli publish --out out            # chép test-XX.json vào backend/.../resources/question-bank/generated/
+ENGCOACH_IMPORT_GENERATED_TESTS=true mvn spring-boot:run
+```
+
+Importer bỏ qua đề đã có cùng tiêu đề nên chạy lại nhiều lần không tạo trùng.
+
+## Kiểm duyệt
+
+Mở `out/report-XX.html` để đọc từng bài, đáp án đúng được tô xanh, giải thích tiếng Việt và cảnh báo. Câu hỏi do AI
+viết nên **cần người xem lại** trước khi đưa cho người học; giải mù giảm nhưng không loại bỏ hoàn toàn lỗi.
+
+## Nguồn ảnh và ghi công
+
+Ảnh Part 1 lấy từ Pexels (dùng được miễn phí, kể cả thương mại). Tên tác giả và liên kết ảnh được ghi trong
+`provenance.image_credits` của mỗi `test-XX.json`.
