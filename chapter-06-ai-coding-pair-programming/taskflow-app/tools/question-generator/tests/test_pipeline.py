@@ -325,6 +325,16 @@ class CliTest(TmpCase):
                 self.assertTrue(q["passage"])
             self.assertLessEqual(len(q["correctOption"]), 255)
 
+    def test_llm_error_is_reported_in_one_message_not_a_traceback(self):
+        lines = []
+        with mock.patch.dict(os.environ, {"QGEN_API_KEY": "k"}), \
+                mock.patch("qgen.cli.OpenAICompatClient") as client:
+            client.return_value.complete_json.side_effect = __import__("qgen.llm", fromlist=["x"]).LLMError("HTTP 404")
+            code = cli.main(["generate", "--tests", "1", "--no-images", "--out", os.path.join(self.tmp, "o"),
+                             "--work", os.path.join(self.tmp, "w")], out=lines.append)
+        self.assertEqual(code, 2)
+        self.assertTrue(any("LỖI LLM" in line and "HTTP 404" in line for line in lines))
+
     def test_publish_copies_only_test_files(self):
         out = os.path.join(self.tmp, "out")
         os.makedirs(out)

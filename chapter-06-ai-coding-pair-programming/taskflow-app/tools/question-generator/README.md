@@ -40,7 +40,7 @@ hay commit vào Git**:
 |---|---|
 | `QGEN_API_KEY` | key của dịch vụ LLM |
 | `QGEN_BASE_URL` | mặc định Google AI Studio (`https://generativelanguage.googleapis.com/v1beta/openai`); Groq: `https://api.groq.com/openai/v1`; Ollama: `http://localhost:11434/v1` |
-| `QGEN_MODEL` | tên model, mặc định `gemini-2.0-flash` (kiểm tra tên model hiện có trên trang nhà cung cấp) |
+| `QGEN_MODEL` | tên model, mặc định `gemini-3.8-flash` (kiểm tra tên model hiện có trên trang nhà cung cấp) |
 | `QGEN_RPM` | số lượt gọi tối đa mỗi phút, mặc định 10; chỉnh theo hạn mức của gói bạn dùng |
 | `PEXELS_API_KEY` | (không bắt buộc) key Pexels để lấy ảnh Part 1 |
 

@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 class Config:
     api_key: str = ""
     base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
-    model: str = "gemini-2.0-flash"
+    model: str = "gemini-3.8-flash"
     rpm: int = 10                 # số request tối đa mỗi phút (gói miễn phí thường rất thấp)
     max_retries: int = 5
     pexels_key: str = ""

@@ -8,7 +8,7 @@ import sys
 from . import assemble, plan as planmod
 from .config import Config
 from .generate import Corpus, UnitFailed, generate_test
-from .llm import OpenAICompatClient
+from .llm import LLMError, OpenAICompatClient
 from .mock import MockLLM
 from .part1 import FakePhotos, LocalPhotos, OpenversePhotos, PexelsPhotos
 from .report import build_report
@@ -136,7 +136,13 @@ def main(argv=None, out=print):
             out("%-14s part %d %-12s %2d câu  %s" % (u.id, u.part, u.kind, u.size, json.dumps(u.params, ensure_ascii=False)[:90]))
         out("Tổng: %d câu, %d unit" % (planmod.total_questions(units), len(units)))
         return 0
-    return run_generate(a, out) if a.cmd == "generate" else run_publish(a, out)
+    if a.cmd == "publish":
+        return run_publish(a, out)
+    try:
+        return run_generate(a, out)
+    except LLMError as exc:
+        out("LỖI LLM: %s\nGợi ý: kiểm tra QGEN_API_KEY, QGEN_MODEL (tên model còn dùng được) và QGEN_BASE_URL." % exc)
+        return 2
 
 
 if __name__ == "__main__":
