@@ -64,7 +64,15 @@ def _script(raw, label, errors, min_turns, max_turns, min_words, max_words, min_
 
 
 def normalize(unit, raw):
-    """Trả về (result, errors). result = {kind, context, questions:[{number,prompt,options,answer_index,...}]}"""
+    """Trả về (result, errors). Mọi JSON sai cấu trúc (thiếu trường, sai kiểu) đều thành lỗi để sinh lại, không làm sập."""
+    try:
+        return _normalize(unit, raw)
+    except (KeyError, TypeError, AttributeError, IndexError) as exc:
+        return None, ["JSON sai cấu trúc (%s: %s)" % (type(exc).__name__, exc)]
+
+
+def _normalize(unit, raw):
+    """result = {kind, context, questions:[{number,prompt,options,answer_index,...}]}"""
     errors = []
     if not isinstance(raw, dict):
         return None, ["đầu ra không phải JSON object"]

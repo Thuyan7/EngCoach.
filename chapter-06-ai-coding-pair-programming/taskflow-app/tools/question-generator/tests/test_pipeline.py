@@ -68,6 +68,17 @@ class ValidateTest(unittest.TestCase):
         self.assertIsNone(res)
         self.assertTrue(any("4 options" in e for e in errors))
 
+    def test_missing_fields_are_rejected_not_crashing(self):
+        u = self.unit("conversation")
+        script = [{"speaker": s, "text": "word " * 20} for s in ("Woman", "Man", "Woman", "Man")]
+        no_explanation = {"prompt": "q", "options": ["a", "b", "c", "d"], "answer_index": 0}
+        res, errors = normalize(u, {"script": script, "questions": [no_explanation] * 3})
+        self.assertIsNone(res)
+        self.assertTrue(errors)
+        res, errors = normalize(u, {"script": script, "questions": ["not an object"] * 3})
+        self.assertIsNone(res)
+        self.assertTrue(errors)
+
     def test_p5_needs_exactly_one_blank_and_requested_skill(self):
         u = self.unit("p5")
         q = {"stem": "The manager no blank here at all.", "options": ["a", "b", "c", "d"], "answer_index": 0,
