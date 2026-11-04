@@ -250,6 +250,31 @@ class OtherPhotoSourcesTest(TmpCase):
             photos.pick("x")
 
 
+class ReportTest(TmpCase):
+    def question(self, image):
+        return {"groupKey": "g", "part": "Part 1", "number": 1, "prompt": "p", "options": ["a", "b"],
+                "correctOption": "a", "imageUrl": image, "audioText": "x", "audioUrl": "/audio/t/g.mp3"}
+
+    def test_report_embeds_local_images_and_links_audio_relatively(self):
+        from qgen.report import build_report
+        pub = os.path.join(self.tmp, "public")
+        os.makedirs(os.path.join(pub, "part1"))
+        os.makedirs(os.path.join(pub, "audio", "t"))
+        write_file(os.path.join(pub, "part1", "x.jpg"), b"JPG", "wb")
+        write_file(os.path.join(pub, "audio", "t", "g.mp3"), b"MP3", "wb")
+        out = os.path.join(self.tmp, "out")
+        os.makedirs(out)
+        page = build_report("T", [self.question("/part1/x.jpg")], [], [], public_dir=pub, report_dir=out)
+        self.assertIn("data:image/jpeg;base64,", page)
+        self.assertNotIn("src='/part1", page)
+        self.assertIn("../public/audio/t/g.mp3", page)
+
+    def test_report_warns_when_image_file_is_missing(self):
+        from qgen.report import build_report
+        page = build_report("T", [self.question("/part1/none.jpg")], [], [], public_dir=self.tmp, report_dir=self.tmp)
+        self.assertIn("Không tìm thấy file ảnh", page)
+
+
 class TtsTest(TmpCase):
     def test_normalize_text_for_spoken_english(self):
         self.assertEqual(tts.normalize_text("Ms. Lee will arrive at 9:30 A.M. & stay."), "Miz Lee will arrive at 9 30 A M and stay.")

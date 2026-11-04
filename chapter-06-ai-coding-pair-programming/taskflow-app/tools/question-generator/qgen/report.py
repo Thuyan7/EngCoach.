@@ -1,5 +1,8 @@
 """Báo cáo HTML để người duyệt đọc nhanh: bài, câu hỏi, đáp án đúng được tô, giải thích, cảnh báo."""
+import base64
 import html
+import mimetypes
+import os
 
 CSS = ("body{font-family:system-ui,sans-serif;max-width:900px;margin:24px auto;padding:0 16px;color:#222}"
        "h2{margin-top:32px;border-bottom:1px solid #ccc}.ctx{background:#f5f5f5;padding:8px 12px;white-space:pre-wrap}"
@@ -7,7 +10,25 @@ CSS = ("body{font-family:system-ui,sans-serif;max-width:900px;margin:24px auto;p
        "img{max-width:360px;display:block;margin:8px 0}small{color:#666}")
 
 
-def build_report(title, questions, errors, warnings):
+def _local(url, public_dir):
+    """Đường dẫn file thật của một URL kiểu /part1/x.jpg (None nếu không có thư mục public hoặc file thiếu)."""
+    if not url or not public_dir or not url.startswith("/"):
+        return None
+    path = os.path.join(public_dir, *url.strip("/").split("/"))
+    return path if os.path.exists(path) else None
+
+
+def _image_tag(url, public_dir):
+    path = _local(url, public_dir)
+    if path is None:
+        return "<p class='err'>Không tìm thấy file ảnh: %s</p>" % html.escape(url)
+    mime = mimetypes.guess_type(path)[0] or "image/jpeg"
+    with open(path, "rb") as f:
+        data = base64.b64encode(f.read()).decode()
+    return "<img src='data:%s;base64,%s' alt=''>" % (mime, data)   # nhúng thẳng để mở file ở đâu cũng thấy ảnh
+
+
+def build_report(title, questions, errors, warnings, public_dir=None, report_dir=None):
     e = html.escape
     out = ["<!doctype html><meta charset='utf-8'><title>%s</title><style>%s</style>" % (e(title), CSS),
            "<h1>%s</h1>" % e(title)]
@@ -21,12 +42,14 @@ def build_report(title, questions, errors, warnings):
             last_key = q["groupKey"]
             out.append("<h2>%s — %s</h2>" % (e(q["part"]), e(q["groupKey"])))
             if q.get("imageUrl"):
-                out.append("<img src='%s' alt=''>" % e(q["imageUrl"]))
+                out.append(_image_tag(q["imageUrl"], public_dir))
             ctx = q.get("passage") or q.get("audioText")
             if ctx:
                 out.append("<div class='ctx'>%s</div>" % e(ctx))
             if q.get("audioUrl"):
-                out.append("<audio controls src='%s'></audio>" % e(q["audioUrl"]))
+                audio = _local(q["audioUrl"], public_dir)
+                src = os.path.relpath(audio, report_dir).replace(os.sep, "/") if audio and report_dir else q["audioUrl"]
+                out.append("<audio controls src='%s'></audio>" % e(src))
         out.append("<div class='q'><b>%d.</b> %s<ol type='A'>" % (q["number"], e(q["prompt"])))
         for o in q["options"]:
             out.append("<li%s>%s</li>" % (" class='ok'" if o == q["correctOption"] else "", e(o)))

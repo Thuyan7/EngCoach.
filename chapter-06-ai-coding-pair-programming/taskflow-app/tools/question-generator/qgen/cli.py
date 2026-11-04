@@ -86,7 +86,8 @@ def run_generate(args, out=print):
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=1)
         with open(os.path.join(cfg.out_dir, "report-%02d.html" % idx), "w", encoding="utf-8") as f:
-            f.write(build_report(data["title"], questions, errors, warnings))
+            f.write(build_report(data["title"], questions, errors, warnings,
+                                   public_dir=args.public_dir, report_dir=cfg.out_dir))
         out("Đề %02d: %d câu, %d lỗi cấu trúc, %d cảnh báo -> %s" % (idx, len(questions), len(errors), len(warnings), path))
         for m in errors + warnings:
             out("  - " + m)
