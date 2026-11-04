@@ -118,7 +118,7 @@ public class GeneratedTestImporter implements CommandLineRunner {
                 throw invalid(fileName, "câu thứ " + index + ": correctOption dài hơn 255 ký tự");
             }
             if ("Part 1".equals(q.part()) && (isBlank(q.imageUrl()) || isBlank(q.audioText()))) {
-                throw invalid(fileName, "câu thứ " + index + " (Part 1) thiếu ảnh hoặc audioText; sinh lại đề với PEXELS_API_KEY");
+                throw invalid(fileName, "câu thứ " + index + " (Part 1) thiếu ảnh hoặc audioText; sinh lại đề với nguồn ảnh Part 1 (Openverse, Pexels hoặc thư mục ảnh riêng)");
             }
             if (List.of("Part 2", "Part 3", "Part 4").contains(q.part()) && isBlank(q.audioText())) {
                 throw invalid(fileName, "câu thứ " + index + " thiếu audioText");

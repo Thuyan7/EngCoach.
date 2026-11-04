@@ -42,11 +42,10 @@ hay commit vào Git**:
 | `QGEN_BASE_URL` | mặc định Google AI Studio (`https://generativelanguage.googleapis.com/v1beta/openai`); Groq: `https://api.groq.com/openai/v1`; Ollama: `http://localhost:11434/v1` |
 | `QGEN_MODEL` | tên model, mặc định `gemini-2.0-flash` (kiểm tra tên model hiện có trên trang nhà cung cấp) |
 | `QGEN_RPM` | số lượt gọi tối đa mỗi phút, mặc định 10; chỉnh theo hạn mức của gói bạn dùng |
-| `PEXELS_API_KEY` | key Pexels miễn phí để lấy ảnh Part 1 |
+| `PEXELS_API_KEY` | (không bắt buộc) key Pexels để lấy ảnh Part 1 |
 
 ```bash
 export QGEN_API_KEY=...        # Windows PowerShell: $env:QGEN_API_KEY="..."
-export PEXELS_API_KEY=...
 python3 -m qgen.cli generate --tests 1-3
 ```
 
@@ -54,6 +53,17 @@ python3 -m qgen.cli generate --tests 1-3
 sinh lại. Với `QGEN_RPM=10` là khoảng 26 phút mỗi đề. `--no-verify` bỏ bước giải mù (nhanh gấp khoảng 4 lần nhưng đáp án
 kém chắc chắn hơn). Hạn mức miễn phí theo ngày của từng nhà cung cấp có thể không đủ cho nhiều đề trong một ngày; nếu
 bị chặn, chạy lại hôm sau, cache sẽ giữ phần đã làm.
+
+### Ảnh Part 1: ba nguồn
+
+| Nguồn | Cách dùng |
+|---|---|
+| Openverse (mặc định khi không có key Pexels) | Không cần key. Ảnh Creative Commons cho phép dùng thương mại. `python3 -m qgen.cli generate --tests 1 --photo-source openverse` |
+| Pexels | Đặt `PEXELS_API_KEY`. Chú thích ảnh tốt hơn. Việc cấp key mới có thể tạm dừng. |
+| Thư mục ảnh của bạn | `--photo-source local --photos-dir D:\anh` với thư mục chứa ảnh và file `captions.json` dạng `{"a.jpg": "two men carrying boxes in a warehouse"}`. Cần ít nhất 6 ảnh mỗi đề. |
+
+Chú thích ảnh Openverse do người đăng đặt nên có thể không sát; AI viết câu mô tả dựa trên chú thích đó. Hãy xem ảnh
+trong `report-XX.html` và loại hoặc sinh lại đề nếu ảnh không khớp câu đúng. Ảnh được lưu ở `frontend/public/part1/`.
 
 ### Audio (Kokoro TTS, chạy offline, giấy phép Apache-2.0)
 
@@ -84,5 +94,5 @@ viết nên **cần người xem lại** trước khi đưa cho người học; 
 
 ## Nguồn ảnh và ghi công
 
-Ảnh Part 1 lấy từ Pexels (dùng được miễn phí, kể cả thương mại). Tên tác giả và liên kết ảnh được ghi trong
+Ảnh Part 1 lấy từ Openverse hoặc Pexels (giấy phép cho dùng thương mại; ảnh CC BY cần ghi công). Dòng ghi công và liên kết ảnh được lưu trong
 `provenance.image_credits` của mỗi `test-XX.json`.

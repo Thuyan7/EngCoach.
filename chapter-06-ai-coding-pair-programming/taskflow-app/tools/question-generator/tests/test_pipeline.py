@@ -10,7 +10,7 @@ from qgen import assemble, cli, plan, tts
 from qgen.config import Config
 from qgen.generate import Corpus, UnitFailed, generate_test, generate_unit
 from qgen.mock import MockLLM
-from qgen.part1 import FakePhotos, PexelsPhotos
+from qgen.part1 import FakePhotos, LocalPhotos, OpenversePhotos, PexelsPhotos
 from qgen.validate import normalize
 
 
@@ -211,6 +211,43 @@ class Part1Test(TmpCase):
     def test_missing_key_is_reported(self):
         with self.assertRaises(ValueError):
             PexelsPhotos("", self.tmp)
+
+
+class OtherPhotoSourcesTest(TmpCase):
+    def test_openverse_needs_no_key_skips_bad_captions_and_uses_thumbnail(self):
+        seen = []
+
+        def fake_http(url, headers=None):
+            seen.append(url)
+            if "api.openverse.org/v1/images/?" in url:
+                return json.dumps({"results": [
+                    {"id": "a", "title": "IMG_4411", "thumbnail": "http://t/a"},
+                    {"id": "b", "title": "Workers loading boxes into a truck", "creator": "Zed", "license": "by",
+                     "attribution": "Workers loading boxes by Zed is licensed under CC BY 2.0.",
+                     "foreign_landing_url": "http://f/b", "thumbnail": "http://t/b", "url": "http://big/b",
+                     "tags": [{"name": "truck"}, {"name": "warehouse"}]}]}).encode()
+            return b"JPEG"
+        photos = OpenversePhotos(self.tmp, http_get=fake_http)
+        p = photos.pick("man carrying boxes")
+        self.assertEqual(p["id"], "b")
+        self.assertIn("truck", p["alt"])
+        self.assertIn("CC BY", p["credit"])
+        self.assertIn("license_type=commercial", seen[0])
+        self.assertIn("http://t/b", seen)
+        self.assertNotIn("http://big/b", seen)
+        self.assertTrue(os.path.exists(os.path.join(self.tmp, "part1", "openverse-b.jpg")))
+
+    def test_local_photos_use_captions_in_order_and_run_out(self):
+        src = os.path.join(self.tmp, "src")
+        os.makedirs(src)
+        write_file(os.path.join(src, "a.jpg"), b"1", "wb")
+        write_file(os.path.join(src, "b.jpg"), b"2", "wb")
+        write_file(os.path.join(src, "captions.json"), json.dumps({"b.jpg": "two men talking", "a.jpg": "a desk"}))
+        photos = LocalPhotos(src, os.path.join(self.tmp, "pub"))
+        self.assertEqual(photos.pick("x")["alt"], "a desk")
+        self.assertEqual(photos.pick("x")["url"], "/part1/b.jpg")
+        with self.assertRaises(LookupError):
+            photos.pick("x")
 
 
 class TtsTest(TmpCase):

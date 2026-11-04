@@ -119,6 +119,6 @@ class GeneratedTestImporterTest {
         GeneratedTestImporter.GeneratedTest test = new GeneratedTestImporter.GeneratedTest("T", "d", List.of(bad));
 
         IllegalStateException e = assertThrows(IllegalStateException.class, () -> importer.validate(test, "p1.json"));
-        assertTrue(e.getMessage().contains("PEXELS_API_KEY"));
+        assertTrue(e.getMessage().contains("nguồn ảnh Part 1"));
     }
 }

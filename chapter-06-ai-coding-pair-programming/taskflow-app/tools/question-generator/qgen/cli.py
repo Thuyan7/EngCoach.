@@ -10,7 +10,7 @@ from .config import Config
 from .generate import Corpus, UnitFailed, generate_test
 from .llm import OpenAICompatClient
 from .mock import MockLLM
-from .part1 import FakePhotos, PexelsPhotos
+from .part1 import FakePhotos, LocalPhotos, OpenversePhotos, PexelsPhotos
 from .report import build_report
 
 TOOL_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -26,6 +26,17 @@ def parse_range(text):
     return [int(x) for x in text.split(",")]
 
 
+def make_photos(args, cfg):
+    source = args.photo_source or ("pexels" if cfg.pexels_key else "openverse")
+    if source == "pexels":
+        return PexelsPhotos(cfg.pexels_key, args.public_dir)
+    if source == "local":
+        if not args.photos_dir:
+            raise SystemExit("--photo-source local cần --photos-dir")
+        return LocalPhotos(args.photos_dir, args.public_dir)
+    return OpenversePhotos(args.public_dir)
+
+
 def run_generate(args, out=print):
     cfg = Config.from_env()
     cfg.out_dir = args.out or cfg.out_dir
@@ -38,7 +49,7 @@ def run_generate(args, out=print):
         llm, photos = MockLLM(), FakePhotos()
     else:
         llm = OpenAICompatClient(cfg)
-        photos = None if args.no_images else PexelsPhotos(cfg.pexels_key, args.public_dir)
+        photos = None if args.no_images else make_photos(args, cfg)
 
     corpus = Corpus()
     existing = os.path.join(DEFAULT_BANK, "toeic-mock-bank.json")
@@ -106,6 +117,9 @@ def main(argv=None, out=print):
     g.add_argument("--mock", action="store_true", help="LLM và ảnh giả, chạy offline để thử pipeline")
     g.add_argument("--no-verify", action="store_true", help="bỏ bước giải mù (nhanh hơn, kém chắc chắn hơn)")
     g.add_argument("--no-images", action="store_true", help="không lấy ảnh Pexels (Part 1 sẽ thiếu ảnh)")
+    g.add_argument("--photo-source", choices=["pexels", "openverse", "local"], default=None,
+                   help="nguồn ảnh Part 1; mặc định pexels nếu có PEXELS_API_KEY, ngược lại openverse (không cần key)")
+    g.add_argument("--photos-dir", default=None, help="thư mục ảnh + captions.json khi dùng --photo-source local")
     g.add_argument("--audio", action="store_true", help="tạo mp3 bằng Kokoro TTS")
     g.add_argument("--public-dir", default=DEFAULT_PUBLIC)
     g.add_argument("--tts-models", default=os.path.join(TOOL_DIR, "models"))
