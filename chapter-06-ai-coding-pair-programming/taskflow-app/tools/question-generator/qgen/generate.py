@@ -80,6 +80,7 @@ def generate_unit(unit, cfg, llm, corpus, get_photo=None, log=print):
         log("  %s: dùng lại bản đã sinh" % unit.id)
         return result
 
+    log("  %s: đang sinh..." % unit.id)
     photo = get_photo() if get_photo else None
     feedback = None
     for attempt in range(1, cfg.max_unit_attempts + 1):
@@ -99,6 +100,7 @@ def generate_unit(unit, cfg, llm, corpus, get_photo=None, log=print):
             corpus.add_result(result)
             with open(cache, "w", encoding="utf-8") as f:
                 json.dump(result, f, ensure_ascii=False, indent=1)
+            log("  %s: xong" % unit.id)
             return result
         log("  %s: lần %d bị loại: %s" % (unit.id, attempt, "; ".join(errors)[:300]))
         feedback = errors

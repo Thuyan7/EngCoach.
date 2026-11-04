@@ -33,6 +33,7 @@ class OpenAICompatClient:
         self._sleep = sleep
         self._clock = clock
         self._last_call = 0.0
+        self.log = lambda *_: None      # cli gắn hàm in để báo khi phải chờ hoặc thử lại
 
     def _throttle(self):
         gap = 60.0 / max(1, self.cfg.rpm)
@@ -58,16 +59,21 @@ class OpenAICompatClient:
                 "Authorization": "Bearer " + self.cfg.api_key,
             })
             try:
-                with urllib.request.urlopen(req, timeout=120) as resp:
+                with urllib.request.urlopen(req, timeout=90) as resp:
                     data = json.loads(resp.read())
                 return extract_json(data["choices"][0]["message"]["content"])
             except urllib.error.HTTPError as e:
                 last_error = e
                 if e.code in (429, 500, 502, 503, 504):
-                    self._sleep(min(60, 2 ** attempt * 3))   # backoff khi bị giới hạn lượt gọi
+                    wait = min(60, 2 ** attempt * 3)   # backoff khi bị giới hạn lượt gọi
+                    self.log("  LLM trả HTTP %s, đợi %ds rồi thử lại (lần %d/%d)" % (
+                        e.code, wait, attempt + 1, self.cfg.max_retries))
+                    self._sleep(wait)
                     continue
                 raise LLMError("HTTP %s từ nhà cung cấp LLM: %s" % (e.code, e.read()[:200]))
-            except (urllib.error.URLError, json.JSONDecodeError, KeyError) as e:
+            except (OSError, json.JSONDecodeError, KeyError) as e:   # gồm URLError và hết thời gian chờ
                 last_error = e
+                self.log("  LLM không trả lời được (%s), thử lại (lần %d/%d)" % (
+                    type(e).__name__, attempt + 1, self.cfg.max_retries))
                 self._sleep(2 ** attempt)
         raise LLMError("LLM thất bại sau %d lần thử: %s" % (self.cfg.max_retries, last_error))

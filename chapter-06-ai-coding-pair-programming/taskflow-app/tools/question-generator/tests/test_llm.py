@@ -44,6 +44,15 @@ class LlmTest(unittest.TestCase):
         self.assertEqual(m.call_count, 1)
         self.assertEqual(m.call_args[0][0].get_header("Authorization"), "Bearer k")
 
+    def test_retries_when_read_times_out(self):
+        with mock.patch("urllib.request.urlopen", side_effect=[TimeoutError("timed out"), response('{"ok": 1}')]) as m:
+            client = self.client()
+            messages = []
+            client.log = messages.append
+            self.assertEqual(client.complete_json("s", "u"), {"ok": 1})
+        self.assertEqual(m.call_count, 2)
+        self.assertTrue(any("TimeoutError" in x for x in messages))
+
     def test_gives_up_after_max_retries(self):
         err = urllib.error.HTTPError("u", 503, "down", {}, io.BytesIO(b""))
         with mock.patch("urllib.request.urlopen", side_effect=err) as m:

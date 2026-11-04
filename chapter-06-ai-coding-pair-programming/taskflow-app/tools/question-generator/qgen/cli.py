@@ -49,6 +49,7 @@ def run_generate(args, out=print):
         llm, photos = MockLLM(), FakePhotos()
     else:
         llm = OpenAICompatClient(cfg)
+        llm.log = out
         photos = None if args.no_images else make_photos(args, cfg)
 
     corpus = Corpus()
