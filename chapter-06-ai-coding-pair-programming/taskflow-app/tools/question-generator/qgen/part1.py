@@ -1,10 +1,16 @@
 """Ảnh Part 1 từ Pexels (miễn phí, dùng thương mại được, cần API key). Lưu ảnh vào frontend/public/part1/ và ghi nguồn ảnh."""
 import json
 import os
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
 SEARCH_URL = "https://api.pexels.com/v1/search"
+
+
+class PhotoSourceError(Exception):
+    """Nguồn ảnh không trả lời được (lỗi mạng hoặc máy chủ)."""
 
 
 def _http_get(url, headers=None):
@@ -62,16 +68,33 @@ class OpenversePhotos:
     Chú thích của ảnh do người đăng đặt nên kém tin cậy hơn Pexels: hãy xem ảnh trong report-XX.html khi duyệt đề.
     """
 
-    def __init__(self, public_dir, http_get=_http_get):
+    def __init__(self, public_dir, http_get=_http_get, sleep=time.sleep):
         self.dir = os.path.join(public_dir, "part1")
         self.http_get = http_get
+        self.sleep = sleep
         self.used = set()
 
     def _search(self, query):
-        url = OPENVERSE_URL + "?" + urllib.parse.urlencode({
-            "q": query, "license_type": "commercial", "category": "photograph", "page_size": 20,
-            "mature": "false", "aspect_ratio": "wide"})
-        return json.loads(self.http_get(url, {"User-Agent": "engcoach-question-generator"})).get("results", [])
+        """Thử đủ bộ lọc trước, nếu máy chủ lỗi thì thử bộ lọc tối thiểu; mỗi bộ lọc thử lại vài lần."""
+        base = {"q": query, "license_type": "commercial", "page_size": 20}
+        variants = [dict(base, category="photograph", mature="false", aspect_ratio="wide"), base]
+        last = None
+        for params in variants:
+            url = OPENVERSE_URL + "?" + urllib.parse.urlencode(params)
+            for attempt in range(3):
+                try:
+                    body = self.http_get(url, {"User-Agent": "engcoach-question-generator"})
+                    return json.loads(body).get("results", [])
+                except urllib.error.HTTPError as e:
+                    last = e
+                    if e.code not in (429, 500, 502, 503, 504):
+                        break
+                    self.sleep(2 ** attempt * 2)
+                except (urllib.error.URLError, json.JSONDecodeError) as e:
+                    last = e
+                    self.sleep(2 ** attempt * 2)
+        raise PhotoSourceError("Openverse không trả lời được (%s). Thử lại sau ít phút, hoặc dùng "
+                               "--photo-source local với thư mục ảnh của bạn." % last)
 
     def pick(self, query):
         words = query.split()

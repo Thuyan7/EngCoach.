@@ -10,7 +10,7 @@ from qgen import assemble, cli, plan, tts
 from qgen.config import Config
 from qgen.generate import Corpus, UnitFailed, generate_test, generate_unit
 from qgen.mock import MockLLM
-from qgen.part1 import FakePhotos, LocalPhotos, OpenversePhotos, PexelsPhotos
+from qgen.part1 import PhotoSourceError, FakePhotos, LocalPhotos, OpenversePhotos, PexelsPhotos
 from qgen.validate import normalize
 
 
@@ -236,6 +236,33 @@ class OtherPhotoSourcesTest(TmpCase):
         self.assertIn("http://t/b", seen)
         self.assertNotIn("http://big/b", seen)
         self.assertTrue(os.path.exists(os.path.join(self.tmp, "part1", "openverse-b.jpg")))
+
+    def _http_error(self, code):
+        import io
+        import urllib.error
+        return urllib.error.HTTPError("u", code, "err", {}, io.BytesIO(b""))
+
+    def test_openverse_falls_back_to_minimal_filters_when_server_errors(self):
+        urls = []
+
+        def fake_http(url, headers=None):
+            urls.append(url)
+            if "aspect_ratio" in url:
+                raise self._http_error(500)
+            if url.startswith("https://api.openverse.org"):
+                return json.dumps({"results": [{"id": "z", "title": "Chef cooking in a kitchen",
+                                                "thumbnail": "http://t/z", "attribution": "by Q"}]}).encode()
+            return b"JPEG"
+        photos = OpenversePhotos(self.tmp, http_get=fake_http, sleep=lambda s: None)
+        self.assertEqual(photos.pick("chef cooking")["id"], "z")
+        self.assertGreaterEqual(sum("aspect_ratio" in u for u in urls), 3)   # đã thử lại bộ lọc đầu
+
+    def test_openverse_gives_clear_error_when_server_keeps_failing(self):
+        def fake_http(url, headers=None):
+            raise self._http_error(500)
+        photos = OpenversePhotos(self.tmp, http_get=fake_http, sleep=lambda s: None)
+        with self.assertRaises(PhotoSourceError):
+            photos.pick("chef cooking")
 
     def test_local_photos_use_captions_in_order_and_run_out(self):
         src = os.path.join(self.tmp, "src")

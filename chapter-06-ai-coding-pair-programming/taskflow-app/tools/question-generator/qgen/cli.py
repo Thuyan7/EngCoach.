@@ -10,7 +10,7 @@ from .config import Config
 from .generate import Corpus, UnitFailed, generate_test
 from .llm import LLMError, OpenAICompatClient
 from .mock import MockLLM
-from .part1 import FakePhotos, LocalPhotos, OpenversePhotos, PexelsPhotos
+from .part1 import PhotoSourceError, FakePhotos, LocalPhotos, OpenversePhotos, PexelsPhotos
 from .report import build_report
 
 TOOL_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -140,6 +140,9 @@ def main(argv=None, out=print):
         return run_publish(a, out)
     try:
         return run_generate(a, out)
+    except PhotoSourceError as exc:
+        out("LỖI ẢNH PART 1: %s\nCác phần đã sinh xong vẫn được giữ trong thư mục cache; chạy lại lệnh để tiếp tục." % exc)
+        return 2
     except LLMError as exc:
         out("LỖI LLM: %s\nGợi ý: kiểm tra QGEN_API_KEY, QGEN_MODEL (tên model còn dùng được) và QGEN_BASE_URL." % exc)
         return 2
