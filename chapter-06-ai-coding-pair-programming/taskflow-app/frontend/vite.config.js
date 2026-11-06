@@ -15,6 +15,7 @@ export default defineConfig({
       "/auth": API_TARGET,
       "/parts": API_TARGET,
       "/attempts": API_TARGET,
+      "/tests": API_TARGET,
     },
   },
   test: {

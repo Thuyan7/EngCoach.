@@ -31,7 +31,9 @@ export default function PracticePage() {
     setTests({ status: "loading", items: [] });
     request("/tests", { token }).then(items => {
       if (cancelled) return;
-      const available = Array.isArray(items) ? items : [];
+      // A non-array reply means the request did not reach the API (e.g. the dev proxy returned the SPA page).
+      if (!Array.isArray(items)) { setTests({ status: "error", items: [] }); return; }
+      const available = items;
       setTests({ status: available.length ? "ready" : "empty", items: available });
       setSelected(Object.fromEntries(available.map(test => [test.id, (test.parts || []).map(p => p.part)])));
     }).catch(err => {

@@ -30,7 +30,11 @@ export default function DashboardPage() {
     request("/tests", { token })
       .then((data) => {
         if (cancelled) return;
-        const items = Array.isArray(data) ? data : [];
+        if (!Array.isArray(data)) {
+          setParts({ status: "error", items: [] });
+          return;
+        }
+        const items = data;
         setParts({ status: items.length === 0 ? "empty" : "ready", items });
       })
       .catch((err) => {

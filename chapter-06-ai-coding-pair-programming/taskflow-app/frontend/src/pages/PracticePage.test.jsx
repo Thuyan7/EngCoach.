@@ -105,4 +105,12 @@ describe("Practice Test catalog", () => {
 
     await waitFor(() => expect(postedBody).toEqual({ type: "TEST", testId: 31, parts: ["Part 1", "Part 2"] }));
   });
+
+  it("shows an error, not an empty catalog, when /tests does not return a JSON list", async () => {
+    globalThis.fetch = () => Promise.resolve(new Response("<!doctype html><html></html>", { status: 200 }));
+    renderApp("/practice");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("couldn't load the Tests");
+    expect(screen.queryByText(/No TOEIC Tests are published yet/)).not.toBeInTheDocument();
+  });
 });
