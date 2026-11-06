@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { listAttempts, startPartPractice } from "../api/attempts.js";
-import { listParts } from "../api/parts.js";
+import { Link, useNavigate } from "react-router-dom";
+import { listAttempts, startToeicTest } from "../api/attempts.js";
+import { request } from "../api/client.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { summarizeAttempts } from "../stats.js";
 
-const LOAD_FAILED = "We couldn't load the Part list. Please try again.";
-const NO_QUESTIONS = "There are no questions for this Part yet.";
+const LOAD_FAILED = "We couldn't load the Tests. Please try again.";
+const NO_QUESTIONS = "There are no questions for this Test yet.";
 const START_FAILED = "We couldn't start this practice. Please try again.";
 const STATS_FAILED = "We couldn't load your stats. Please try again.";
 
 // S6b. Real data only — nothing here is mock data.
-//  - Part list: GET /parts (S5a).
+//  - Test list: GET /tests. Practice is organised by Test; each card starts the full Test or opens the Parts chooser.
 //  - Stats: GET /attempts (S10a) — completed attempts. The Part list and the
 //    stats load independently, so a failure in one never hides the other.
 export default function DashboardPage() {
@@ -27,9 +27,10 @@ export default function DashboardPage() {
   useEffect(() => {
     let cancelled = false;
     setParts({ status: "loading", items: [] });
-    listParts(token)
-      .then((items) => {
+    request("/tests", { token })
+      .then((data) => {
         if (cancelled) return;
+        const items = Array.isArray(data) ? data : [];
         setParts({ status: items.length === 0 ? "empty" : "ready", items });
       })
       .catch((err) => {
@@ -67,12 +68,12 @@ export default function DashboardPage() {
     };
   }, [token, signOut, statsReloadKey]);
 
-  async function start(part) {
+  async function start(test) {
     setStartError(null);
-    setStartingPart(part);
+    setStartingPart(test.id);
     try {
-      // 201 either way: a new attempt, or the unfinished one for this Part.
-      const attempt = await startPartPractice(token, part);
+      // 201 either way: a new attempt, or the unfinished one for this Test and Parts.
+      const attempt = await startToeicTest(token, test.id, (test.parts || []).map((p) => p.part));
       navigate(`/practice/${attempt.id}`);
     } catch (err) {
       if (err.status === 401) return signOut();
@@ -127,12 +128,13 @@ export default function DashboardPage() {
 
       <section aria-labelledby="parts-heading">
         <div className="section-head">
-          <h2 id="parts-heading">Practice by Part</h2>
+          <h2 id="parts-heading">Tests</h2>
+          <Link to="/practice" className="muted-label">See all Tests</Link>
         </div>
 
         {parts.status === "loading" && (
           <div role="status" aria-live="polite">
-            <span className="visually-hidden">Loading Parts…</span>
+            <span className="visually-hidden">Loading Tests…</span>
             <div className="part-grid" aria-hidden="true">
               {[0, 1, 2, 3].map((i) => (
                 <div key={i} className="skeleton part-skeleton" />
@@ -154,7 +156,7 @@ export default function DashboardPage() {
 
         {parts.status === "empty" && (
           <div className="card empty-state">
-            <p>No practice exercises are available yet. Please check back soon.</p>
+            <p>No Tests are available yet. Please check back soon.</p>
           </div>
         )}
 
@@ -165,21 +167,33 @@ export default function DashboardPage() {
         )}
 
         {parts.status === "ready" && (
-          <ul className="part-grid part-list">
-            {parts.items.map((name) => (
-              <li key={name}>
-                <button
-                  type="button"
-                  className="part-card"
-                  disabled={startingPart !== null}
-                  aria-label={`Start ${name}`}
-                  onClick={() => start(name)}
-                >
-                  <span className="pc-name">{name}</span>
-                  <span className="pc-meta">{startingPart === name ? "Starting…" : "Start practice"}</span>
-                </button>
-              </li>
-            ))}
+          <ul className="dash-test-list">
+            {parts.items.map((test) => {
+              const list = test.parts || [];
+              const questions = list.reduce((sum, p) => sum + (p.questionCount || 0), 0);
+              return (
+                <li key={test.id} className="card dash-test">
+                  <div>
+                    <h3>{test.title}</h3>
+                    <p className="muted-label">{list.length} Parts · {questions} questions</p>
+                  </div>
+                  <div className="dash-test-actions">
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      disabled={startingPart !== null || list.length === 0}
+                      aria-label={`Start full ${test.title}`}
+                      onClick={() => start(test)}
+                    >
+                      {startingPart === test.id ? "Starting…" : "Start full test"}
+                    </button>
+                    <Link to="/practice" className="btn btn-secondary" aria-label={`Choose Parts of ${test.title}`}>
+                      Choose Parts
+                    </Link>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

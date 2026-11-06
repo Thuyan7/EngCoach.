@@ -23,7 +23,7 @@ export default function AppShell() {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/practice" className="nav-item">Practice</NavLink>
+            <NavLink to="/practice" className="nav-item">Tests</NavLink>
           </li>
           <li>
             <NavLink to="/progress" className="nav-item">

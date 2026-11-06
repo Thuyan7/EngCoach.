@@ -81,4 +81,28 @@ describe("Practice Test catalog", () => {
     expect(screen.getByLabelText(/Part 2/)).toBeChecked();
     expect(screen.getByText("2 Parts · 31 questions · 15 minutes")).toBeInTheDocument();
   });
+
+  it("Start full test begins the Test with every one of its Parts, and Part-bank practice is gone", async () => {
+    const user = userEvent.setup();
+    let postedBody;
+    routeFetch({
+      "GET /tests": () => jsonResponse(200, [{
+        id: 31, title: "TOEIC AI Practice Test 01", parts: [
+          { part: "Part 1", questionCount: 6, durationSeconds: 180 },
+          { part: "Part 2", questionCount: 25, durationSeconds: 540 },
+        ],
+      }]),
+      "POST /attempts": (init) => { postedBody = JSON.parse(init.body); return jsonResponse(201, { id: 5, type: "TEST" }); },
+      "GET /attempts/5": () => jsonResponse(200, {
+        id: 5, type: "TEST", testId: 31, selectedParts: ["Part 1", "Part 2"], status: "IN_PROGRESS",
+        remainingSeconds: 720, answers: [], questions: [{ id: 1, prompt: "q", options: ["A", "B", "C", "D"] }],
+      }),
+    });
+    renderApp("/practice");
+
+    expect(screen.queryByText("Practice by Part")).not.toBeInTheDocument();
+    await user.click(await screen.findByRole("button", { name: "Start full test (2 Parts)" }));
+
+    await waitFor(() => expect(postedBody).toEqual({ type: "TEST", testId: 31, parts: ["Part 1", "Part 2"] }));
+  });
 });

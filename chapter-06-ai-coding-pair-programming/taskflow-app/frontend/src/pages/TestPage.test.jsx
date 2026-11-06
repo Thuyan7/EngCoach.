@@ -96,7 +96,23 @@ describe("Test screen (S7b)", () => {
     expect(screen.getByRole("button", { name: "Play listening audio for conversation" })).toBeInTheDocument();
   });
 
-  it("shows the selected Parts and automatically submits a selected-Part Test at zero", async () => {
+  it("shows the selected Parts of a Test attempt", async () => {
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST",
+        testId: 12,
+        selectedParts: ["Part 1", "Part 3"],
+        timeLimitSeconds: 1200,
+        remainingSeconds: 600,
+      })),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByRole("heading", { name: "TOEIC Test" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Selected Test Parts")).toHaveTextContent("Selected: Part 1, Part 3");
+  });
+
+  it("automatically submits a selected-Part Test once when its time reaches zero", async () => {
     let submitted = false;
     const fetchMock = routeFetch({
       "GET /attempts/7": () => jsonResponse(200, attemptDetail({
@@ -114,8 +130,7 @@ describe("Test screen (S7b)", () => {
     });
     renderApp("/practice/7");
 
-    expect(await screen.findByRole("heading", { name: "TOEIC Test" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Selected Test Parts")).toHaveTextContent("Selected: Part 1, Part 3");
+    // Expiry submits and moves to the result page straight away, so wait for the result, not for the test heading.
     expect(await screen.findByText("2 / 8")).toBeInTheDocument();
     expect(fetchMock.mock.calls.filter(([url, init]) => url === "/attempts/7/submit" && init?.method === "POST")).toHaveLength(1);
   });
