@@ -9,6 +9,37 @@ import urllib.request
 SEARCH_URL = "https://api.pexels.com/v1/search"
 
 
+def image_kind(data):
+    """Trả 'image/jpeg', 'image/png', ... nếu dữ liệu đúng là ảnh (kiểm tra byte đầu và kích thước), ngược lại None."""
+    if len(data) < 2000:
+        return None
+    if data[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if data[:4] == b"\x89PNG":
+        return "image/png"
+    if data[:4] == b"GIF8":
+        return "image/gif"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
+def save_image(path, fetch):
+    """Tải ảnh về path nếu chưa có file hợp lệ. Trả True nếu có file ảnh thật; file hỏng bị xóa."""
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            if image_kind(f.read()):
+                return True
+        os.remove(path)
+    data = fetch()
+    if not image_kind(data):
+        return False
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as f:
+        f.write(data)
+    return True
+
+
 class PhotoSourceError(Exception):
     """Nguồn ảnh không trả lời được (lỗi mạng hoặc máy chủ)."""
 
@@ -40,10 +71,8 @@ class PexelsPhotos:
             self.used.add(p["id"])
             name = "pexels-%s.jpg" % p["id"]
             path = os.path.join(self.dir, name)
-            if not os.path.exists(path):
-                os.makedirs(self.dir, exist_ok=True)
-                with open(path, "wb") as f:
-                    f.write(self.http_get(p["src"]["large"]))
+            if not save_image(path, lambda: self.http_get(p["src"]["large"])):
+                continue
             return {"id": p["id"], "alt": alt, "url": "/part1/" + name,
                     "credit": "Photo by %s on Pexels (%s)" % (p.get("photographer", "?"), p.get("url", ""))}
         raise LookupError("Pexels không có ảnh phù hợp cho truy vấn %r" % query)
@@ -96,6 +125,12 @@ class OpenversePhotos:
         raise PhotoSourceError("Openverse không trả lời được (%s). Thử lại sau ít phút, hoặc dùng "
                                "--photo-source local với thư mục ảnh của bạn." % last)
 
+    def _fetch_quiet(self, url, headers):
+        try:
+            return self.http_get(url, headers)
+        except (urllib.error.URLError, OSError):
+            return b""
+
     def pick(self, query):
         words = query.split()
         for q in (query, " ".join(words[:3]), " ".join(words[-2:])):
@@ -106,11 +141,10 @@ class OpenversePhotos:
                 self.used.add(item["id"])
                 name = "openverse-%s.jpg" % item["id"]
                 path = os.path.join(self.dir, name)
-                if not os.path.exists(path):
-                    os.makedirs(self.dir, exist_ok=True)
-                    with open(path, "wb") as f:
-                        f.write(self.http_get(item.get("thumbnail") or item["url"],
-                                              {"User-Agent": "engcoach-question-generator"}))
+                headers = {"User-Agent": "engcoach-question-generator"}
+                urls = [u for u in (item.get("thumbnail"), item.get("url")) if u]
+                if not any(save_image(path, lambda u=u: self._fetch_quiet(u, headers)) for u in urls):
+                    continue        # tải về không phải ảnh thật: bỏ ảnh này, thử ảnh khác
                 credit = item.get("attribution") or "%s by %s (%s)" % (
                     item.get("title"), item.get("creator", "?"), item.get("license", "CC"))
                 return {"id": item["id"], "alt": caption, "url": "/part1/" + name,

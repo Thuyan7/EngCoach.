@@ -7,7 +7,10 @@ SYSTEM = (
     "(varied names such as Ms. Tanaka, Mr. Alvarez, Dr. Okafor), no real brands, no politics or religion. "
     "Never reproduce items from real tests or published books. Each item has exactly one defensible correct "
     "answer; wrong options must fail for a clear, teachable reason (wrong meaning, wrong form, wrong detail "
-    "that is mentioned but not asked, etc.). Do not make the correct option systematically the longest. "
+    "that is mentioned but not asked, etc.). Do not make the correct option systematically the longest: the "
+    "correct option must be shorter than or equal in length to at least one wrong option in most items. "
+    "Options are shuffled after you write them, so in explanation_vi NEVER refer to option letters or positions "
+    "(no 'phương án A', 'option B'); quote or paraphrase the option text instead. "
     "Return ONLY one JSON object, no commentary."
 )
 

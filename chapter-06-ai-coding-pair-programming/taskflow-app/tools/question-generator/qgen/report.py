@@ -1,8 +1,9 @@
 """Báo cáo HTML để người duyệt đọc nhanh: bài, câu hỏi, đáp án đúng được tô, giải thích, cảnh báo."""
 import base64
 import html
-import mimetypes
 import os
+
+from .part1 import image_kind
 
 CSS = ("body{font-family:system-ui,sans-serif;max-width:900px;margin:24px auto;padding:0 16px;color:#222}"
        "h2{margin-top:32px;border-bottom:1px solid #ccc}.ctx{background:#f5f5f5;padding:8px 12px;white-space:pre-wrap}"
@@ -22,9 +23,12 @@ def _image_tag(url, public_dir):
     path = _local(url, public_dir)
     if path is None:
         return "<p class='err'>Không tìm thấy file ảnh: %s</p>" % html.escape(url)
-    mime = mimetypes.guess_type(path)[0] or "image/jpeg"
     with open(path, "rb") as f:
-        data = base64.b64encode(f.read()).decode()
+        raw = f.read()
+    mime = image_kind(raw)
+    if mime is None:
+        return "<p class='err'>File ảnh bị hỏng (không phải ảnh thật): %s. Xóa file này và file work/*p1*.json rồi sinh lại.</p>" % html.escape(url)
+    data = base64.b64encode(raw).decode()
     return "<img src='data:%s;base64,%s' alt=''>" % (mime, data)   # nhúng thẳng để mở file ở đâu cũng thấy ảnh
 
 

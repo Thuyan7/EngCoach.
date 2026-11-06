@@ -208,7 +208,7 @@ class Part1Test(TmpCase):
                      "url": "http://p/2", "src": {"large": "http://img/2"}},
                     {"id": 3, "alt": "Two men carrying boxes in a warehouse", "photographer": "Bo",
                      "url": "http://p/3", "src": {"large": "http://img/3"}}]}).encode()
-            return b"JPEGDATA"
+            return JPEG_BYTES
         photos = PexelsPhotos("KEY", self.tmp, http_get=fake_http)
         a = photos.pick("office")
         b = photos.pick("office")
@@ -224,6 +224,51 @@ class Part1Test(TmpCase):
             PexelsPhotos("", self.tmp)
 
 
+JPEG_BYTES = b"\xff\xd8\xff\xe0" + b"x" * 3000
+
+
+class ImageValidationTest(TmpCase):
+    def test_openverse_skips_downloads_that_are_not_real_images(self):
+        def fake_http(url, headers=None):
+            if "api.openverse.org/v1/images/?" in url:
+                return json.dumps({"results": [
+                    {"id": "bad", "title": "Workers loading boxes onto a truck", "thumbnail": "http://t/bad"},
+                    {"id": "ok", "title": "Chef cooking in a busy kitchen", "thumbnail": "http://t/ok"}]}).encode()
+            return b"<html>error</html>" if url.endswith("bad") else JPEG_BYTES
+        photos = OpenversePhotos(self.tmp, http_get=fake_http, sleep=lambda s: None)
+        self.assertEqual(photos.pick("kitchen")["id"], "ok")
+        self.assertFalse(os.path.exists(os.path.join(self.tmp, "part1", "openverse-bad.jpg")))
+
+    def test_corrupt_existing_file_is_replaced_and_report_flags_broken_images(self):
+        from qgen.report import build_report
+        folder = os.path.join(self.tmp, "part1")
+        os.makedirs(folder)
+        write_file(os.path.join(folder, "openverse-ok.jpg"), b"<html>", "wb")
+        q = {"groupKey": "g", "part": "Part 1", "number": 1, "prompt": "p", "options": ["a"], "correctOption": "a",
+             "imageUrl": "/part1/openverse-ok.jpg", "audioText": "x"}
+        self.assertIn("File ảnh bị hỏng", build_report("T", [q], [], [], public_dir=self.tmp, report_dir=self.tmp))
+
+        def fake_http(url, headers=None):
+            if "api.openverse.org/v1/images/?" in url:
+                return json.dumps({"results": [{"id": "ok", "title": "Chef cooking in a busy kitchen",
+                                                "thumbnail": "http://t/ok"}]}).encode()
+            return JPEG_BYTES
+        OpenversePhotos(self.tmp, http_get=fake_http, sleep=lambda s: None).pick("kitchen")
+        self.assertNotIn("File ảnh bị hỏng", build_report("T", [q], [], [], public_dir=self.tmp, report_dir=self.tmp))
+
+
+class ExplanationLettersTest(unittest.TestCase):
+    def test_letters_in_explanations_follow_the_shuffled_options(self):
+        old = ["red", "blue", "green", "pink"]
+        new = ["pink", "red", "green", "blue"]
+        text = "Phương án B đúng vì blue. Các phương án A, C và D sai. Answer B is right; option (C) is not."
+        out = assemble.remap_letters(text, old, new)
+        self.assertEqual(out, "Phương án D đúng vì blue. Các phương án B, C và A sai. Answer D is right; option (C) is not.")
+
+    def test_text_without_letters_is_unchanged(self):
+        self.assertEqual(assemble.remap_letters("Chỗ trống cần động từ.", ["a", "b"], ["b", "a"]), "Chỗ trống cần động từ.")
+
+
 class OtherPhotoSourcesTest(TmpCase):
     def test_openverse_needs_no_key_skips_bad_captions_and_uses_thumbnail(self):
         seen = []
@@ -237,7 +282,7 @@ class OtherPhotoSourcesTest(TmpCase):
                      "attribution": "Workers loading boxes by Zed is licensed under CC BY 2.0.",
                      "foreign_landing_url": "http://f/b", "thumbnail": "http://t/b", "url": "http://big/b",
                      "tags": [{"name": "truck"}, {"name": "warehouse"}]}]}).encode()
-            return b"JPEG"
+            return JPEG_BYTES
         photos = OpenversePhotos(self.tmp, http_get=fake_http)
         p = photos.pick("man carrying boxes")
         self.assertEqual(p["id"], "b")
@@ -263,7 +308,7 @@ class OtherPhotoSourcesTest(TmpCase):
             if url.startswith("https://api.openverse.org"):
                 return json.dumps({"results": [{"id": "z", "title": "Chef cooking in a kitchen",
                                                 "thumbnail": "http://t/z", "attribution": "by Q"}]}).encode()
-            return b"JPEG"
+            return JPEG_BYTES
         photos = OpenversePhotos(self.tmp, http_get=fake_http, sleep=lambda s: None)
         self.assertEqual(photos.pick("chef cooking")["id"], "z")
         self.assertGreaterEqual(sum("aspect_ratio" in u for u in urls), 3)   # đã thử lại bộ lọc đầu
@@ -298,7 +343,7 @@ class ReportTest(TmpCase):
         pub = os.path.join(self.tmp, "public")
         os.makedirs(os.path.join(pub, "part1"))
         os.makedirs(os.path.join(pub, "audio", "t"))
-        write_file(os.path.join(pub, "part1", "x.jpg"), b"JPG", "wb")
+        write_file(os.path.join(pub, "part1", "x.jpg"), JPEG_BYTES, "wb")
         write_file(os.path.join(pub, "audio", "t", "g.mp3"), b"MP3", "wb")
         out = os.path.join(self.tmp, "out")
         os.makedirs(out)

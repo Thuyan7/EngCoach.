@@ -7,6 +7,25 @@ from . import toeic_spec
 LETTERS = "ABCD"
 
 
+_KEYWORDS = r"(?i:phương án|đáp án|lựa chọn|options?|choices?|answers?)"
+_LETTERS = re.compile(r"(%s)\s+\(?([A-D])\)?((?:\s*(?:,|và|and|&|hoặc|or)\s*\(?[A-D]\)?)*)" % _KEYWORDS)
+
+
+def remap_letters(text, old_options, new_options):
+    """Option bị xáo sau khi AI viết giải thích: đổi chữ cái được nhắc (Phương án B...) theo vị trí mới."""
+    def new_letter(match):
+        i = "ABCD".index(match.group(0))
+        if i >= len(old_options) or old_options[i] not in new_options:
+            return match.group(0)
+        return "ABCD"[new_options.index(old_options[i])]
+
+    def fix(m):
+        tail = re.sub(r"[A-D]", new_letter, m.group(3))
+        return m.group(0)[:m.start(2) - m.start(0)] + new_letter(re.match(r"[A-D]", m.group(2))) + \
+            m.group(0)[m.end(2) - m.start(0):m.start(3) - m.start(0)] + tail
+    return _LETTERS.sub(fix, text)
+
+
 def balanced_positions(n, n_options, rng):
     base = [i % n_options for i in range(n)]
     rng.shuffle(base)
@@ -46,7 +65,8 @@ def build_questions(test_index, units, results, seed=2026):
         ctx = r["context"]
         row = {"number": q["number"], "part": "Part %d" % unit.part, "prompt": q["prompt"], "options": options,
                "correctOption": correct, "passage": None, "imageUrl": None, "audioUrl": None, "audioText": None,
-               "groupKey": unit.id, "explanationVi": q["explanation_vi"]}
+               "groupKey": unit.id,
+               "explanationVi": remap_letters(q["explanation_vi"], q["options"], options)}
         if unit.kind == "photo":
             row["imageUrl"] = (ctx.get("image") or {}).get("url")
             row["script"] = [_speaker_line("N", "Number %d. " % q["number"] + " ".join(
