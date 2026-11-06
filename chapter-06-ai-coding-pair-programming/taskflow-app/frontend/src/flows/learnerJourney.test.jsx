@@ -72,7 +72,7 @@ describe("learner journey integration", () => {
     await user.click(screen.getByRole("button", { name: "Start Part 5" }));
     expect(await screen.findByRole("heading", { name: "Part 5 practice" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("radio", { name: /B\\. to submit/ }));
+    await user.click(screen.getByRole("radio", { name: /to submit/ }));
     expect(await screen.findByText("Saved")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Submit for grading" }));
