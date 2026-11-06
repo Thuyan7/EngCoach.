@@ -2,7 +2,7 @@ name: EngCoach CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/develop]
     paths:
       - "chapter-06-ai-coding-pair-programming/taskflow-app/backend/engcoach-backend/**"
       - "chapter-06-ai-coding-pair-programming/taskflow-app/frontend/**"
