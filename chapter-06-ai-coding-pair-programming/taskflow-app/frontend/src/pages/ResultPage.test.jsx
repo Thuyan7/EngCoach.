@@ -64,10 +64,12 @@ describe("Result screen (S9)", () => {
     expect(screen.getByText("Question 3 — Incorrect")).toBeInTheDocument();
     expect(screen.getByText("Question 4 — Correct")).toBeInTheDocument();
     expect(screen.getByText("Question 5 — Not answered")).toBeInTheDocument();
-    expect(screen.getByText("Your answer: B. nearly")).toBeInTheDocument();
-    expect(screen.getByText("Correct answer: A. near")).toBeInTheDocument();
-    expect(screen.getByText("Your answer: Not answered")).toBeInTheDocument();
-    expect(screen.getByText("Correct answer: B. All")).toBeInTheDocument();
+    const wrongAnswerCard = screen.getByText("Question 2 — Incorrect").closest(".explain-card");
+    const unansweredCard = screen.getByText("Question 5 — Not answered").closest(".explain-card");
+    expect(wrongAnswerCard).toHaveTextContent("Your answer: B. nearly");
+    expect(wrongAnswerCard).toHaveTextContent("Correct answer: A. near");
+    expect(unansweredCard).toHaveTextContent("Your answer: Not answered");
+    expect(unansweredCard).toHaveTextContent("Correct answer: B. All");
     expect(screen.getByText("Use the preposition 'near' here.")).toBeInTheDocument();
   });
 
@@ -158,7 +160,8 @@ describe("Result screen (S9)", () => {
     });
 
     expect(await screen.findByText("Question 1 — Correct")).toBeInTheDocument();
-    expect(screen.getByText("Correct answer: B. to submit")).toBeInTheDocument();
+    expect(screen.getByText("Question 1 — Correct").closest(".explain-card"))
+      .toHaveTextContent("Correct answer: B. to submit");
   });
 
   it("a mock test result has the mock-test title", async () => {

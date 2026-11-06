@@ -18,10 +18,9 @@ import java.util.List;
  * {@code chosenOption}; grading compares that string with
  * {@code Question.correctOption}.
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public record QuestionView(Long id, String prompt, List<String> options,
                            String passage, String imageUrl, String audioUrl,
-                           String correctOption) {
+                           @JsonInclude(JsonInclude.Include.NON_NULL) String correctOption) {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
