@@ -88,5 +88,17 @@ class AttemptQuestionPayloadTest {
                 .andExpect(jsonPath("$.questions[0].imageUrl").value("https://example.com/office.jpg"))
                 .andExpect(jsonPath("$.questions[0].audioUrl").value("https://example.com/notice.mp3"))
                 .andExpect(jsonPath("$.questions[0].correctOption").doesNotExist());
+
+        // Once submitted, the same detail endpoint may reveal the answer key
+        // for review. It must never be available during the active attempt.
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUBMITTED"));
+
+        mockMvc.perform(get("/attempts/" + attemptId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.questions[0].correctOption").value("An office renovation"));
     }
 }

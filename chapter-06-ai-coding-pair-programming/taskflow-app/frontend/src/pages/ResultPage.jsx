@@ -122,12 +122,13 @@ export default function ResultPage() {
   const percent = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : null;
   const answerFor = new Map(result.answers.map((a) => [a.questionId, a]));
 
-  // Every question not answered correctly, in test order: a wrong answer, or
-  // no answer at all (an unanswered question has no Answer row and counts as
-  // incorrect, per the S8a contract).
-  const mistakes = attempt.questions
-    .map((question, i) => ({ question, number: i + 1, answer: answerFor.get(question.id) }))
-    .filter(({ answer }) => !answer || !answer.isCorrect);
+  // Review every question in test order, including correct and unanswered
+  // questions. The API reveals correctOption only after SUBMITTED.
+  const reviewQuestions = attempt.questions.map((question, i) => ({
+    question,
+    number: i + 1,
+    answer: answerFor.get(question.id),
+  }));
 
   const title = attempt.type === "MOCK_TEST" ? "Mock test result" : `${attempt.part} result`;
 
@@ -157,18 +158,18 @@ export default function ResultPage() {
       </div>
 
       <div className="section-head">
-        <h2>Review your mistakes</h2>
+        <h2>Review all answers</h2>
       </div>
 
-      {mistakes.length === 0 ? (
+      {reviewQuestions.length === 0 ? (
         <div className="card empty-state">
-          <p>No mistakes — every answer was correct.</p>
+          <p>There are no questions to review.</p>
         </div>
       ) : (
         <ul className="explain-list">
-          {mistakes.map(({ question, number, answer }) => (
+          {reviewQuestions.map(({ question, number, answer }) => (
             <li key={question.id}>
-              <MistakeCard
+              <ReviewCard
                 question={question}
                 number={number}
                 answer={answer}
@@ -189,21 +190,35 @@ export default function ResultPage() {
   );
 }
 
-function MistakeCard({ question, number, answer, retry, onRetry }) {
+function ReviewCard({ question, number, answer, retry, onRetry }) {
   const chosen = answer?.chosenOption;
   const chosenIndex = chosen == null ? -1 : question.options.indexOf(chosen);
-  const heading = !answer
-    ? `Question ${number} — Not answered`
-    : `Question ${number} — Incorrect (you chose ${chosenIndex >= 0 ? `${letter(chosenIndex)}. ` : ""}${chosen})`;
+  const correct = answer?.isCorrect === true;
+  const unanswered = !answer;
+  const correctOption = question.correctOption;
+  const correctIndex = correctOption == null ? -1 : question.options.indexOf(correctOption);
+  const status = correct ? "Correct" : unanswered ? "Not answered" : "Incorrect";
+  const heading = `Question ${number} — ${status}`;
 
-  const unavailable = answer?.explanationStatus === "UNAVAILABLE";
-  const hasExplanation = answer?.explanationStatus === "OK" && answer.explanationText;
+  const unavailable = !correct && !unanswered && answer?.explanationStatus === "UNAVAILABLE";
+  const hasExplanation = !correct && answer?.explanationStatus === "OK" && answer.explanationText;
+  const cardClass = correct ? "correct" : unanswered ? "unanswered" : unavailable ? "unavailable" : "incorrect";
 
   return (
-    <div className={`explain-card ${unavailable ? "unavailable" : "incorrect"}`}>
+    <div className={`explain-card ${cardClass}`}>
       <p className="q">{heading}</p>
       <p className="body prompt">{question.prompt}</p>
-      {hasExplanation && <p className="body">{answer.explanationText}</p>}
+      <p className="body answer-line">
+        <strong>Your answer:</strong>{" "}
+        {unanswered ? "Not answered" : `${chosenIndex >= 0 ? `${letter(chosenIndex)}. ` : ""}${chosen}`}
+      </p>
+      <p className="body answer-line correct-answer">
+        <strong>Correct answer:</strong>{" "}
+        {correctOption == null
+          ? "Not available"
+          : `${correctIndex >= 0 ? `${letter(correctIndex)}. ` : ""}${correctOption}`}
+      </p>
+      {hasExplanation && <p className="body explanation-text">{answer.explanationText}</p>}
       {unavailable && (
         <>
           <p className="body">The explanation for this question is unavailable right now.</p>

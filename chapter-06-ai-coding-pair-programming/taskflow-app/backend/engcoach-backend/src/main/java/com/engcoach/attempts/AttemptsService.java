@@ -197,7 +197,10 @@ public class AttemptsService {
                 : "MOCK_TEST".equals(attempt.getType())
                         ? questionRepository.findAllByOrderByIdAsc()
                         : List.of();
-        List<QuestionView> questions = assignedQuestions.stream().map(QuestionView::from).toList();
+        boolean revealAnswers = Attempt.STATUS_SUBMITTED.equals(attempt.getStatus());
+        List<QuestionView> questions = assignedQuestions.stream()
+                .map(question -> QuestionView.from(question, revealAnswers))
+                .toList();
 
         return AttemptDetailResponse.from(attempt, remainingSeconds, answers, questions);
     }

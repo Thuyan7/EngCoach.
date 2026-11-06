@@ -337,3 +337,12 @@ button, input{font-family:inherit;}
   .timer-digits--danger{animation:none;}
   .timer-ring-value{transition:none;}
 }
+
+/* Result answer review states */
+.explain-card.correct{background:#EAF7ED;border:1px solid #B9DCC2;}
+.explain-card.correct .q{color:#205B31;}
+.explain-card.unanswered{background:#FFF6E0;border:1px solid #E8D9A8;}
+.explain-card.unanswered .q{color:#76540C;}
+.answer-line strong{color:var(--text);}
+.correct-answer{font-weight:600;}
+.explanation-text{padding-top:8px;border-top:1px solid rgba(95,94,90,.2);}
