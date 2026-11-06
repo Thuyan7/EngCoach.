@@ -54,7 +54,7 @@ public class Answer {
     private Boolean isCorrect;
 
     @Lob
-    @Column(name = "explanation_text")
+    @Column(name = "explanation_text", length = 16777215)
     private String explanationText;
 
     @Column(name = "explanation_status")

@@ -30,18 +30,18 @@ public class Question {
     private String part;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, length = 16777215)
     private String prompt;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, length = 16777215)
     private String options;
 
     @Column(name = "correct_option", nullable = false)
     private String correctOption;
 
     @Lob
-    @Column
+    @Column(length = 16777215)
     private String passage;
 
     @Column(length = 2048)
@@ -51,7 +51,7 @@ public class Question {
     private String audioUrl;
 
     @Lob
-    @Column
+    @Column(length = 16777215)
     private String audioText;
 
     protected Question() {

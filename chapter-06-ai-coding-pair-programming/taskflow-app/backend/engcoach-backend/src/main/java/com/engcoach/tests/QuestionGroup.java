@@ -22,7 +22,7 @@ public class QuestionGroup {
     private String groupType;
 
     @Lob
-    @Column(name = "shared_content")
+    @Column(name = "shared_content", length = 16777215)
     private String sharedContent;
 
     @Column(length = 2048)
