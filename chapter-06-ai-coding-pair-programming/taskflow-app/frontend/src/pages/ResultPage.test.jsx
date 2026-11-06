@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
-import { attemptDetail, jsonResponse, renderApp, routeFetch, signIn } from "../test/helpers.jsx";
+import { attemptDetail, jsonResponse, questionsFixture, renderApp, routeFetch, signIn } from "../test/helpers.jsx";
 
 beforeEach(() => {
   window.localStorage.clear();
