@@ -8,7 +8,17 @@ beforeEach(() => {
   signIn();
 });
 
-const submitted = (overrides = {}) => attemptDetail({ status: "SUBMITTED", ...overrides });
+const submitted = (overrides = {}) => attemptDetail({
+  status: "SUBMITTED",
+  questions: [
+    { ...questionsFixture()[0], correctOption: "to submit" },
+    { ...questionsFixture()[1], correctOption: "near" },
+    { ...questionsFixture()[2], correctOption: "leave" },
+    { ...questionsFixture()[3], correctOption: "because" },
+    { ...questionsFixture()[4], correctOption: "All" },
+  ],
+  ...overrides,
+});
 
 // Questions 101..105 (fixture). Result: 101 correct, 102 wrong+explained,
 // 103 wrong+explanation unavailable, 104 correct, 105 not answered.
@@ -45,23 +55,28 @@ describe("Result screen (S9)", () => {
     expect(fetchMock.mock.calls.some(([, i]) => i?.method === "POST")).toBe(false);
   });
 
-  it("lists every mistake with the question, what was chosen, and the explanation", async () => {
+  it("shows the selected answer and exact correct answer for every question", async () => {
     routeFetch({ "GET /attempts/7": () => jsonResponse(200, submitted()) });
     renderApp("/result/7", { result: gradedResult() });
 
-    expect(await screen.findByText("Question 2 — Incorrect (you chose B. nearly)")).toBeInTheDocument();
-    expect(screen.getByText(/Our office is located/)).toBeInTheDocument();
+    expect(await screen.findByText("Question 1 — Correct")).toBeInTheDocument();
+    expect(screen.getByText("Question 2 — Incorrect")).toBeInTheDocument();
+    expect(screen.getByText("Question 3 — Incorrect")).toBeInTheDocument();
+    expect(screen.getByText("Question 4 — Correct")).toBeInTheDocument();
+    expect(screen.getByText("Question 5 — Not answered")).toBeInTheDocument();
+    expect(screen.getByText("Your answer: B. nearly")).toBeInTheDocument();
+    expect(screen.getByText("Correct answer: A. near")).toBeInTheDocument();
+    expect(screen.getByText("Your answer: Not answered")).toBeInTheDocument();
+    expect(screen.getByText("Correct answer: B. All")).toBeInTheDocument();
     expect(screen.getByText("Use the preposition 'near' here.")).toBeInTheDocument();
-    // correct answers are not listed
-    expect(screen.queryByText(/Question 1 —/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Question 4 —/)).not.toBeInTheDocument();
   });
 
-  it("an unanswered question is listed as 'Not answered' with no explanation or retry", async () => {
+  it("an unanswered question still shows the correct answer and no retry", async () => {
     routeFetch({ "GET /attempts/7": () => jsonResponse(200, submitted()) });
     renderApp("/result/7", { result: gradedResult() });
 
     const card = (await screen.findByText("Question 5 — Not answered")).closest(".explain-card");
+    expect(card).toHaveTextContent("Correct answer: B. All");
     expect(card).not.toHaveTextContent("Retry");
   });
 
@@ -142,7 +157,8 @@ describe("Result screen (S9)", () => {
       },
     });
 
-    expect(await screen.findByText("No mistakes — every answer was correct.")).toBeInTheDocument();
+    expect(await screen.findByText("Question 1 — Correct")).toBeInTheDocument();
+    expect(screen.getByText("Correct answer: B. to submit")).toBeInTheDocument();
   });
 
   it("a mock test result has the mock-test title", async () => {

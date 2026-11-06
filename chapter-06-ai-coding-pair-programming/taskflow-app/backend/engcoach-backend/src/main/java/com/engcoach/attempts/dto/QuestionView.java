@@ -1,6 +1,7 @@
 package com.engcoach.attempts.dto;
 
 import com.engcoach.parts.Question;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -18,6 +19,7 @@ import java.util.List;
  * {@code Question.correctOption}, so correctOption must equal one of the
  * entries in options.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record QuestionView(Long id, String prompt, List<String> options,
                            String passage, String imageUrl, String audioUrl) {
 
