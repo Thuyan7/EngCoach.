@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { listAttempts, startPartPractice } from "../api/attempts.js";
+import { listAttempts, startPartPractice, startMockTest } from "../api/attempts.js";
 import { listParts } from "../api/parts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { summarizeAttempts } from "../stats.js";
@@ -13,119 +13,135 @@ const STATS_FAILED = "We couldn't load your stats. Please try again.";
 export default function DashboardPage() {
   const { token, signOut } = useAuth();
   const navigate = useNavigate();
-  const [startingPart, setStartingPart] = useState(null);
-  const [startError, setStartError] = useState(null);
+  const [starting, setStarting] = useState(null);
+  const [startError, setStartError] = useState("");
   const [parts, setParts] = useState({ status: "loading", items: [] });
-  const [reloadKey, setReloadKey] = useState(0);
+  const [partsReload, setPartsReload] = useState(0);
   const [stats, setStats] = useState({ status: "loading", attempts: [] });
-  const [statsReloadKey, setStatsReloadKey] = useState(0);
+  const [statsReload, setStatsReload] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     setParts({ status: "loading", items: [] });
-    listParts(token)
-      .then((items) => {
-        if (cancelled) return;
-        setParts({ status: items.length === 0 ? "empty" : "ready", items });
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        if (err.status === 401) { signOut(); return; }
-        setParts({ status: "error", items: [] });
-      });
+    listParts(token).then((items) => {
+      if (!cancelled) setParts({ status: items.length ? "ready" : "empty", items });
+    }).catch((err) => {
+      if (cancelled) return;
+      if (err.status === 401) return signOut();
+      setParts({ status: "error", items: [] });
+    });
     return () => { cancelled = true; };
-  }, [token, signOut, reloadKey]);
+  }, [token, signOut, partsReload]);
 
   useEffect(() => {
     let cancelled = false;
     setStats({ status: "loading", attempts: [] });
-    listAttempts(token)
-      .then((attempts) => { if (!cancelled) setStats({ status: "ready", attempts }); })
-      .catch((err) => {
-        if (cancelled) return;
-        if (err.status === 401) { signOut(); return; }
-        setStats({ status: "error", attempts: [] });
-      });
+    listAttempts(token).then((attempts) => {
+      if (!cancelled) setStats({ status: "ready", attempts });
+    }).catch((err) => {
+      if (cancelled) return;
+      if (err.status === 401) return signOut();
+      setStats({ status: "error", attempts: [] });
+    });
     return () => { cancelled = true; };
-  }, [token, signOut, statsReloadKey]);
+  }, [token, signOut, statsReload]);
 
-  async function start(part) {
-    setStartError(null);
-    setStartingPart(part);
+  async function start(type, part = null) {
+    setStartError("");
+    setStarting(type === "MOCK_TEST" ? "mock" : part);
     try {
-      const attempt = await startPartPractice(token, part);
+      const attempt = type === "MOCK_TEST"
+        ? await startMockTest(token)
+        : await startPartPractice(token, part);
       navigate(`/practice/${attempt.id}`);
     } catch (err) {
       if (err.status === 401) return signOut();
       setStartError(err.status === 422 ? NO_QUESTIONS : START_FAILED);
-      setStartingPart(null);
+      setStarting(null);
     }
   }
 
   const summary = summarizeAttempts(stats.attempts);
-  const average = stats.status === "ready" && summary.averagePercent !== null;
-  const averageLabel = stats.status === "loading" ? "…" : average ? `${summary.averagePercent}%` : "—";
-  const countLabel = stats.status === "loading" ? "…" : stats.status === "ready" ? summary.attemptCount : "—";
+  const average = stats.status === "loading" ? "…" : stats.status === "error" ? "—" : summary.averagePercent === null ? "—" : `${summary.averagePercent}%`;
+  const completed = stats.status === "loading" ? "…" : stats.status === "error" ? "—" : summary.attemptCount;
 
   return (
     <>
-      <section className="dashboard-welcome">
-        <div className="dashboard-welcome-copy">
-          <p className="eyebrow">YOUR LEARNING OVERVIEW</p>
-          <h1>Welcome back<span className="welcome-period">.</span></h1>
-          <p>Build your TOEIC confidence with focused practice, clear feedback, and steady progress.</p>
+      <section className="home-hero">
+        <div className="home-hero-copy">
+          <div className="hero-kicker"><span className="hero-kicker-dot" /> YOUR PERSONAL TOEIC LEARNING SPACE</div>
+          <h1>Make every practice<br /><span>count.</span></h1>
+          <p>Build your confidence one question at a time. Practice with purpose, understand your mistakes, and get closer to your target score.</p>
+          <div className="hero-actions">
+            <button type="button" className="btn btn-green" onClick={() => navigate("/practice")}>Explore practice tests <span aria-hidden="true">→</span></button>
+            <span className="hero-note"><span aria-hidden="true">✓</span> Learn at your own pace</span>
+          </div>
         </div>
-        <div className="welcome-art" aria-hidden="true">
-          <div className="welcome-art-orbit orbit-one" />
-          <div className="welcome-art-orbit orbit-two" />
-          <div className="welcome-book">
-            <svg viewBox="0 0 96 96" fill="none">
-              <path d="M15 22c13-5 24-3 33 4v48c-9-7-20-9-33-4V22Z" fill="#fff" stroke="#B9D7F2" strokeWidth="2.5"/>
-              <path d="M81 22c-13-5-24-3-33 4v48c9-7 20-9 33-4V22Z" fill="#EAF4FF" stroke="#B9D7F2" strokeWidth="2.5"/>
-              <path d="M25 35c7-2 12-1 17 2M25 44c7-2 12-1 17 2M71 35c-7-2-12-1-17 2M71 44c-7-2-12-1-17 2" stroke="#4C86BC" strokeWidth="2" strokeLinecap="round"/>
-              <path d="m48 10 3 7 7 3-7 3-3 7-3-7-7-3 7-3 3-7Z" fill="#F6C96B"/>
+        <div className="hero-visual" aria-hidden="true">
+          <div className="hero-circle hero-circle-back" />
+          <div className="hero-circle hero-circle-front" />
+          <div className="hero-illustration">
+            <svg viewBox="0 0 440 300" fill="none">
+              <path d="M46 242h344" stroke="#B7DCCF" strokeWidth="3" strokeLinecap="round"/>
+              <path d="M73 237V116h57v121M84 128h35M84 143h35M84 158h35" stroke="#247A66" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M60 116h83v-13H60z" fill="#1DB88A"/>
+              <path d="M293 236V96q0-10 10-10h86q10 0 10 10v140" fill="#DDF5EC" stroke="#9CD8C4" strokeWidth="3"/>
+              <rect x="309" y="109" width="74" height="10" rx="5" fill="#13B981"/>
+              <rect x="309" y="132" width="48" height="8" rx="4" fill="#8FCDB8"/>
+              <rect x="309" y="150" width="61" height="8" rx="4" fill="#8FCDB8"/>
+              <rect x="309" y="168" width="38" height="8" rx="4" fill="#8FCDB8"/>
+              <path d="M174 238c-12-32-5-78 15-100 14-15 36-18 52-7 18 12 24 38 19 62l-6 45h-80Z" fill="#18364C"/>
+              <path d="M180 139c-4-25 13-48 39-50 24-2 43 16 43 39 0 17-9 29-20 37l-52-2c-5-7-8-15-10-24Z" fill="#F4B88F"/>
+              <path d="M178 138c-15-28 4-65 37-72 29-6 55 15 53 44-8-12-20-18-33-18-8 15-26 24-52 25l-5 21Z" fill="#173B57"/>
+              <path d="M210 132c5 3 10 3 15 0" stroke="#A65C4B" strokeWidth="3" strokeLinecap="round"/>
+              <circle cx="208" cy="119" r="3" fill="#263C4C"/><circle cx="238" cy="119" r="3" fill="#263C4C"/>
+              <path d="M160 235c-6-35 0-65 20-83l29 14-4 69h-45Z" fill="#13A77D"/>
+              <path d="M214 236c-3-28 7-55 24-67l27 8 13 59h-64Z" fill="#1B5D70"/>
+              <path d="M192 173c-13 20-16 35-12 52" stroke="#F4B88F" strokeWidth="12" strokeLinecap="round"/>
+              <path d="M184 224 151 239" stroke="#F4B88F" strokeWidth="10" strokeLinecap="round"/>
+              <rect x="142" y="232" width="52" height="7" rx="3.5" fill="#173B57"/>
+              <path d="M266 232h-20l-9-82h29l12 82Z" fill="#D9E8F4" stroke="#9DB8CB" strokeWidth="3"/>
+              <path d="M236 150h33l-4-12h-26l-3 12Z" fill="#13B981"/>
+              <path d="M65 236h72" stroke="#173B57" strokeWidth="6" strokeLinecap="round"/>
+              <path d="m92 86 9-16 9 16-9 16-9-16Z" fill="#F5C96B"/>
+              <path d="M359 64v-17m-8 8h16" stroke="#E4AD45" strokeWidth="4" strokeLinecap="round"/>
+              <circle cx="80" cy="60" r="6" fill="#17B987"/><circle cx="381" cy="205" r="5" fill="#F4C66D"/>
             </svg>
           </div>
-          <span className="welcome-spark spark-one">✦</span>
-          <span className="welcome-spark spark-two">✧</span>
+          <div className="hero-floating-card"><span className="floating-check">✓</span><span><strong>Keep learning</strong><small>Progress starts today</small></span></div>
         </div>
       </section>
 
-      <section aria-labelledby="stats-heading" className="dashboard-stats" aria-busy={stats.status === "loading"}>
-        <h2 id="stats-heading" className="visually-hidden">Your progress</h2>
-        <div className="stat stat-average">
-          <span className="stat-icon" aria-hidden="true">↗</span>
-          <div><p className="label">Average score</p><p className="value">{averageLabel}</p></div>
-          <span className="stat-caption">Across completed tests</span>
-        </div>
-        <div className="stat stat-attempts">
-          <span className="stat-icon" aria-hidden="true">✓</span>
-          <div><p className="label">Completed attempts</p><p className="value">{countLabel}</p></div>
-          <span className="stat-caption">Every session counts</span>
-        </div>
-        {stats.status === "ready" && summary.averagePercent === null && <p className="stats-note">Complete a practice to see your average score.</p>}
-        {stats.status === "ready" && summary.averagePercent !== null && <p className="stats-note">Average percentage correct across your completed attempts.</p>}
-        {stats.status === "error" && <div className="stats-error"><div className="error-msg" role="alert">{STATS_FAILED}</div><button type="button" className="btn btn-secondary" onClick={() => setStatsReloadKey((k) => k + 1)}>Try again</button></div>}
+      <section className="daily-tip"><span className="tip-icon" aria-hidden="true">✦</span><p><strong>A little every day.</strong> Small, consistent practice is the key to lasting progress.</p></section>
+
+      <section className="home-stats" aria-label="Your learning statistics" aria-busy={stats.status === "loading"}>
+        <article className="home-stat-card"><span className="home-stat-icon score-icon" aria-hidden="true">↗</span><div><p>AVERAGE SCORE</p><strong>{average}</strong><small>Across completed attempts</small></div></article>
+        <article className="home-stat-card"><span className="home-stat-icon completed-icon" aria-hidden="true">✓</span><div><p>COMPLETED TESTS</p><strong>{completed}</strong><small>Every session counts</small></div></article>
+        {stats.status === "error" && <div className="stats-error"><div className="error-msg" role="alert">{STATS_FAILED}</div><button className="btn btn-secondary" onClick={() => setStatsReload((key) => key + 1)}>Try again</button></div>}
       </section>
 
-      <section aria-labelledby="parts-heading" className="dashboard-practice-section">
-        <div className="section-head">
-          <div><p className="eyebrow">CHOOSE YOUR FOCUS</p><h2 id="parts-heading">Practice by Part</h2></div>
-          <span className="section-helper">Pick a section to get started <span aria-hidden="true">→</span></span>
+      <section className="quick-access-section">
+        <div className="home-section-heading"><div><p className="eyebrow">GET STARTED</p><h2>Quick access</h2></div><span>Choose how you want to learn</span></div>
+        <div className="quick-access-grid">
+          <button className="quick-card" type="button" onClick={() => navigate("/practice")}>
+            <span className="quick-icon quick-dark" aria-hidden="true">◷</span><strong>Full Mock Test</strong><p>Experience a complete TOEIC test in a timed session.</p><small>120 MINUTES · TIMED</small>
+          </button>
+          <button className="quick-card" type="button" onClick={() => navigate("/practice")}>
+            <span className="quick-icon quick-green" aria-hidden="true">♫</span><strong>Practice by Part</strong><p>Focus on one TOEIC section at a time, at your own pace.</p><small>7 PARTS · FOCUSED PRACTICE</small>
+          </button>
+          <button className="quick-card" type="button" onClick={() => navigate("/progress")}>
+            <span className="quick-icon quick-dark" aria-hidden="true">▥</span><strong>My Progress</strong><p>Review your completed attempts and track your scores.</p><small>YOUR LEARNING HISTORY</small>
+          </button>
         </div>
-        {parts.status === "loading" && <div role="status" aria-live="polite"><span className="visually-hidden">Loading Parts…</span><div className="part-grid" aria-hidden="true">{[0,1,2,3].map((i) => <div key={i} className="skeleton part-skeleton" />)}</div></div>}
-        {parts.status === "error" && <div><div className="error-msg" role="alert">{LOAD_FAILED}</div><button type="button" className="btn btn-secondary" onClick={() => setReloadKey((k) => k + 1)}>Try again</button></div>}
-        {parts.status === "empty" && <div className="card empty-state"><p>No practice exercises are available yet. Please check back soon.</p></div>}
+      </section>
+
+      <section className="jump-section">
+        <div className="home-section-heading"><div><p className="eyebrow">PICK UP A SKILL</p><h2>Jump into a Part</h2></div><span>Practice exactly what you need</span></div>
         {startError && <div className="error-msg" role="alert">{startError}</div>}
-        {parts.status === "ready" && <ul className="part-grid part-list">{parts.items.map((name, index) => (
-          <li key={name}>
-            <button type="button" className="part-card" disabled={startingPart !== null} aria-label={`Start ${name}`} onClick={() => start(name)}>
-              <span className="part-card-top"><span className="part-number">{String(index + 1).padStart(2, "0")}</span><span className="part-card-arrow" aria-hidden="true">↗</span></span>
-              <span className="pc-name">{name}</span>
-              <span className="pc-meta">{startingPart === name ? "Starting…" : "Practice at your own pace"}</span>
-            </button>
-          </li>
-        ))}</ul>}
+        {parts.status === "loading" && <div role="status" className="part-loading">Loading available Parts…</div>}
+        {parts.status === "error" && <div><div className="error-msg" role="alert">{LOAD_FAILED}</div><button type="button" className="btn btn-secondary" onClick={() => setPartsReload((key) => key + 1)}>Try again</button></div>}
+        {parts.status === "empty" && <div className="card empty-state"><p>No practice exercises are available yet.</p></div>}
+        {parts.status === "ready" && <div className="jump-parts-grid">{parts.items.map((part, index) => <button type="button" className="jump-part" key={part} disabled={starting !== null} onClick={() => start("PART_PRACTICE", part)}><span>{part}</span><span className="jump-part-arrow">{starting === part ? "Starting…" : "→"}</span></button>)}</div>}
       </section>
     </>
   );

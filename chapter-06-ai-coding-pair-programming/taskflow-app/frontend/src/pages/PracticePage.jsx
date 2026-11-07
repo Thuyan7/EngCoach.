@@ -4,6 +4,16 @@ import { listParts } from "../api/parts.js";
 import { startMockTest, startPartPractice } from "../api/attempts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 
+const partDescriptions = [
+  "Photographs and visual descriptions",
+  "Question and response",
+  "Short conversations",
+  "Short talks and announcements",
+  "Incomplete sentences",
+  "Text completion",
+  "Reading comprehension",
+];
+
 export default function PracticePage() {
   const { token, signOut } = useAuth();
   const navigate = useNavigate();
@@ -11,17 +21,27 @@ export default function PracticePage() {
   const [reloadKey, setReloadKey] = useState(0);
   const [starting, setStarting] = useState(null);
   const [error, setError] = useState("");
+
   useEffect(() => {
     let cancelled = false;
     setParts({ status: "loading", items: [] });
-    listParts(token).then(items => { if (!cancelled) setParts({ status: items.length ? "ready" : "empty", items }); })
-      .catch(err => { if (cancelled) return; if (err.status === 401) return signOut(); setParts({ status: "error", items: [] }); });
+    listParts(token).then((items) => {
+      if (!cancelled) setParts({ status: items.length ? "ready" : "empty", items });
+    }).catch((err) => {
+      if (cancelled) return;
+      if (err.status === 401) return signOut();
+      setParts({ status: "error", items: [] });
+    });
     return () => { cancelled = true; };
   }, [token, signOut, reloadKey]);
+
   async function begin(type, part = null) {
-    setError(""); setStarting(type === "MOCK_TEST" ? "mock" : part);
+    setError("");
+    setStarting(type === "MOCK_TEST" ? "mock" : part);
     try {
-      const attempt = type === "MOCK_TEST" ? await startMockTest(token) : await startPartPractice(token, part);
+      const attempt = type === "MOCK_TEST"
+        ? await startMockTest(token)
+        : await startPartPractice(token, part);
       navigate(`/practice/${attempt.id}`);
     } catch (err) {
       if (err.status === 401) return signOut();
@@ -29,18 +49,27 @@ export default function PracticePage() {
       setStarting(null);
     }
   }
-  return <>
-    <div className="page-head"><h1>Practice</h1><p>Choose a focused TOEIC Part practice or simulate the full two-hour test.</p></div>
-    {error && <div className="error-msg" role="alert">{error}</div>}
-    <section aria-labelledby="mock-test-heading" className="practice-feature">
-      <div className="practice-feature-copy"><p className="eyebrow">Timed assessment</p><h2 id="mock-test-heading">Full TOEIC mock test</h2><p>Practice with the question bank in a timed two-hour session. Your answers are saved as you go.</p><ul className="practice-feature-points"><li>120-minute countdown</li><li>Review answers before submitting</li><li>Get your score and feedback after grading</li></ul></div>
-      <button type="button" className="btn btn-primary" disabled={starting !== null} onClick={() => begin("MOCK_TEST")}>{starting === "mock" ? "Starting…" : "Start mock test"}</button>
-    </section>
-    <section aria-labelledby="part-practice-heading"><div className="section-head"><h2 id="part-practice-heading">Practice by Part</h2><span className="muted-label">Untimed</span></div>
-      {parts.status === "loading" && <div role="status" aria-live="polite">Loading available Parts…<div className="part-grid" aria-hidden="true">{[0,1,2,3].map(n => <div key={n} className="skeleton part-skeleton" />)}</div></div>}
-      {parts.status === "error" && <div><div className="error-msg" role="alert">We couldn't load the Part list. Please try again.</div><button type="button" className="btn btn-secondary" onClick={() => setReloadKey(k => k + 1)}>Try again</button></div>}
-      {parts.status === "empty" && <div className="card empty-state"><p>No Part practice is available yet.</p></div>}
-      {parts.status === "ready" && <ul className="part-grid part-list">{parts.items.map(part => <li key={part}><button type="button" className="part-card" disabled={starting !== null} onClick={() => begin("PART_PRACTICE", part)}><span className="pc-name">{part}</span><span className="pc-meta">{starting === part ? "Starting…" : "Practice at your own pace"}</span></button></li>)}</ul>}
-    </section>
-  </>;
+
+  return (
+    <div className="practice-page">
+      <div className="page-head"><p className="eyebrow">TRAIN WITH PURPOSE</p><h1>Practice Tests</h1><p>Simulate the real exam or focus on one skill at a time.</p></div>
+      {error && <div className="error-msg" role="alert">{error}</div>}
+      <section aria-labelledby="mock-test-heading" className="mock-feature">
+        <div className="mock-feature-copy">
+          <span className="mock-feature-label">MOST POPULAR</span>
+          <h2 id="mock-test-heading">Full Mock Test</h2>
+          <p>All available TOEIC parts in one timed practice. Your answers are saved as you go, and you can review your result after submitting.</p>
+          <div className="mock-feature-meta"><span>◷ &nbsp;120 minutes</span><span>☷ &nbsp;Full test</span><span>♫ &nbsp;Listening + Reading</span></div>
+        </div>
+        <button type="button" className="btn btn-green mock-start" disabled={starting !== null} onClick={() => begin("MOCK_TEST")}>{starting === "mock" ? "Starting…" : "▷  Start mock test"}</button>
+      </section>
+      <section aria-labelledby="part-practice-heading" className="practice-parts-section">
+        <div className="home-section-heading"><div><p className="eyebrow">BUILD ONE SKILL AT A TIME</p><h2 id="part-practice-heading">Practice by Part</h2></div><span>Choose a section to get started</span></div>
+        {parts.status === "loading" && <div role="status" className="part-loading">Loading available Parts…</div>}
+        {parts.status === "error" && <div><div className="error-msg" role="alert">We couldn't load the Part list. Please try again.</div><button type="button" className="btn btn-secondary" onClick={() => setReloadKey((key) => key + 1)}>Try again</button></div>}
+        {parts.status === "empty" && <div className="card empty-state"><p>No Part practice is available yet.</p></div>}
+        {parts.status === "ready" && <ul className="practice-part-grid">{parts.items.map((part, index) => <li key={part}><button type="button" className="practice-part-card" disabled={starting !== null} onClick={() => begin("PART_PRACTICE", part)}><span className="practice-part-top"><span className="practice-part-number">P{index + 1}</span><span className="practice-part-type">{index < 4 ? "Listening" : "Reading"}</span></span><strong>{part}</strong><p>{partDescriptions[index] || "Focused TOEIC practice"}</p><span className="practice-part-bottom">{starting === part ? "Starting…" : "Practice this Part"} <b>→</b></span></button></li>)}</ul>}
+      </section>
+    </div>
+  );
 }
