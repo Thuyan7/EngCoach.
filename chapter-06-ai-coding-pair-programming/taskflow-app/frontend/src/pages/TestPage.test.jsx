@@ -489,3 +489,95 @@ describe("Test screen (S7b)", () => {
     });
   });
 });
+
+describe("Test screen: Part 2 letters and grouped Part 3-4", () => {
+  const conversation = (firstId, groupId, groupType = "CONVERSATION") => [0, 1, 2].map((n) => ({
+    id: firstId + n,
+    prompt: `Prompt ${firstId + n}?`,
+    options: ["Alpha", "Bravo", "Charlie", "Delta"],
+    audioUrl: `/audio/test-01/g${groupId}.mp3`,
+    audioText: "Shared script",
+    groupId,
+    groupType,
+    groupContent: "Shared script",
+  }));
+
+  it("Part 2 shows only the letters A, B, C and hides the question and answer text", async () => {
+    const user = userEvent.setup();
+    const fetchMock = routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 2"], timeLimitSeconds: 540, remainingSeconds: 500,
+        questions: [{
+          id: 201, prompt: "Where should I put the paper?", options: ["On the desk.", "At noon.", "Yes, he is."],
+          audioUrl: "/audio/test-01/q7.mp3", audioText: "Number 7.", groupId: 5, groupType: "LISTENING_ITEM", groupContent: "x",
+        }],
+      })),
+      "PUT /attempts/7/answers/201": () => jsonResponse(200, { questionId: 201, chosenOption: "At noon." }),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 1 of 1")).toBeInTheDocument();
+    expect(screen.queryByText("Where should I put the paper?")).not.toBeInTheDocument();
+    expect(screen.queryByText("On the desk.")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Option A")).toBeInTheDocument();
+    expect(screen.getByLabelText("Option C")).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText("Option B"));
+    await waitFor(() => expect(putBodies(fetchMock)).toEqual([["/attempts/7/answers/201", { chosenOption: "At noon." }]]));
+  });
+
+  it("Part 3 shows the three questions of one conversation together with one audio player", async () => {
+    const user = userEvent.setup();
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 3"], timeLimitSeconds: 1020, remainingSeconds: 900,
+        questions: [...conversation(301, 11), ...conversation(304, 12)],
+      })),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 1 of 6")).toBeInTheDocument();
+    expect(screen.getByText("Question 2 of 6")).toBeInTheDocument();
+    expect(screen.getByText("Question 3 of 6")).toBeInTheDocument();
+    expect(screen.queryByText("Question 4 of 6")).not.toBeInTheDocument();
+    expect(document.querySelectorAll("audio")).toHaveLength(1);
+    expect(screen.getByLabelText("Audio for questions 1 to 3")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByText("Question 4 of 6")).toBeInTheDocument();
+    expect(screen.queryByText("Question 1 of 6")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  });
+
+  it("clicking a question number jumps to the screen that holds it and Part 4 groups the same way", async () => {
+    const user = userEvent.setup();
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 4"], timeLimitSeconds: 960, remainingSeconds: 900,
+        questions: [...conversation(401, 21, "TALK"), ...conversation(404, 22, "TALK")],
+      })),
+    });
+    renderApp("/practice/7");
+
+    await screen.findByText("Question 1 of 6");
+    await user.click(screen.getByRole("button", { name: "Question 5" }));
+    expect(screen.getByText("Question 4 of 6")).toBeInTheDocument();
+    expect(screen.getByText("Question 6 of 6")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Question 5" })).toHaveAttribute("aria-current", "step");
+  });
+
+  it("resumes at the first screen that still has an unanswered question", async () => {
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 3"], timeLimitSeconds: 1020, remainingSeconds: 900,
+        questions: [...conversation(301, 11), ...conversation(304, 12)],
+        answers: [301, 302, 303].map((id) => ({ questionId: id, chosenOption: "Alpha" })),
+      })),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 4 of 6")).toBeInTheDocument();
+    expect(screen.queryByText("Question 1 of 6")).not.toBeInTheDocument();
+  });
+});
