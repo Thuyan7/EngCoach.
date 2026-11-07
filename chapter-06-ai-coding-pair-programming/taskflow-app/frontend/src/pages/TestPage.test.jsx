@@ -580,4 +580,36 @@ describe("Test screen: Part 2 letters and grouped Part 3-4", () => {
     expect(await screen.findByText("Question 4 of 6")).toBeInTheDocument();
     expect(screen.queryByText("Question 1 of 6")).not.toBeInTheDocument();
   });
+
+  it("Part 6 and 7 passages are read on screen: no listening audio, and the questions of one passage are shown together", async () => {
+    const user = userEvent.setup();
+    const passageQuestions = (firstId, groupId) => [0, 1].map((n) => ({
+      id: firstId + n,
+      prompt: `Question text ${firstId + n}`,
+      options: ["one", "two", "three", "four"],
+      passage: `Passage number ${groupId}`,
+      audioUrl: null,
+      audioText: null,
+      groupId,
+      groupType: "PASSAGE",
+      groupContent: `Passage number ${groupId}`,
+    }));
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 7"], timeLimitSeconds: 3300, remainingSeconds: 3000,
+        questions: [...passageQuestions(501, 31), ...passageQuestions(503, 32)],
+      })),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 1 of 4")).toBeInTheDocument();
+    expect(screen.getByText("Question 2 of 4")).toBeInTheDocument();
+    expect(screen.getAllByText("Passage number 31")).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: /Play listening audio/ })).not.toBeInTheDocument();
+    expect(screen.queryByText("Computer-generated voice")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByText("Question 3 of 4")).toBeInTheDocument();
+    expect(screen.getByText("Passage number 32")).toBeInTheDocument();
+  });
 });

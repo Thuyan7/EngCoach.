@@ -17,9 +17,9 @@ const formatTime = (seconds) => {
   return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
 };
 
-// Part 3 and Part 4: the questions of one conversation / talk share one audio,
+// Part 3, 4, 6 and 7: the questions of one conversation / talk / passage share the same audio or text,
 // so they are shown together on one screen instead of one per "Next".
-const GROUPED_TYPES = ["CONVERSATION", "TALK"];
+const GROUPED_TYPES = ["CONVERSATION", "TALK", "PASSAGE"];
 
 // Returns the screens of the test: each screen is a list of question positions.
 function buildSteps(questions) {
@@ -244,7 +244,9 @@ export default function TestPage() {
   steps.forEach((st, si) => st.indexes.forEach((i) => (stepOfQuestion[i] = si)));
   const locked = attempt.status !== "IN_PROGRESS";
   // Part 2 is shown like the real TOEIC: only the letters A, B, C. The question and the answers are heard, not read.
-  const hasListeningSource = Boolean(question.audioUrl || question.audioText || question.groupContent);
+  // A reading passage group (Part 6, 7) keeps its text in groupContent; that text is read on screen, never played as audio.
+  const listeningText = question.audioText || (question.groupType === "PASSAGE" ? null : question.groupContent);
+  const hasListeningSource = Boolean(question.audioUrl || listeningText);
   const lettersOnly = hasListeningSource && (question.groupType === "LISTENING_ITEM" || attempt.part === "Part 2");
   const answeredCount = questions.filter((q) => answers[q.id] !== undefined).length;
 
@@ -330,12 +332,12 @@ export default function TestPage() {
             loading="lazy"
           />
         )}
-        {(question.audioText || question.groupContent) && !question.audioUrl && (
+        {listeningText && !question.audioUrl && (
           <div className="question-media-audio">
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={() => playQuestionAudio(question.audioText || question.groupContent)}
+              onClick={() => playQuestionAudio(listeningText)}
               aria-label={question.groupType ? `Play listening audio for ${question.groupType.toLowerCase()}` : "Play listening audio"}
             >
               Play listening audio
