@@ -7,4 +7,6 @@ public interface ToeicTestRepository extends JpaRepository<ToeicTest, Long> {
     List<ToeicTest> findByPublishedTrueOrderByIdAsc();
 
     boolean existsByTitle(String title);
+
+    java.util.Optional<ToeicTest> findFirstByTitle(String title);
 }

@@ -61,7 +61,7 @@ class GeneratedTestImporterTest {
         importer = new GeneratedTestImporter(questionRepository, toeicTestRepository, testPartRepository,
                 testQuestionRepository, questionGroupRepository, new ObjectMapper(),
                 new PathMatchingResourcePatternResolver(), transactionTemplate,
-                "classpath*:importer-fixtures/test-*.json");
+                "classpath*:importer-fixtures/test-*.json", false);
     }
 
     @Test
@@ -99,6 +99,61 @@ class GeneratedTestImporterTest {
 
         verify(questionRepository, never()).saveAll(anyList());
         verify(toeicTestRepository, never()).save(any(ToeicTest.class));
+    }
+
+    @Test
+    void refreshUpdatesAnExistingTestInPlaceWhenEnabled() throws Exception {
+        GeneratedTestImporter refreshing = new GeneratedTestImporter(questionRepository, toeicTestRepository,
+                testPartRepository, testQuestionRepository, questionGroupRepository, new ObjectMapper(),
+                new PathMatchingResourcePatternResolver(), transactionTemplateRunningCallbacks(),
+                "classpath*:importer-fixtures/test-*.json", true);
+        ToeicTest existing = mock(ToeicTest.class);
+        when(existing.getId()).thenReturn(9L);
+        when(toeicTestRepository.existsByTitle("Fixture Generated Test")).thenReturn(true);
+        when(toeicTestRepository.findFirstByTitle("Fixture Generated Test")).thenReturn(java.util.Optional.of(existing));
+        List<TestQuestion> links = new java.util.ArrayList<>();
+        List<Question> stored = new java.util.ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            Question q = mock(Question.class);
+            when(q.getId()).thenReturn(100L + i);
+            stored.add(q);
+            links.add(new TestQuestion(9L, 100L + i, null, i + 1));
+        }
+        when(testQuestionRepository.findByTestIdOrderBySortOrderAsc(9L)).thenReturn(links);
+        when(questionRepository.findAllById(any())).thenReturn(stored);
+
+        refreshing.run();
+
+        for (Question q : stored) {
+            verify(q).refreshFrom(any(), any(), any(), any(), any(), any(), any(), any());
+        }
+        verify(toeicTestRepository, never()).save(any(ToeicTest.class));
+    }
+
+    @Test
+    void refreshFailsClearlyWhenQuestionCountDiffers() {
+        GeneratedTestImporter refreshing = new GeneratedTestImporter(questionRepository, toeicTestRepository,
+                testPartRepository, testQuestionRepository, questionGroupRepository, new ObjectMapper(),
+                new PathMatchingResourcePatternResolver(), transactionTemplateRunningCallbacks(),
+                "classpath*:importer-fixtures/test-*.json", true);
+        ToeicTest existing = mock(ToeicTest.class);
+        when(existing.getId()).thenReturn(9L);
+        when(toeicTestRepository.existsByTitle("Fixture Generated Test")).thenReturn(true);
+        when(toeicTestRepository.findFirstByTitle("Fixture Generated Test")).thenReturn(java.util.Optional.of(existing));
+        when(testQuestionRepository.findByTestIdOrderBySortOrderAsc(9L)).thenReturn(List.of());
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, refreshing::run);
+        assertTrue(e.getMessage().contains("xóa đề cũ"));
+    }
+
+    @SuppressWarnings("unchecked")
+    private TransactionTemplate transactionTemplateRunningCallbacks() {
+        TransactionTemplate template = mock(TransactionTemplate.class);
+        doAnswer(invocation -> {
+            ((Consumer<Object>) invocation.getArgument(0)).accept(null);
+            return null;
+        }).when(template).executeWithoutResult(any());
+        return template;
     }
 
     @Test

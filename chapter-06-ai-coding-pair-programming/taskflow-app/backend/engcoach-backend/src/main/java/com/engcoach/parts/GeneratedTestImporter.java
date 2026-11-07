@@ -11,6 +11,7 @@ import com.engcoach.tests.ToeicTestRepository;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
@@ -27,12 +28,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Nạp các đề do tools/question-generator sinh ra (classpath:question-bank/generated/test-*.json).
  * Tắt mặc định (engcoach.question-bank.import-generated=true để bật). Đề có tiêu đề đã tồn tại thì bỏ qua,
- * nên chạy lại nhiều lần không tạo đề trùng. Mỗi file được lưu trong một transaction và được kiểm tra
+ * nên chạy lại nhiều lần không tạo đề trùng; bật engcoach.question-bank.refresh-generated=true thì đề đã có được cập nhật tại chỗ. Mỗi file được lưu trong một transaction và được kiểm tra
  * toàn bộ trước khi ghi: file lỗi làm ứng dụng báo lỗi rõ ràng thay vì lưu dở dang.
  */
 @Component
@@ -52,22 +54,24 @@ public class GeneratedTestImporter implements CommandLineRunner {
     private final ResourcePatternResolver resolver;
     private final TransactionTemplate transactionTemplate;
     private final String locationPattern;
+    private final boolean refresh;
 
     @Autowired
     public GeneratedTestImporter(QuestionRepository questionRepository, ToeicTestRepository toeicTestRepository,
                                  TestPartRepository testPartRepository, TestQuestionRepository testQuestionRepository,
                                  QuestionGroupRepository questionGroupRepository, ObjectMapper objectMapper,
-                                 TransactionTemplate transactionTemplate) {
+                                 TransactionTemplate transactionTemplate,
+                                 @Value("${engcoach.question-bank.refresh-generated:false}") boolean refresh) {
         this(questionRepository, toeicTestRepository, testPartRepository, testQuestionRepository,
                 questionGroupRepository, objectMapper, new PathMatchingResourcePatternResolver(),
-                transactionTemplate, DEFAULT_PATTERN);
+                transactionTemplate, DEFAULT_PATTERN, refresh);
     }
 
     GeneratedTestImporter(QuestionRepository questionRepository, ToeicTestRepository toeicTestRepository,
                           TestPartRepository testPartRepository, TestQuestionRepository testQuestionRepository,
                           QuestionGroupRepository questionGroupRepository, ObjectMapper objectMapper,
                           ResourcePatternResolver resolver, TransactionTemplate transactionTemplate,
-                          String locationPattern) {
+                          String locationPattern, boolean refresh) {
         this.questionRepository = questionRepository;
         this.toeicTestRepository = toeicTestRepository;
         this.testPartRepository = testPartRepository;
@@ -77,6 +81,7 @@ public class GeneratedTestImporter implements CommandLineRunner {
         this.resolver = resolver;
         this.transactionTemplate = transactionTemplate;
         this.locationPattern = locationPattern;
+        this.refresh = refresh;
     }
 
     @Override
@@ -87,6 +92,9 @@ public class GeneratedTestImporter implements CommandLineRunner {
             GeneratedTest test = read(file);
             validate(test, file.getFilename());
             if (toeicTestRepository.existsByTitle(test.title())) {
+                if (refresh) {
+                    transactionTemplate.executeWithoutResult(status -> refreshExisting(test));
+                }
                 continue;
             }
             transactionTemplate.executeWithoutResult(status -> save(test));
@@ -174,6 +182,39 @@ public class GeneratedTestImporter implements CommandLineRunner {
             links.add(new TestQuestion(toeicTest.getId(), saved.get(i).getId(), groupId, i + 1));
         }
         testQuestionRepository.saveAll(links);
+    }
+
+    /** Cập nhật đề đã có theo file mới: giữ id câu hỏi/nhóm nên các lượt làm bài cũ không bị mất. */
+    private void refreshExisting(GeneratedTest test) {
+        ToeicTest existing = toeicTestRepository.findFirstByTitle(test.title()).orElseThrow();
+        List<TestQuestion> links = testQuestionRepository.findByTestIdOrderBySortOrderAsc(existing.getId());
+        if (links.size() != test.questions().size()) {
+            throw new IllegalStateException("Đề \"" + test.title() + "\" trong cơ sở dữ liệu có " + links.size()
+                    + " câu nhưng file có " + test.questions().size() + " câu; xóa đề cũ rồi nạp lại.");
+        }
+        Map<Long, Question> byId = new HashMap<>();
+        questionRepository.findAllById(links.stream().map(TestQuestion::getQuestionId).toList())
+                .forEach(question -> byId.put(question.getId(), question));
+        Set<Long> groupsDone = new HashSet<>();
+        for (int i = 0; i < links.size(); i++) {
+            GeneratedQuestion q = test.questions().get(i);
+            Question stored = byId.get(links.get(i).getQuestionId());
+            try {
+                stored.refreshFrom(q.part(), q.prompt(), objectMapper.writeValueAsString(q.options()),
+                        q.correctOption(), q.passage(), q.imageUrl(), q.audioUrl(), q.audioText());
+            } catch (IOException e) {
+                throw new IllegalStateException("Không ghi được options của đề " + test.title(), e);
+            }
+            Long groupId = links.get(i).getGroupId();
+            if (groupId != null && groupsDone.add(groupId)) {
+                questionGroupRepository.findById(groupId).ifPresent(group -> {
+                    group.refreshFrom("Part 6".equals(q.part()) || "Part 7".equals(q.part()) ? q.passage() : q.audioText(),
+                            q.imageUrl(), q.audioUrl());
+                    questionGroupRepository.save(group);
+                });
+            }
+        }
+        questionRepository.saveAll(byId.values());
     }
 
     private static String groupType(String part) {

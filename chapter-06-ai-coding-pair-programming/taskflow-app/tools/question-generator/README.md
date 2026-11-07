@@ -98,6 +98,17 @@ ENGCOACH_IMPORT_GENERATED_TESTS=true mvn spring-boot:run
 
 Importer bỏ qua đề đã có cùng tiêu đề nên chạy lại nhiều lần không tạo trùng.
 
+Sau khi sinh lại audio hoặc ảnh, đề cũ trong cơ sở dữ liệu vẫn giữ bản cũ (không có `audioUrl`, trang làm bài sẽ đọc bằng
+giọng của trình duyệt). Bật thêm chế độ làm mới để cập nhật đề đã có tại chỗ, giữ nguyên id câu hỏi và lượt làm bài cũ:
+
+```powershell
+$env:ENGCOACH_IMPORT_GENERATED_TESTS="true"
+$env:ENGCOACH_REFRESH_GENERATED_TESTS="true"
+mvn spring-boot:run
+```
+
+Chế độ này yêu cầu số câu trong file bằng số câu đang có trong cơ sở dữ liệu; nếu khác, xóa đề cũ rồi nạp lại.
+
 ## Kiểm duyệt
 
 Mở `out/report-XX.html` để đọc từng bài, đáp án đúng được tô xanh, giải thích tiếng Việt và cảnh báo. Câu hỏi do AI

@@ -42,6 +42,12 @@ public class QuestionGroup {
         this.audioUrl = audioUrl;
     }
 
+    public void refreshFrom(String sharedContent, String imageUrl, String audioUrl) {
+        this.sharedContent = sharedContent;
+        this.imageUrl = imageUrl;
+        this.audioUrl = audioUrl;
+    }
+
     public Long getId() { return id; }
     public String getPart() { return part; }
     public String getGroupType() { return groupType; }

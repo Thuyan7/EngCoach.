@@ -79,6 +79,19 @@ public class Question {
         this.audioText = audioText;
     }
 
+    /** Ghi đè nội dung bằng bản mới (giữ nguyên id để các lượt làm bài cũ vẫn trỏ đúng câu hỏi). */
+    public void refreshFrom(String part, String prompt, String options, String correctOption,
+                            String passage, String imageUrl, String audioUrl, String audioText) {
+        this.part = part;
+        this.prompt = prompt;
+        this.options = options;
+        this.correctOption = correctOption;
+        this.passage = passage;
+        this.imageUrl = imageUrl;
+        this.audioUrl = audioUrl;
+        this.audioText = audioText;
+    }
+
     public Long getId() {
         return id;
     }
