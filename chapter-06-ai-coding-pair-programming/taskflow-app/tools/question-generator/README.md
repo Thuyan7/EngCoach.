@@ -86,7 +86,7 @@ python3 -m qgen.cli generate --tests 1 --audio --redo-audio   # tạo lại toà
 ```
 
 Giọng nằm trong `qgen/tts.py`: bảng `POOLS` (danh sách giọng theo giới tính và giọng vùng), `BASE_SPEED`/`OPTION_SPEED`
-(tốc độ), `TURN_GAP`/`OPTION_GAP` (quãng nghỉ). Chỉ dùng giọng gốc của Kokoro, không trộn giọng, vì trộn với giọng
+(tốc độ), `TURN_GAP`/`OPTION_GAP`/`SENTENCE_GAP` (quãng nghỉ). Chỉ dùng giọng gốc của Kokoro, không trộn giọng, vì trộn với giọng
 chất lượng thấp làm tiếng nghe rè. Mặc định mp3 mono 80 kbps, chuẩn hoá -16 LUFS.
 
 ### Nạp vào ứng dụng

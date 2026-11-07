@@ -2,8 +2,8 @@
 
 Cách làm cho giọng tự nhiên hơn:
 - chỉ dùng giọng gốc chất lượng cao của Kokoro, không trộn với giọng yếu (am_adam, v.v.);
-- đọc nguyên một lượt nói (vài câu liền nhau) để ngữ điệu liền mạch, thay vì cắt từng câu;
-- tốc độ cố định cho mỗi người nói, ngắt nghỉ giữa các lượt và giữa các phương án A-D;
+- đọc chậm vừa phải, mỗi câu đọc trọn một hơi rồi nghỉ (dấu hỏi nghỉ lâu hơn), nghỉ dài hơn giữa các lượt và giữa các phương án A-D;
+- tốc độ cố định cho mỗi người nói trong cả đoạn;
 - chuẩn hoá chữ viết thành cách đọc đúng (giờ, tiền, phần trăm, viết tắt);
 - cân bằng âm lượng giữa các giọng, làm mờ đầu/cuối từng đoạn để không bị tiếng click.
 """
@@ -25,12 +25,12 @@ POOLS = {
 }
 NARRATOR = ("af_bella", "en-us")      # người dẫn Part 1 giữ một giọng cố định trong cả đề
 
-BASE_SPEED = 0.97
-OPTION_SPEED = 0.95                   # phần dẫn và các phương án đọc chậm hơn một chút cho rõ
-TURN_GAP = 0.65                       # nghỉ giữa hai lượt nói
-OPTION_GAP = 0.8                      # nghỉ giữa các phương án A, B, C, D
-CHUNK_GAP = 0.28                      # nghỉ giữa hai đoạn trong cùng một lượt nói
-CHUNK_LIMIT = 220                     # số ký tự tối đa của một đoạn đọc liền
+BASE_SPEED = 0.90                   # 1.0 là tốc độ gốc của Kokoro; thấp hơn thì chậm hơn
+OPTION_SPEED = 0.88                 # phần dẫn và các phương án đọc chậm hơn một chút cho rõ
+TURN_GAP = 0.8                      # nghỉ giữa hai lượt nói
+OPTION_GAP = 0.95                   # nghỉ giữa các phương án A, B, C, D
+SENTENCE_GAP = 0.5                  # nghỉ sau mỗi câu trong cùng một lượt nói
+SENTENCE_GAP_Q = 0.6                # nghỉ sau câu hỏi
 
 
 def _hash(text):
@@ -76,26 +76,22 @@ def normalize_text(t):
     return t
 
 
-def split_chunks(text, limit=CHUNK_LIMIT, options=False):
-    """Chia một lượt nói thành các đoạn đọc liền. Trả về list (đoạn, nghỉ sau đoạn).
+def split_chunks(text, options=False):
+    """Chia một lượt nói thành từng câu, mỗi câu kèm quãng nghỉ sau nó. Trả về list (câu, nghỉ).
+    Dấu '?' và '.' nghỉ lâu hơn '!'; câu cuối của lượt nói không nghỉ (đã có TURN_GAP).
     options=True: cắt trước mỗi phương án 'A. ', 'B. '... và nghỉ lâu hơn giữa các phương án."""
     segments = re.split(r"\s+(?=[A-D]\.\s)", text.strip()) if options else [text.strip()]
     out = []
     for si, seg in enumerate(segments):
-        cur = ""
-        group = []
-        for s in re.split(r"(?<=[.!?])\s+", seg):
-            if cur and len(cur) + 1 + len(s) > limit:
-                group.append(cur)
-                cur = s
+        sentences = [x for x in re.split(r"(?<=[.!?])\s+", seg) if x]
+        if options and len(sentences) > 1 and re.fullmatch(r"[A-D]\.", sentences[0]):
+            sentences[:2] = [sentences[0] + " " + sentences[1]]      # giữ chữ cái A. B. cùng câu của phương án
+        for i, sentence in enumerate(sentences):
+            if i < len(sentences) - 1:
+                gap = SENTENCE_GAP_Q if sentence.endswith("?") else SENTENCE_GAP
             else:
-                cur = (cur + " " + s).strip()
-        if cur:
-            group.append(cur)
-        for gi, chunk in enumerate(group):
-            last_of_segment = gi == len(group) - 1
-            gap = (OPTION_GAP if si < len(segments) - 1 else 0.0) if last_of_segment else CHUNK_GAP
-            out.append((chunk, gap))
+                gap = OPTION_GAP if si < len(segments) - 1 else 0.0
+            out.append((sentence, gap))
     return out
 
 

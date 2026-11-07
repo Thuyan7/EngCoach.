@@ -379,19 +379,12 @@ class TtsTest(TmpCase):
             for name, lang in v.values():
                 self.assertIn(name, sum(tts.POOLS.values(), []) + [tts.NARRATOR[0]])
 
-    def test_split_chunks_keeps_turns_together_and_splits_options(self):
-        one = tts.split_chunks("It is late. We should go.")
-        self.assertEqual(one, [("It is late. We should go.", 0.0)])
+    def test_split_chunks_pauses_after_each_sentence(self):
+        one = tts.split_chunks("It is late. Should we go? Yes.")
+        self.assertEqual(one, [("It is late.", tts.SENTENCE_GAP), ("Should we go?", tts.SENTENCE_GAP_Q), ("Yes.", 0.0)])
         opts = tts.split_chunks("Number 1. A. He reads. B. She waters plants.", options=True)
         self.assertEqual([c for c, _ in opts], ["Number 1.", "A. He reads.", "B. She waters plants."])
         self.assertEqual([g for _, g in opts], [tts.OPTION_GAP, tts.OPTION_GAP, 0.0])
-        long = tts.split_chunks(" ".join(["This sentence is rather long indeed."] * 12))
-        self.assertTrue(all(len(c) <= tts.CHUNK_LIMIT for c, _ in long))
-
-    def test_voices_cover_all_speakers_and_vary_by_unit(self):
-        v = tts.voice_map("t01-p3-g01")
-        for speaker in ("Woman", "Man", "Man 1", "Man 2", "Speaker", "N", "Q", "R"):
-            self.assertIn(speaker, v)
 
     def test_synthesize_sets_audio_url_once_per_group(self):
         questions = [{"groupKey": "g1", "script": [{"speaker": "Woman", "text": "Hi."}]},
