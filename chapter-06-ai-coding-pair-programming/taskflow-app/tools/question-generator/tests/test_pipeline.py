@@ -360,7 +360,33 @@ class ReportTest(TmpCase):
 
 class TtsTest(TmpCase):
     def test_normalize_text_for_spoken_english(self):
-        self.assertEqual(tts.normalize_text("Ms. Lee will arrive at 9:30 A.M. & stay."), "Miz Lee will arrive at 9 30 A M and stay.")
+        self.assertEqual(tts.normalize_text("Ms. Lee will arrive at 9:30 A.M. & stay."), "Miz Lee will arrive at 9 30 AM and stay.")
+
+    def test_normalize_times_money_and_percent(self):
+        n = tts.normalize_text
+        self.assertEqual(n("at 9:00 A.M."), "at 9 AM")
+        self.assertEqual(n("at 9:00 sharp"), "at 9 o'clock sharp")
+        self.assertEqual(n("at 9:05"), "at 9 oh 5")
+        self.assertEqual(n("It costs $1,200."), "It costs 1,200 dollars.")
+        self.assertEqual(n("Only $12.50 each"), "Only 12 dollars and 50 cents each")
+        self.assertEqual(n("a 15% discount"), "a 15 percent discount")
+
+    def test_voices_are_pure_and_two_men_differ(self):
+        for i in range(40):
+            v = tts.voice_map("t01-p3-g%02d" % i)
+            self.assertNotEqual(v["Man 1"], v["Man 2"])
+            self.assertNotEqual(v["Woman"][0], v["Man"][0])
+            for name, lang in v.values():
+                self.assertIn(name, sum(tts.POOLS.values(), []) + [tts.NARRATOR[0]])
+
+    def test_split_chunks_keeps_turns_together_and_splits_options(self):
+        one = tts.split_chunks("It is late. We should go.")
+        self.assertEqual(one, [("It is late. We should go.", 0.0)])
+        opts = tts.split_chunks("Number 1. A. He reads. B. She waters plants.", options=True)
+        self.assertEqual([c for c, _ in opts], ["Number 1.", "A. He reads.", "B. She waters plants."])
+        self.assertEqual([g for _, g in opts], [tts.OPTION_GAP, tts.OPTION_GAP, 0.0])
+        long = tts.split_chunks(" ".join(["This sentence is rather long indeed."] * 12))
+        self.assertTrue(all(len(c) <= tts.CHUNK_LIMIT for c, _ in long))
 
     def test_voices_cover_all_speakers_and_vary_by_unit(self):
         v = tts.voice_map("t01-p3-g01")
@@ -373,7 +399,7 @@ class TtsTest(TmpCase):
                      {"groupKey": "p5", "script": None}]
         rendered = []
 
-        def fake_render(script, unit_id, backend, wav):
+        def fake_render(script, unit_id, backend, wav, **kw):
             rendered.append(unit_id)
             write_file(wav, b"x", "wb")
 

@@ -75,7 +75,8 @@ def run_generate(args, out=print):
         questions = assemble.build_questions(idx, units, results, cfg.seed)
         if backend:
             from .tts import synthesize_test
-            synthesize_test(questions, "test-%02d" % idx, args.public_dir, backend, log=out)
+            synthesize_test(questions, "test-%02d" % idx, args.public_dir, backend, log=out,
+                            force=args.redo_audio)
         errors, warnings = assemble.check_test(units, questions)
         credits = sorted({(r["context"].get("image") or {}).get("credit") for r in results
                           if r["context"].get("image")} - {None})
@@ -123,11 +124,15 @@ def main(argv=None, out=print):
                    help="nguồn ảnh Part 1; mặc định pexels nếu có PEXELS_API_KEY, ngược lại openverse (không cần key)")
     g.add_argument("--photos-dir", default=None, help="thư mục ảnh + captions.json khi dùng --photo-source local")
     g.add_argument("--audio", action="store_true", help="tạo mp3 bằng Kokoro TTS")
+    g.add_argument("--redo-audio", action="store_true", help="tạo lại mp3 dù file đã có (dùng sau khi đổi giọng)")
     g.add_argument("--public-dir", default=DEFAULT_PUBLIC)
     g.add_argument("--tts-models", default=os.path.join(TOOL_DIR, "models"))
     pub = sub.add_parser("publish", help="chép test-XX.json vào resources của backend")
     pub.add_argument("--out", default="out")
     pub.add_argument("--bank-dir", default=DEFAULT_BANK)
+    ts = sub.add_parser("tts-sample", help="tạo vài file mp3 mẫu để nghe thử giọng đọc")
+    ts.add_argument("--out", default=os.path.join("out", "tts-sample"))
+    ts.add_argument("--tts-models", default=os.path.join(TOOL_DIR, "models"))
     pl = sub.add_parser("plan", help="in kế hoạch unit của một đề")
     pl.add_argument("--test", type=int, default=1)
     a = p.parse_args(argv)
@@ -139,6 +144,11 @@ def main(argv=None, out=print):
         return 0
     if a.cmd == "publish":
         return run_publish(a, out)
+    if a.cmd == "tts-sample":
+        from .tts import KokoroBackend, render_samples
+        paths = render_samples(KokoroBackend(a.tts_models), a.out, log=out)
+        out("Đã tạo %d file mẫu trong %s" % (len(paths), a.out))
+        return 0
     try:
         return run_generate(a, out)
     except PhotoSourceError as exc:

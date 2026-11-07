@@ -78,6 +78,17 @@ File mp3 ghi vào `frontend/public/audio/test-XX/`, ảnh vào `frontend/public/
 `/audio/...` và `/part1/...` để Vite phục vụ. Mỗi đề cần khoảng 3-4 MB audio và ảnh. Có nên đưa các file này vào Git hay
 chỉ sinh khi build là quyết định của nhóm.
 
+#### Nghe thử và đổi giọng đọc
+
+```bash
+python3 -m qgen.cli tts-sample --out out/tts-sample    # 8 file mp3 mẫu: hội thoại, Part 1, Part 2, bài nói (giọng Mỹ và Anh)
+python3 -m qgen.cli generate --tests 1 --audio --redo-audio   # tạo lại toàn bộ mp3 của đề sau khi đổi giọng
+```
+
+Giọng nằm trong `qgen/tts.py`: bảng `POOLS` (danh sách giọng theo giới tính và giọng vùng), `BASE_SPEED`/`OPTION_SPEED`
+(tốc độ), `TURN_GAP`/`OPTION_GAP` (quãng nghỉ). Chỉ dùng giọng gốc của Kokoro, không trộn giọng, vì trộn với giọng
+chất lượng thấp làm tiếng nghe rè. Mặc định mp3 mono 80 kbps, chuẩn hoá -16 LUFS.
+
 ### Nạp vào ứng dụng
 
 ```bash
