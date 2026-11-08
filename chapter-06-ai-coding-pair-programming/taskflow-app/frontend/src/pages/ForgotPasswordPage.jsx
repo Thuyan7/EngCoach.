@@ -12,6 +12,9 @@ export default function ForgotPasswordPage() {
   async function handleSubmit(event) {
     event.preventDefault(); setError("");
     if (!email.trim()) return setError("Enter the email address associated with your account.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return setError("Enter a valid email address.");
+    }
     setSubmitting(true);
     try { await forgotPassword(email.trim()); setSent(true); }
     catch (err) { setError(err.status === 0 || err.status >= 500 ? "We couldn't reach the server. Please try again." : "We couldn't process that request. Please try again."); }

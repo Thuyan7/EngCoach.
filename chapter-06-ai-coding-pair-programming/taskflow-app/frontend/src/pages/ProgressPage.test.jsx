@@ -139,10 +139,10 @@ describe("Progress screen (S10b)", () => {
     expect(window.localStorage.getItem("engcoach.session")).toBeNull();
   });
 
-  it("the sidebar Progress link is active and keyboard navigable", async () => {
+  it("the My Progress link is active and keyboard navigable", async () => {
     routeFetch({ "GET /attempts": () => jsonResponse(200, []) });
     renderApp("/progress");
 
-    expect(await screen.findByRole("link", { name: "Progress" })).toHaveAttribute("aria-current", "page");
+    expect(await screen.findByRole("link", { name: "My Progress" })).toHaveAttribute("aria-current", "page");
   });
 });

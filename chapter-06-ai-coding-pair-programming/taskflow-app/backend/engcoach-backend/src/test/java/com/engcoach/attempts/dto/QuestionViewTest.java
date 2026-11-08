@@ -7,15 +7,15 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class QuestionViewTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Test
-    void mapsOptionsAndReadingMediaWithoutExposingCorrectOption() throws Exception {
-        Question question = new Question(
+    private Question sampleQuestion() {
+        return new Question(
                 "Part 7",
                 "What is the notice about?",
                 "[\"An office renovation\",\"A holiday schedule\"]",
@@ -23,8 +23,11 @@ class QuestionViewTest {
                 "NOTICE TO STAFF: The second-floor offices will be renovated.",
                 "https://example.com/office.jpg",
                 "https://example.com/notice.mp3", "The office will close at noon.");
+    }
 
-        QuestionView view = QuestionView.from(question);
+    @Test
+    void mapsOptionsAndReadingMediaWithoutExposingCorrectOption() throws Exception {
+        QuestionView view = QuestionView.from(sampleQuestion());
         JsonNode json = objectMapper.valueToTree(view);
 
         assertEquals("What is the notice about?", json.get("prompt").asText());
@@ -35,16 +38,22 @@ class QuestionViewTest {
         assertEquals("https://example.com/office.jpg", json.get("imageUrl").asText());
         assertEquals("https://example.com/notice.mp3", json.get("audioUrl").asText());
         assertEquals("The office will close at noon.", json.get("audioText").asText());
-        assertFalse(json.has("correctOption"), "The answer key must not be included in the attempt payload");
+        assertFalse(json.has("correctOption"), "The answer key must not be included before submission");
         assertTrue(json.has("options"));
+    }
+
+    @Test
+    void includesCorrectOptionOnlyWhenExplicitlyRequestedForSubmittedReview() throws Exception {
+        QuestionView view = QuestionView.from(sampleQuestion(), true);
+        JsonNode json = objectMapper.valueToTree(view);
+
+        assertEquals("An office renovation", json.get("correctOption").asText());
     }
 
     @Test
     void rejectsMalformedOptionsInsteadOfReturningCorruptQuestionData() {
         Question question = new Question("Part 5", "Choose the best word.", "not-json", "A");
 
-        org.junit.jupiter.api.Assertions.assertThrows(
-                IllegalStateException.class,
-                () -> QuestionView.from(question));
+        assertThrows(IllegalStateException.class, () -> QuestionView.from(question));
     }
 }

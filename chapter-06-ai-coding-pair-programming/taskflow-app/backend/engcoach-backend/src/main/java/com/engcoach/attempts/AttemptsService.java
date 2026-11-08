@@ -260,6 +260,7 @@ public class AttemptsService {
         // questions are the whole bank (same "whatever grading uses, the
         // detail view shows" precedent, extended to MOCK_TEST now that it
         // has a real assigned question set too — approved S11 decision #1).
+        boolean revealAnswers = Attempt.STATUS_SUBMITTED.equals(attempt.getStatus());
         List<QuestionView> questions;
         if ("TEST".equals(attempt.getType()) && attempt.getTestId() != null) {
             List<TestQuestion> links = testQuestionRepository.findByTestIdOrderBySortOrderAsc(attempt.getTestId());
@@ -274,12 +275,12 @@ public class AttemptsService {
             questionGroupRepository.findAllById(selectedLinks.stream().map(TestQuestion::getGroupId)
                     .filter(java.util.Objects::nonNull).toList()).forEach(group -> groups.put(group.getId(), group));
             questions = selectedLinks.stream().map(link -> QuestionView.from(byId.get(link.getQuestionId()),
-                    link.getGroupId() == null ? null : groups.get(link.getGroupId()))).toList();
+                    link.getGroupId() == null ? null : groups.get(link.getGroupId()), revealAnswers)).toList();
         } else {
             List<Question> assignedQuestions = "PART_PRACTICE".equals(attempt.getType()) && attempt.getPart() != null
                     ? questionRepository.findByPartOrderByIdAsc(attempt.getPart())
                     : "MOCK_TEST".equals(attempt.getType()) ? questionRepository.findAllByOrderByIdAsc() : List.of();
-            questions = assignedQuestions.stream().map(QuestionView::from).toList();
+            questions = assignedQuestions.stream().map(question -> QuestionView.from(question, revealAnswers)).toList();
         }
 
         return AttemptDetailResponse.from(attempt, remainingSeconds, answers, questions);

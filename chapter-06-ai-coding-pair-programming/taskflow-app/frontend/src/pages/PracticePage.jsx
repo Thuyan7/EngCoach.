@@ -70,7 +70,7 @@ export default function PracticePage() {
   }
 
   return <>
-    <div className="page-head"><h1>Tests</h1><p>Choose a TOEIC test, then take all 7 Parts or pick only the Parts you want.</p></div>
+    <div className="page-head"><p className="eyebrow">TRAIN WITH PURPOSE</p><h1>Practice Tests</h1><p>Choose a TOEIC test, then take all 7 Parts or pick only the Parts you want.</p></div>
     {error && <div className="error-msg" role="alert">{error}</div>}
     {tests.status === "loading" && <p role="status">Loading available Tests…</p>}
     {tests.status === "error" && <div><div className="error-msg" role="alert">We couldn't load the Tests.</div><button type="button" className="btn btn-secondary" onClick={() => setReloadKey(k => k + 1)}>Try again</button></div>}

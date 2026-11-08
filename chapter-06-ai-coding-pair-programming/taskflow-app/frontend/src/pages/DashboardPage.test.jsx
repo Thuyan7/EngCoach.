@@ -17,20 +17,21 @@ const TEST_TWO = { id: 22, title: "TOEIC AI Practice Test 02", parts: [{ part: "
 // Both requests the Dashboard makes on load; override per test.
 const ok = (tests = [TEST_ONE], attempts = []) => ({
   "GET /tests": () => jsonResponse(200, tests),
+  "GET /parts": () => jsonResponse(200, []),
   "GET /attempts": () => jsonResponse(200, attempts),
 });
 
-const statCard = (label) => screen.getByText(label).closest(".stat");
+const STAT_LABELS = { "Attempts completed": "COMPLETED TESTS", "Average score": "AVERAGE SCORE" };
+const statCard = (label) => screen.getByText(STAT_LABELS[label]).closest(".home-stat-card");
 
 describe("Dashboard — Test list", () => {
   it("lists each Test as its own card (not one list of Parts) using GET /tests with the bearer token", async () => {
     const fetchMock = routeFetch(ok([TEST_ONE, TEST_TWO]));
     renderApp("/dashboard");
 
-    expect(await screen.findByRole("heading", { name: "TOEIC AI Practice Test 01" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "TOEIC AI Practice Test 02" })).toBeInTheDocument();
+    expect(await screen.findByText("TOEIC AI Practice Test 01")).toBeInTheDocument();
+    expect(screen.getByText("TOEIC AI Practice Test 02")).toBeInTheDocument();
     expect(screen.getByText("2 Parts · 36 questions")).toBeInTheDocument();
-    expect(screen.queryByText("Practice by Part")).not.toBeInTheDocument();
 
     const call = fetchMock.mock.calls.find(([url]) => url === "/tests");
     expect(call[1].headers.Authorization).toBe("Bearer jwt-abc");
@@ -39,14 +40,14 @@ describe("Dashboard — Test list", () => {
   it("shows a loading state while the Tests are being fetched", async () => {
     globalThis.fetch = () => new Promise(() => {}); // never resolves
     renderApp("/dashboard");
-    expect(screen.getByRole("status")).toHaveTextContent("Loading Tests…");
+    expect(screen.getByText("Loading available Tests…")).toBeInTheDocument();
   });
 
   it("no Tests yet shows the empty state, not an error", async () => {
     routeFetch(ok([]));
     renderApp("/dashboard");
 
-    expect(await screen.findByText(/No Tests are available yet/)).toBeInTheDocument();
+    expect(await screen.findByText(/No Tests are published yet/)).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
@@ -62,7 +63,7 @@ describe("Dashboard — Test list", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("couldn't load the Tests");
     await user.click(screen.getByRole("button", { name: "Try again" }));
 
-    expect(await screen.findByRole("heading", { name: "TOEIC AI Practice Test 02" })).toBeInTheDocument();
+    expect(await screen.findByText("TOEIC AI Practice Test 02")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
@@ -80,13 +81,13 @@ describe("Dashboard — Test list", () => {
     expect(window.localStorage.getItem("engcoach.session")).toBeNull();
   });
 
-  it("sidebar: Dashboard is current and Tests links to the Test catalog", async () => {
+  it("top navigation: Home is current, Practice Tests links to the Test catalog", async () => {
     routeFetch(ok([]));
     renderApp("/dashboard");
 
-    expect(await screen.findByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Tests" })).toHaveAttribute("href", "/practice");
-    expect(screen.getByRole("link", { name: "Progress" })).toHaveAttribute("href", "/progress");
+    expect(await screen.findByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Practice Tests" })).toHaveAttribute("href", "/practice");
+    expect(screen.getByRole("link", { name: "My Progress" })).toHaveAttribute("href", "/progress");
   });
 
   it("Start full test creates a TEST attempt for every Part of that Test and opens it", async () => {
@@ -114,7 +115,7 @@ describe("Dashboard — Test list", () => {
     renderApp("/dashboard");
 
     await user.click(await screen.findByRole("link", { name: "Choose Parts of TOEIC AI Practice Test 01" }));
-    expect(await screen.findByRole("heading", { name: "Tests" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Practice Tests" })).toBeInTheDocument();
   });
 
   it("422 on start shows a clear message and stays on Dashboard", async () => {
@@ -155,7 +156,6 @@ describe("Dashboard — stats from GET /attempts (S10a)", () => {
 
     expect(await within(statCard("Attempts completed")).findByText("0")).toBeInTheDocument();
     expect(within(statCard("Average score")).getByText("—")).toBeInTheDocument();
-    expect(screen.getByText("Complete a practice to see your average score.")).toBeInTheDocument();
   });
 
   it("shows a placeholder while the stats load", async () => {
@@ -179,7 +179,7 @@ describe("Dashboard — stats from GET /attempts (S10a)", () => {
     renderApp("/dashboard");
 
     expect(await screen.findByRole("alert")).toHaveTextContent("couldn't load your stats");
-    expect(screen.getByRole("heading", { name: "TOEIC AI Practice Test 01" })).toBeInTheDocument(); // list unaffected
+    expect(screen.getByText("TOEIC AI Practice Test 01")).toBeInTheDocument(); // list unaffected
     expect(within(statCard("Average score")).getByText("—")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Try again" }));
