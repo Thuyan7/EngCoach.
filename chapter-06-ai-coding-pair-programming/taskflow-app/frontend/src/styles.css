@@ -673,3 +673,28 @@ body{background:#F8FBFD;color:#1D2939;}
 @media(max-width:900px){.site-header-inner{gap:18px;padding-inline:20px}.header-tagline{display:none}.home-hero{grid-template-columns:1fr .85fr}.quick-access-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.practice-part-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.jump-parts-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:680px){.site-header-inner{min-height:62px;flex-wrap:wrap;gap:8px 14px;padding:10px 15px}.site-brand{font-size:18px}.site-brand-icon{width:33px;height:33px}.top-navigation{order:3;width:100%;height:auto;gap:5px}.top-nav-link{flex:1;padding:9px 7px;text-align:center;font-size:11px}.header-actions{margin-left:auto}.header-signout{padding:8px 10px}.main{padding:23px 16px 45px}.home-hero{grid-template-columns:1fr;gap:12px;min-height:0}.home-hero-copy{padding:12px 0}.home-hero h1{font-size:39px}.hero-visual{min-height:220px}.hero-illustration{max-width:350px}.home-stats{gap:9px}.home-stat-card{gap:9px;min-height:91px;padding:12px}.home-stat-icon{width:35px;height:35px;font-size:18px}.home-stat-card strong{font-size:21px}.home-stat-card p{font-size:8px}.home-stat-card small{font-size:9px}.home-section-heading>span{display:none}.quick-access-grid{grid-template-columns:1fr}.quick-card{min-height:155px}.jump-parts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mock-feature{align-items:stretch;flex-direction:column;padding:23px 20px}.mock-feature h2{font-size:22px}.mock-start{width:100%}.practice-part-grid{grid-template-columns:1fr}.practice-part-card{min-height:190px}.page-head h1{font-size:27px}.daily-tip{align-items:flex-start}.app-footer{padding-inline:16px}}
 @media(prefers-reduced-motion:reduce){.quick-card,.practice-part-card,.btn-green,.top-nav-link{transition:none;}}
+
+/* --- Tests catalog, Part 1-2 letters, grouped questions (question-generator branch) --- */
+/* Tests: catalog and dashboard cards */
+.test-catalog{display:grid;gap:18px;}
+.test-choice-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;}
+.test-choice h3,.dash-test h3{font-family:var(--font-display);font-size:20px;font-weight:600;margin:0 0 6px;}
+.test-choice p{color:var(--text-secondary);font-size:13.5px;margin:0;}
+.test-choice .muted-label{margin:12px 0;}
+.part-select-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+.part-select-option{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--border);border-radius:var(--radius-control);background:var(--surface);cursor:pointer;}
+.part-select-option.is-selected{border-color:var(--primary);background:#EAF3FC;}
+.part-select-option span{display:flex;flex-direction:column;gap:2px;font-size:13px;}
+.part-select-option small{color:var(--text-secondary);font-size:11.5px;}
+.dash-test-list{list-style:none;margin:0;padding:0;display:grid;gap:12px;}
+.dash-test{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 22px;}
+.dash-test h3{margin:0 0 4px;}
+.dash-test .muted-label{margin:0;}
+.dash-test-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.dash-test-actions a.btn{text-decoration:none;display:inline-flex;align-items:center;}
+@media(max-width:640px){.test-choice-head,.dash-test{flex-direction:column;align-items:stretch;}}
+
+/* Part 2 hiển thị chỉ chữ A, B, C như đề TOEIC thật; Part 3-4 gom các câu của một đoạn hội thoại trên một màn hình */
+.q-letter-row{display:flex;gap:12px;flex-wrap:wrap;}
+.q-option--letter{flex:0 0 auto;min-width:72px;justify-content:center;align-items:center;font-size:18px;margin-bottom:0;padding:12px 22px;}
+.question-block + .question-block{margin-top:20px;padding-top:20px;border-top:1px solid var(--border);}
