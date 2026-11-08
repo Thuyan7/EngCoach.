@@ -612,4 +612,29 @@ describe("Test screen: Part 2 letters and grouped Part 3-4", () => {
     expect(screen.getByText("Question 3 of 4")).toBeInTheDocument();
     expect(screen.getByText("Passage number 32")).toBeInTheDocument();
   });
+
+  it("Part 1 shows the photo with only the letters A to D and hides the statements", async () => {
+    const user = userEvent.setup();
+    const fetchMock = routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 1"], timeLimitSeconds: 180, remainingSeconds: 170,
+        questions: [{
+          id: 601, prompt: "Look at the photo.", options: ["A man is reading.", "Boxes are stacked.", "A car is parked.", "People are eating."],
+          imageUrl: "/part1/photo-1.jpg", audioUrl: "/audio/test-01/p1.mp3", audioText: "Number 1.", groupId: 3, groupType: "PHOTO",
+          groupContent: "Number 1.",
+        }],
+      })),
+      "PUT /attempts/7/answers/601": () => jsonResponse(200, { questionId: 601, chosenOption: "A car is parked." }),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 1 of 1")).toBeInTheDocument();
+    expect(screen.getByAltText("Illustration for question 1")).toBeInTheDocument();
+    expect(screen.queryByText("A man is reading.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Look at the photo.")).not.toBeInTheDocument();
+    for (const l of ["A", "B", "C", "D"]) expect(screen.getByLabelText(`Option ${l}`)).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText("Option C"));
+    await waitFor(() => expect(putBodies(fetchMock)).toEqual([["/attempts/7/answers/601", { chosenOption: "A car is parked." }]]));
+  });
 });

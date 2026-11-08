@@ -243,11 +243,11 @@ export default function TestPage() {
   const stepOfQuestion = [];
   steps.forEach((st, si) => st.indexes.forEach((i) => (stepOfQuestion[i] = si)));
   const locked = attempt.status !== "IN_PROGRESS";
-  // Part 2 is shown like the real TOEIC: only the letters A, B, C. The question and the answers are heard, not read.
+  // Part 1 and Part 2 are shown like the real TOEIC: only the letters (A-D, A-C). The statements are heard, not read.
   // A reading passage group (Part 6, 7) keeps its text in groupContent; that text is read on screen, never played as audio.
   const listeningText = question.audioText || (question.groupType === "PASSAGE" ? null : question.groupContent);
   const hasListeningSource = Boolean(question.audioUrl || listeningText);
-  const lettersOnly = hasListeningSource && (question.groupType === "LISTENING_ITEM" || attempt.part === "Part 2");
+  const lettersOnly = hasListeningSource && (["PHOTO", "LISTENING_ITEM"].includes(question.groupType) || ["Part 1", "Part 2"].includes(attempt.part));
   const answeredCount = questions.filter((q) => answers[q.id] !== undefined).length;
 
   return (
