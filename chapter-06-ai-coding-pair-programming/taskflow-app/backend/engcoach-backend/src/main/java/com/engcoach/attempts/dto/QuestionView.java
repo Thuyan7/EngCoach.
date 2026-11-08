@@ -1,6 +1,7 @@
 package com.engcoach.attempts.dto;
 
 import com.engcoach.parts.Question;
+import com.engcoach.tests.QuestionGroup;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,10 +20,24 @@ import java.util.List;
  * {@code Question.correctOption}.
  */
 public record QuestionView(Long id, String prompt, List<String> options,
-                           String passage, String imageUrl, String audioUrl,
+                           String passage, String imageUrl, String audioUrl, String audioText,
+                           Long groupId, String groupType, String groupContent,
                            @JsonInclude(JsonInclude.Include.NON_NULL) String correctOption) {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    public static QuestionView from(Question question, QuestionGroup group) {
+        return from(question, group, false);
+    }
+
+    /** Adds the shared group (conversation, talk, passage...) to the question; the answer key only when asked. */
+    public static QuestionView from(Question question, QuestionGroup group, boolean includeCorrectOption) {
+        QuestionView base = from(question, includeCorrectOption);
+        if (group == null) return base;
+        return new QuestionView(base.id(), base.prompt(), base.options(), base.passage(), base.imageUrl(),
+                base.audioUrl(), base.audioText(), group.getId(), group.getGroupType(), group.getSharedContent(),
+                base.correctOption());
+    }
 
     public static QuestionView from(Question question) {
         return from(question, false);
@@ -32,8 +47,8 @@ public record QuestionView(Long id, String prompt, List<String> options,
         try {
             List<String> options = MAPPER.readValue(question.getOptions(), new TypeReference<List<String>>() { });
             return new QuestionView(question.getId(), question.getPrompt(), options,
-                    question.getPassage(), question.getImageUrl(), question.getAudioUrl(),
-                    includeCorrectOption ? question.getCorrectOption() : null);
+                    question.getPassage(), question.getImageUrl(), question.getAudioUrl(), question.getAudioText(),
+                    null, null, null, includeCorrectOption ? question.getCorrectOption() : null);
         } catch (Exception e) {
             throw new IllegalStateException(
                     "Question " + question.getId() + " has options that are not a JSON array of strings", e);

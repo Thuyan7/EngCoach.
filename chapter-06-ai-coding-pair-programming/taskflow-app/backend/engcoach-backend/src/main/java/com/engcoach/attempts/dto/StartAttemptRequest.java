@@ -1,6 +1,7 @@
 package com.engcoach.attempts.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 
 /**
  * Request body for {@code POST /attempts}. {@code type} is required
@@ -15,6 +16,8 @@ public class StartAttemptRequest {
     private String type;
 
     private String part;
+    private Long testId;
+    private List<String> parts;
 
     public StartAttemptRequest() {
         // required for JSON deserialization
@@ -33,11 +36,10 @@ public class StartAttemptRequest {
         this.type = type;
     }
 
-    public String getPart() {
-        return part;
-    }
-
-    public void setPart(String part) {
-        this.part = part;
-    }
+    public String getPart() { return part; }
+    public void setPart(String part) { this.part = part; }
+    public Long getTestId() { return testId; }
+    public void setTestId(Long testId) { this.testId = testId; }
+    public List<String> getParts() { return parts; }
+    public void setParts(List<String> parts) { this.parts = parts; }
 }

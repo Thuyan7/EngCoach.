@@ -16,6 +16,40 @@ const formatTime = (seconds) => {
   const remainder = safeSeconds % 60;
   return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
 };
+
+// Part 3, 4, 6 and 7: the questions of one conversation / talk / passage share the same audio or text,
+// so they are shown together on one screen instead of one per "Next".
+const GROUPED_TYPES = ["CONVERSATION", "TALK", "PASSAGE"];
+
+// Returns the screens of the test: each screen is a list of question positions.
+function buildSteps(questions) {
+  const steps = [];
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    const last = steps[steps.length - 1];
+    let joins = false;
+    if (last && q.groupId != null && GROUPED_TYPES.includes(q.groupType)) {
+      const before = questions[last.indexes[last.indexes.length - 1]];
+      joins = before.groupId === q.groupId && before.groupType === q.groupType;
+    }
+    if (joins) last.indexes.push(i);
+    else steps.push({ indexes: [i] });
+  }
+  return steps;
+}
+
+function playQuestionAudio(text) {
+  if (typeof window === "undefined" || !window.speechSynthesis || typeof window.SpeechSynthesisUtterance !== "function") {
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const spokenText = text.replace(/(?:^|\s)[MW]:\s*/g, " ");
+  const utterance = new window.SpeechSynthesisUtterance(spokenText);
+  utterance.lang = "en-US";
+  utterance.rate = 0.92;
+  window.speechSynthesis.speak(utterance);
+}
+
 export default function TestPage() {
   const { attemptId } = useParams();
   const { token, signOut } = useAuth();
@@ -58,8 +92,9 @@ export default function TestPage() {
         setSaveState({});
         // Position is not stored server-side; resume at the first question
         // that has no saved answer (or the last one if all are answered).
-        const firstOpen = qs.findIndex((q) => saved[q.id] === undefined);
-        setIndex(firstOpen === -1 ? Math.max(qs.length - 1, 0) : firstOpen);
+        const loadedSteps = buildSteps(qs);
+        const firstOpen = loadedSteps.findIndex((st) => st.indexes.some((i) => saved[qs[i].id] === undefined));
+        setIndex(firstOpen === -1 ? Math.max(loadedSteps.length - 1, 0) : firstOpen);
         setLoad({ status: "ready" });
       } catch (err) {
         if (cancelled) return;
@@ -120,7 +155,7 @@ export default function TestPage() {
   useEffect(() => {
     if (
       load.status !== "ready" ||
-      attempt?.type !== "MOCK_TEST" ||
+      !["MOCK_TEST", "TEST"].includes(attempt?.type) ||
       attempt.status !== "IN_PROGRESS" ||
       remainingSeconds === null ||
       submitState.status === "grading"
@@ -198,21 +233,38 @@ export default function TestPage() {
     );
   }
 
-  const question = questions[index];
+  const steps = buildSteps(questions);
+  const stepIndex = Math.min(index, steps.length - 1);
+  const stepQuestionPositions = steps[stepIndex].indexes;
+  const stepQuestions = stepQuestionPositions.map((i) => questions[i]);
+  const question = stepQuestions[0]; // shared media (passage, image, audio) comes from the first question
+  const firstNumber = stepQuestionPositions[0] + 1;
+  const lastNumber = stepQuestionPositions[stepQuestionPositions.length - 1] + 1;
+  const stepOfQuestion = [];
+  steps.forEach((st, si) => st.indexes.forEach((i) => (stepOfQuestion[i] = si)));
   const locked = attempt.status !== "IN_PROGRESS";
-  const state = question ? saveState[question.id] : undefined;
+  // Part 1 and Part 2 are shown like the real TOEIC: only the letters (A-D, A-C). The statements are heard, not read.
+  // A reading passage group (Part 6, 7) keeps its text in groupContent; that text is read on screen, never played as audio.
+  const listeningText = question.audioText || (question.groupType === "PASSAGE" ? null : question.groupContent);
+  const hasListeningSource = Boolean(question.audioUrl || listeningText);
+  const lettersOnly = hasListeningSource && (["PHOTO", "LISTENING_ITEM"].includes(question.groupType) || ["Part 1", "Part 2"].includes(attempt.part));
   const answeredCount = questions.filter((q) => answers[q.id] !== undefined).length;
 
   return (
     <>
-      <div className={`page-head${attempt.type === "MOCK_TEST" ? " mock-test-head" : ""}`}>
+      <div className={`page-head${["MOCK_TEST", "TEST"].includes(attempt.type) ? " mock-test-head" : ""}`}>
         <div className="mock-test-heading">
-          <h1>{attempt.type === "MOCK_TEST" ? "Mock test" : `${attempt.part} practice`}</h1>
+          <h1>{attempt.type === "MOCK_TEST" ? "Mock test" : attempt.type === "TEST" ? (attempt.testTitle || "TOEIC Test") : `${attempt.part} practice`}</h1>
           <p>
             {answeredCount} of {questions.length} answered
           </p>
+          {attempt.type === "TEST" && Array.isArray(attempt.selectedParts) && attempt.selectedParts.length > 0 && (
+            <p className="muted-label" aria-label="Selected Test Parts">
+              Selected: {attempt.selectedParts.join(", ")}
+            </p>
+          )}
         </div>
-        {attempt.type === "MOCK_TEST" && remainingSeconds !== null && attempt.status === "IN_PROGRESS" && (
+        {["MOCK_TEST", "TEST"].includes(attempt.type) && remainingSeconds !== null && attempt.status === "IN_PROGRESS" && (
           <div
             className="mock-test-timer"
             role="timer"
@@ -229,7 +281,7 @@ export default function TestPage() {
                   cy="52"
                   r="46"
                   strokeDasharray={TIMER_CIRCUMFERENCE}
-                  strokeDashoffset={TIMER_CIRCUMFERENCE * (1 - Math.min(remainingSeconds, MOCK_TEST_DURATION_SECONDS) / MOCK_TEST_DURATION_SECONDS)}
+                  strokeDashoffset={TIMER_CIRCUMFERENCE * (1 - Math.min(remainingSeconds, attempt.timeLimitSeconds || MOCK_TEST_DURATION_SECONDS) / (attempt.timeLimitSeconds || MOCK_TEST_DURATION_SECONDS))}
                   data-testid="mock-timer-ring-value"
                 />
               </svg>
@@ -255,96 +307,126 @@ export default function TestPage() {
             key={q.id}
             type="button"
             className="q-dot"
-            aria-current={i === index ? "step" : undefined}
+            aria-current={stepOfQuestion[i] === stepIndex ? "step" : undefined}
             aria-label={`Question ${i + 1}${answers[q.id] !== undefined ? ", answered" : ""}`}
             data-answered={answers[q.id] !== undefined}
-            onClick={() => setIndex(i)}
+            onClick={() => setIndex(stepOfQuestion[i])}
           >
             {i + 1}
           </button>
         ))}
       </nav>
 
-      {question && (
-        <div className="card question-card">
-          {question.passage && (
-            <section className="question-passage" aria-label="Reading passage">
-              <h2>Read the passage</h2>
-              <p>{question.passage}</p>
-            </section>
-          )}
-          {question.imageUrl && (
-            <img
-              className="question-media-image"
-              src={question.imageUrl}
-              alt={`Illustration for question ${index + 1}`}
-              loading="lazy"
-            />
-          )}
-          {question.audioUrl && (
-            <div className="question-media-audio">
-              <audio controls preload="none" src={question.audioUrl} aria-label={`Audio for question ${index + 1}`}>
-                Your browser does not support audio playback.
-              </audio>
-            </div>
-          )}
-          <fieldset className="question" key={question.id}>
-            <legend>
-              <span className="q-count">
-                Question {index + 1} of {questions.length}
-              </span>
-              <span className="q-prompt">{question.prompt}</span>
-            </legend>
-            {question.options.map((opt, i) => (
-              <label key={i} className="q-option">
-                <input
-                  type="radio"
-                  name={`q-${question.id}`}
-                  value={opt}
-                  checked={answers[question.id] === opt}
-                  disabled={locked}
-                  onChange={() => choose(question.id, opt)}
-                />
-                <span>
-                  <strong>{letter(i)}.</strong> {opt}
-                </span>
-              </label>
-            ))}
-          </fieldset>
-
-          <div className="save-status" role="status" aria-live="polite">
-            {state === "saving" && "Saving…"}
-            {state === "saved" && "Saved"}
-            {state === "error" && (
-              <span className="save-error">
-                Couldn't save this answer.{" "}
-                <button
-                  type="button"
-                  className="link-btn"
-                  onClick={() => persist(question.id, answers[question.id])}
-                >
-                  Retry
-                </button>
-              </span>
-            )}
+      <div className="card question-card">
+        {question.passage && (
+          <section className="question-passage" aria-label="Reading passage">
+            <h2>Read the passage</h2>
+            <p>{question.passage}</p>
+          </section>
+        )}
+        {question.imageUrl && (
+          <img
+            className="question-media-image"
+            src={question.imageUrl}
+            alt={`Illustration for question ${firstNumber}`}
+            loading="lazy"
+          />
+        )}
+        {listeningText && !question.audioUrl && (
+          <div className="question-media-audio">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => playQuestionAudio(listeningText)}
+              aria-label={question.groupType ? `Play listening audio for ${question.groupType.toLowerCase()}` : "Play listening audio"}
+            >
+              Play listening audio
+            </button>
+            <span className="muted-label">Computer-generated voice</span>
           </div>
-        </div>
-      )}
+        )}
+        {question.audioUrl && (
+          <div className="question-media-audio">
+            <audio
+              controls
+              preload="none"
+              src={question.audioUrl}
+              aria-label={firstNumber === lastNumber ? `Audio for question ${firstNumber}` : `Audio for questions ${firstNumber} to ${lastNumber}`}
+            >
+              Your browser does not support audio playback.
+            </audio>
+          </div>
+        )}
+
+        {stepQuestions.map((q, n) => {
+          const number = stepQuestionPositions[n] + 1;
+          const state = saveState[q.id];
+          return (
+            <div key={q.id} className="question-block">
+              <fieldset className="question">
+                <legend>
+                  <span className="q-count">
+                    Question {number} of {questions.length}
+                  </span>
+                  {!lettersOnly && <span className="q-prompt">{q.prompt}</span>}
+                </legend>
+                <div className={lettersOnly ? "q-letter-row" : undefined}>
+                  {q.options.map((opt, i) => (
+                    <label key={i} className={`q-option${lettersOnly ? " q-option--letter" : ""}`}>
+                      <input
+                        type="radio"
+                        name={`q-${q.id}`}
+                        value={opt}
+                        aria-label={lettersOnly ? `Option ${letter(i)}` : undefined}
+                        checked={answers[q.id] === opt}
+                        disabled={locked}
+                        onChange={() => choose(q.id, opt)}
+                      />
+                      <span>
+                        {lettersOnly ? (
+                          <strong>{letter(i)}</strong>
+                        ) : (
+                          <>
+                            <strong>{letter(i)}.</strong> {opt}
+                          </>
+                        )}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <div className="save-status" role="status" aria-live="polite">
+                {state === "saving" && "Saving…"}
+                {state === "saved" && "Saved"}
+                {state === "error" && (
+                  <span className="save-error">
+                    Couldn't save this answer.{" "}
+                    <button type="button" className="link-btn" onClick={() => persist(q.id, answers[q.id])}>
+                      Retry
+                    </button>
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       <div className="q-actions">
         <button
           type="button"
           className="btn btn-secondary"
-          disabled={index === 0}
-          onClick={() => setIndex(index - 1)}
+          disabled={stepIndex === 0}
+          onClick={() => setIndex(stepIndex - 1)}
         >
           Previous
         </button>
         <button
           type="button"
           className="btn btn-primary"
-          disabled={index >= questions.length - 1}
-          onClick={() => setIndex(index + 1)}
+          disabled={stepIndex >= steps.length - 1}
+          onClick={() => setIndex(stepIndex + 1)}
         >
           Next
         </button>

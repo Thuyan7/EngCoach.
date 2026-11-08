@@ -75,6 +75,12 @@ public class Attempt {
     @Column(name = "time_limit_seconds")
     private Integer timeLimitSeconds;
 
+    @Column(name = "test_id")
+    private Long testId;
+
+    @Column(name = "selected_parts", length = 128)
+    private String selectedParts;
+
     @Column
     private Integer score;
 
@@ -101,12 +107,19 @@ public class Attempt {
      */
     public Attempt(Long userId, String type, String part, String status, Instant startedAt,
                    Integer timeLimitSeconds) {
+        this(userId, type, part, status, startedAt, timeLimitSeconds, null, null);
+    }
+
+    public Attempt(Long userId, String type, String part, String status, Instant startedAt,
+                   Integer timeLimitSeconds, Long testId, String selectedParts) {
         this.userId = userId;
         this.type = type;
         this.part = part;
         this.status = status;
         this.startedAt = startedAt;
         this.timeLimitSeconds = timeLimitSeconds;
+        this.testId = testId;
+        this.selectedParts = selectedParts;
         this.createdAt = startedAt;
     }
 
@@ -137,6 +150,10 @@ public class Attempt {
     public Integer getTimeLimitSeconds() {
         return timeLimitSeconds;
     }
+
+    public Long getTestId() { return testId; }
+
+    public String getSelectedParts() { return selectedParts; }
 
     public Integer getScore() {
         return score;

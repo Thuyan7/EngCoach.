@@ -31,6 +31,10 @@ engcoach:
   question-bank:
     # Opt-in local-only starter data. Leave false for normal/production deployments.
     seed-samples: ${ENGCOACH_SEED_SAMPLE_QUESTIONS:false}
+    # Opt-in: nạp các đề test-*.json do tools/question-generator sinh ra (bỏ qua đề đã có cùng tiêu đề).
+    import-generated: ${ENGCOACH_IMPORT_GENERATED_TESTS:false}
+    # Opt-in: đề đã có cùng tiêu đề thì cập nhật nội dung/audio/ảnh tại chỗ thay vì bỏ qua (dùng sau khi sinh lại audio).
+    refresh-generated: ${ENGCOACH_REFRESH_GENERATED_TESTS:false}
 
 server:
   port: ${PORT:8080}

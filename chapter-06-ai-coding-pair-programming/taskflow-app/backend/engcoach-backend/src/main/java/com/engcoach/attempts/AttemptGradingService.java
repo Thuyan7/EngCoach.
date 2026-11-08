@@ -4,6 +4,8 @@ import com.engcoach.common.AttemptAccessDeniedException;
 import com.engcoach.common.AttemptNotFoundException;
 import com.engcoach.parts.Question;
 import com.engcoach.parts.QuestionRepository;
+import com.engcoach.tests.TestQuestion;
+import com.engcoach.tests.TestQuestionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,13 +41,15 @@ public class AttemptGradingService {
     private final AttemptRepository attemptRepository;
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
+    private final TestQuestionRepository testQuestionRepository;
 
     public AttemptGradingService(AttemptRepository attemptRepository,
                                   AnswerRepository answerRepository,
-                                  QuestionRepository questionRepository) {
+                                  QuestionRepository questionRepository, TestQuestionRepository testQuestionRepository) {
         this.attemptRepository = attemptRepository;
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
+        this.testQuestionRepository = testQuestionRepository;
     }
 
     /**
@@ -127,9 +131,19 @@ public class AttemptGradingService {
      */
     private Map<Long, String> loadCorrectOptions(Attempt attempt, List<Answer> answers) {
         Map<Long, String> correctOptionsByQuestionId = new HashMap<>();
-        Iterable<Question> fullQuestionSet = "PART_PRACTICE".equals(attempt.getType())
-                ? questionRepository.findByPart(attempt.getPart())
-                : questionRepository.findAll();
+        Iterable<Question> fullQuestionSet;
+        if ("PART_PRACTICE".equals(attempt.getType())) {
+            fullQuestionSet = questionRepository.findByPart(attempt.getPart());
+        } else if ("TEST".equals(attempt.getType()) && attempt.getTestId() != null) {
+            List<Long> ids = testQuestionRepository.findByTestIdOrderBySortOrderAsc(attempt.getTestId()).stream()
+                    .map(TestQuestion::getQuestionId).toList();
+            List<String> selected = attempt.getSelectedParts() == null ? List.of()
+                    : List.of(attempt.getSelectedParts().split(","));
+            fullQuestionSet = questionRepository.findAllById(ids).stream()
+                    .filter(question -> selected.contains(question.getPart())).toList();
+        } else {
+            fullQuestionSet = questionRepository.findAll();
+        }
         for (Question question : fullQuestionSet) {
             correctOptionsByQuestionId.put(question.getId(), question.getCorrectOption());
         }

@@ -185,8 +185,9 @@ paths:
                       ordered by id. For MOCK_TEST: every question in the
                       whole bank, ordered by id (S11 — the real TOEIC
                       question-bank source is still an open product question,
-                      OQ-001, so this is every Question currently seeded, not
-                      literally 200). Never includes the correct option.
+                      OQ-001. The provided full mock seed contains 200 questions, but this
+                      endpoint returns the rows actually present in the database.
+                      Never includes the correct option.
                     type: array
                     items:
                       type: object
@@ -200,6 +201,13 @@ paths:
                             question's correct option when grading.
                           type: array
                           items: { type: string }
+                        passage: { type: string, nullable: true }
+                        imageUrl: { type: string, nullable: true }
+                        audioUrl: { type: string, nullable: true }
+                        audioText:
+                          description: Listening script for browser speech synthesis.
+                          type: string
+                          nullable: true
         "403": { description: Attempt belongs to another user (RFC 9457 problem) }
         "404": { description: Attempt does not exist (RFC 9457 problem) }
     delete:
@@ -236,6 +244,7 @@ paths:
         "200": { description: Answer saved (re-answering the same question overwrites the prior value) }
         "403": { description: Attempt belongs to another user (RFC 9457 problem) }
         "404": { description: Attempt does not exist (RFC 9457 problem) }
+        "409": { description: Mock-test time limit has expired; no further answers can be saved (RFC 9457 problem) }
 
   /attempts/{id}/submit:
     post:

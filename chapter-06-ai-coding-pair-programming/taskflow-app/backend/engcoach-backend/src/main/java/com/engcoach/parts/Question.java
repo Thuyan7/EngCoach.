@@ -11,8 +11,10 @@ import jakarta.persistence.Table;
 /**
  * Maps 1:1 to the {@code Question} entity in
  * chapter-05-ai-for-software-design-architecture/design/data-model.mmd.
- * Core fields: id, part, prompt, options, correct_option. Optional passage
- * and media URLs support TOEIC reading/listening material. The options field
+ * Core fields: id, part, prompt, options, correct_option. Optional passage,
+ * image/audio URLs, and an audioText script support TOEIC reading/listening material.
+ * audioText is used by the frontend's browser speech-synthesis fallback when
+ * no hosted audioUrl is available. The options field
  * remains a JSON array of strings so the existing grading contract stays
  * unchanged; correctOption must exactly match one of those strings.
  */
@@ -28,18 +30,18 @@ public class Question {
     private String part;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, length = 16777215)
     private String prompt;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, length = 16777215)
     private String options;
 
     @Column(name = "correct_option", nullable = false)
     private String correctOption;
 
     @Lob
-    @Column
+    @Column(length = 16777215)
     private String passage;
 
     @Column(length = 2048)
@@ -47,6 +49,10 @@ public class Question {
 
     @Column(length = 2048)
     private String audioUrl;
+
+    @Lob
+    @Column(length = 16777215)
+    private String audioText;
 
     protected Question() {
         // required by JPA
@@ -58,6 +64,11 @@ public class Question {
 
     public Question(String part, String prompt, String options, String correctOption,
                     String passage, String imageUrl, String audioUrl) {
+        this(part, prompt, options, correctOption, passage, imageUrl, audioUrl, null);
+    }
+
+    public Question(String part, String prompt, String options, String correctOption,
+                    String passage, String imageUrl, String audioUrl, String audioText) {
         this.part = part;
         this.prompt = prompt;
         this.options = options;
@@ -65,6 +76,20 @@ public class Question {
         this.passage = passage;
         this.imageUrl = imageUrl;
         this.audioUrl = audioUrl;
+        this.audioText = audioText;
+    }
+
+    /** Ghi đè nội dung bằng bản mới (giữ nguyên id để các lượt làm bài cũ vẫn trỏ đúng câu hỏi). */
+    public void refreshFrom(String part, String prompt, String options, String correctOption,
+                            String passage, String imageUrl, String audioUrl, String audioText) {
+        this.part = part;
+        this.prompt = prompt;
+        this.options = options;
+        this.correctOption = correctOption;
+        this.passage = passage;
+        this.imageUrl = imageUrl;
+        this.audioUrl = audioUrl;
+        this.audioText = audioText;
     }
 
     public Long getId() {
@@ -97,5 +122,9 @@ public class Question {
 
     public String getAudioUrl() {
         return audioUrl;
+    }
+
+    public String getAudioText() {
+        return audioText;
     }
 }

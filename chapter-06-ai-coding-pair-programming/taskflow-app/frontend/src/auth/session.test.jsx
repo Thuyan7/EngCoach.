@@ -22,7 +22,7 @@ describe("Session handling (S5b)", () => {
       JSON.stringify({ accessToken: "t", expiresAt: new Date(Date.now() + 60_000).toISOString() }),
     );
     renderApp("/login");
-    expect(screen.getByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Make every practice/ })).toBeInTheDocument();
   });
 
   it("an expired stored session (ADR-003, 3h) is discarded", () => {

@@ -25,7 +25,7 @@ describe("Login screen (S5b)", () => {
 
     await fillAndSubmit(user, "learner@example.com", "correct-horse-battery");
 
-    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Make every practice/ })).toBeInTheDocument();
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/auth/login");
     expect(init.method).toBe("POST");
@@ -85,7 +85,7 @@ describe("Login screen (S5b)", () => {
     expect(busy).toBeDisabled();
 
     release(jsonResponse(200, AUTH_OK));
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Welcome back" })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("heading", { name: /Make every practice/ })).toBeInTheDocument());
   });
 
   it("form can be submitted with the keyboard (Enter)", async () => {
@@ -96,6 +96,6 @@ describe("Login screen (S5b)", () => {
     await user.type(screen.getByLabelText("Email"), "learner@example.com");
     await user.type(screen.getByLabelText("Password"), "correct-horse-battery{Enter}");
 
-    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Make every practice/ })).toBeInTheDocument();
   });
 });

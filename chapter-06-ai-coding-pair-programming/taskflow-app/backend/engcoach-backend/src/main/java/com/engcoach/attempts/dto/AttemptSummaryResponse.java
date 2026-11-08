@@ -3,6 +3,7 @@ package com.engcoach.attempts.dto;
 import com.engcoach.attempts.Attempt;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * One row of {@code GET /attempts} (S10a, history list). Approved design
@@ -19,7 +20,9 @@ public record AttemptSummaryResponse(
         String status,
         Integer score,
         Integer totalQuestions,
-        Instant startedAt
+        Instant startedAt,
+        Long testId,
+        List<String> selectedParts
 ) {
     public static AttemptSummaryResponse from(Attempt attempt) {
         return new AttemptSummaryResponse(
@@ -29,7 +32,10 @@ public record AttemptSummaryResponse(
                 attempt.getStatus(),
                 attempt.getScore(),
                 attempt.getTotalQuestions(),
-                attempt.getStartedAt()
+                attempt.getStartedAt(),
+                attempt.getTestId(),
+                attempt.getSelectedParts() == null || attempt.getSelectedParts().isBlank()
+                        ? List.of() : List.of(attempt.getSelectedParts().split(","))
         );
     }
 }
