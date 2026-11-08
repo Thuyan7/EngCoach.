@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { listAttempts, startPartPractice, startMockTest } from "../api/attempts.js";
+import { Link, useNavigate } from "react-router-dom";
+import { listAttempts, startPartPractice, startMockTest, startToeicTest } from "../api/attempts.js";
+import { request } from "../api/client.js";
 import { listParts } from "../api/parts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { summarizeAttempts } from "../stats.js";
@@ -8,6 +9,8 @@ import { summarizeAttempts } from "../stats.js";
 const LOAD_FAILED = "We couldn't load the Part list. Please try again.";
 const NO_QUESTIONS = "There are no questions for this Part yet.";
 const START_FAILED = "We couldn't start this practice. Please try again.";
+const TESTS_FAILED = "We couldn't load the Tests. Please try again.";
+const NO_TEST_QUESTIONS = "There are no questions for this Test yet.";
 const STATS_FAILED = "We couldn't load your stats. Please try again.";
 
 export default function DashboardPage() {
@@ -17,6 +20,10 @@ export default function DashboardPage() {
   const [startError, setStartError] = useState("");
   const [parts, setParts] = useState({ status: "loading", items: [] });
   const [partsReload, setPartsReload] = useState(0);
+  const [tests, setTests] = useState({ status: "loading", items: [] });
+  const [testsReload, setTestsReload] = useState(0);
+  const [startingTest, setStartingTest] = useState(null);
+  const [testStartError, setTestStartError] = useState("");
   const [stats, setStats] = useState({ status: "loading", attempts: [] });
   const [statsReload, setStatsReload] = useState(0);
 
@@ -32,6 +39,23 @@ export default function DashboardPage() {
     });
     return () => { cancelled = true; };
   }, [token, signOut, partsReload]);
+
+  // Practice is organised by Test: GET /tests lists every published Test with its Parts.
+  useEffect(() => {
+    let cancelled = false;
+    setTests({ status: "loading", items: [] });
+    request("/tests", { token }).then((data) => {
+      if (cancelled) return;
+      // A non-array reply means the request did not reach the API (e.g. the dev proxy returned the SPA page).
+      if (!Array.isArray(data)) { setTests({ status: "error", items: [] }); return; }
+      setTests({ status: data.length ? "ready" : "empty", items: data });
+    }).catch((err) => {
+      if (cancelled) return;
+      if (err.status === 401) return signOut();
+      setTests({ status: "error", items: [] });
+    });
+    return () => { cancelled = true; };
+  }, [token, signOut, testsReload]);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,6 +82,20 @@ export default function DashboardPage() {
       if (err.status === 401) return signOut();
       setStartError(err.status === 422 ? NO_QUESTIONS : START_FAILED);
       setStarting(null);
+    }
+  }
+
+  async function startTest(test) {
+    setTestStartError("");
+    setStartingTest(test.id);
+    try {
+      // 201 either way: a new attempt, or the unfinished one for this Test and Parts.
+      const attempt = await startToeicTest(token, test.id, (test.parts || []).map((p) => p.part));
+      navigate(`/practice/${attempt.id}`);
+    } catch (err) {
+      if (err.status === 401) return signOut();
+      setTestStartError(err.status === 422 ? NO_TEST_QUESTIONS : START_FAILED);
+      setStartingTest(null);
     }
   }
 
@@ -124,15 +162,32 @@ export default function DashboardPage() {
         <div className="home-section-heading"><div><p className="eyebrow">GET STARTED</p><h2>Quick access</h2></div><span>Choose how you want to learn</span></div>
         <div className="quick-access-grid">
           <button className="quick-card" type="button" onClick={() => navigate("/practice")}>
-            <span className="quick-icon quick-dark" aria-hidden="true">◷</span><strong>Full Mock Test</strong><p>Experience a complete TOEIC test in a timed session.</p><small>120 MINUTES · TIMED</small>
+            <span className="quick-icon quick-dark" aria-hidden="true">◷</span><strong>Full Test</strong><p>Take a complete TOEIC test, all 7 Parts in one timed session.</p><small>120 MINUTES · TIMED</small>
           </button>
           <button className="quick-card" type="button" onClick={() => navigate("/practice")}>
-            <span className="quick-icon quick-green" aria-hidden="true">♫</span><strong>Practice by Part</strong><p>Focus on one TOEIC section at a time, at your own pace.</p><small>7 PARTS · FOCUSED PRACTICE</small>
+            <span className="quick-icon quick-green" aria-hidden="true">♫</span><strong>Practice by Test</strong><p>Pick a Test, then take every Part or only the Parts you want.</p><small>CHOOSE YOUR PARTS</small>
           </button>
           <button className="quick-card" type="button" onClick={() => navigate("/progress")}>
             <span className="quick-icon quick-dark" aria-hidden="true">▥</span><strong>My Progress</strong><p>Review your completed attempts and track your scores.</p><small>YOUR LEARNING HISTORY</small>
           </button>
         </div>
+      </section>
+
+      <section className="jump-section" aria-labelledby="tests-heading">
+        <div className="home-section-heading"><div><p className="eyebrow">PRACTICE BY TEST</p><h2 id="tests-heading">Jump into a Test</h2></div><Link to="/practice" className="muted-label">See all Tests</Link></div>
+        {testStartError && <div className="error-msg" role="alert">{testStartError}</div>}
+        {tests.status === "loading" && <div role="status" className="part-loading">Loading available Tests…</div>}
+        {tests.status === "error" && <div><div className="error-msg" role="alert">{TESTS_FAILED}</div><button type="button" className="btn btn-secondary" onClick={() => setTestsReload((key) => key + 1)}>Try again</button></div>}
+        {tests.status === "empty" && <div className="card empty-state"><p>No Tests are published yet.</p></div>}
+        {tests.status === "ready" && <ul className="dash-test-list">{tests.items.map((test) => (
+          <li className="dash-test" key={test.id}>
+            <div><strong>{test.title}</strong><p>{(test.parts || []).length} Parts · {(test.parts || []).reduce((sum, p) => sum + (p.questionCount || 0), 0)} questions</p></div>
+            <div className="dash-test-actions">
+              <button type="button" className="btn btn-green" aria-label={`Start full ${test.title}`} disabled={startingTest !== null || starting !== null} onClick={() => startTest(test)}>{startingTest === test.id ? "Starting…" : "Start full test"}</button>
+              <Link to="/practice" className="btn btn-secondary" aria-label={`Choose Parts of ${test.title}`}>Choose Parts</Link>
+            </div>
+          </li>
+        ))}</ul>}
       </section>
 
       <section className="jump-section">
