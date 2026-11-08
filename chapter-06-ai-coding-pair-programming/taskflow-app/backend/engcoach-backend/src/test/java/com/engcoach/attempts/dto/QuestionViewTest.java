@@ -1,6 +1,7 @@
 package com.engcoach.attempts.dto;
 
 import com.engcoach.parts.Question;
+import com.engcoach.tests.QuestionGroup;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,19 @@ class QuestionViewTest {
         JsonNode json = objectMapper.valueToTree(view);
 
         assertEquals("An office renovation", json.get("correctOption").asText());
+    }
+
+    @Test
+    void usesSharedGroupImageAndAudioWhenQuestionHasNoIndividualMedia() throws Exception {
+        Question question = new Question("Part 1", "Choose the statement.", "[\\"A\\",\\"B\\"]", "A");
+        QuestionGroup group = new QuestionGroup("Part 1", "PHOTO", "Shared audio script.",
+                "https://example.com/group-photo.jpg", "https://example.com/group-audio.mp3");
+
+        JsonNode json = objectMapper.valueToTree(QuestionView.from(question, group));
+
+        assertEquals("https://example.com/group-photo.jpg", json.get("imageUrl").asText());
+        assertEquals("https://example.com/group-audio.mp3", json.get("audioUrl").asText());
+        assertEquals("Shared audio script.", json.get("groupContent").asText());
     }
 
     @Test

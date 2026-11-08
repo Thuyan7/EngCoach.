@@ -34,8 +34,10 @@ public record QuestionView(Long id, String prompt, List<String> options,
     public static QuestionView from(Question question, QuestionGroup group, boolean includeCorrectOption) {
         QuestionView base = from(question, includeCorrectOption);
         if (group == null) return base;
-        return new QuestionView(base.id(), base.prompt(), base.options(), base.passage(), base.imageUrl(),
-                base.audioUrl(), base.audioText(), group.getId(), group.getGroupType(), group.getSharedContent(),
+        return new QuestionView(base.id(), base.prompt(), base.options(), base.passage(),
+                base.imageUrl() != null ? base.imageUrl() : group.getImageUrl(),
+                base.audioUrl() != null ? base.audioUrl() : group.getAudioUrl(),
+                base.audioText(), group.getId(), group.getGroupType(), group.getSharedContent(),
                 base.correctOption());
     }
 

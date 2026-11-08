@@ -613,6 +613,23 @@ describe("Test screen: Part 2 letters and grouped Part 3-4", () => {
     expect(screen.getByText("Passage number 32")).toBeInTheDocument();
   });
 
+  it("renders a reading passage from shared group content when the question has no individual passage", async () => {
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 7"], timeLimitSeconds: 3300, remainingSeconds: 3000,
+        questions: [{
+          id: 550, prompt: "What is the notice about?", options: ["A meeting", "A delivery"],
+          passage: null, groupId: 44, groupType: "PASSAGE",
+          groupContent: "NOTICE TO STAFF: The office will close early on Friday.",
+        }],
+      })),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText(/NOTICE TO STAFF: The office will close early on Friday/)).toBeInTheDocument();
+    expect(screen.getByText("What is the notice about?")).toBeInTheDocument();
+  });
+
   it("Part 1 shows the photo with only the letters A to D and hides the statements", async () => {
     const user = userEvent.setup();
     const fetchMock = routeFetch({

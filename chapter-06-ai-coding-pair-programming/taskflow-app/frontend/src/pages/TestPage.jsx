@@ -245,6 +245,7 @@ export default function TestPage() {
   const locked = attempt.status !== "IN_PROGRESS";
   // Part 1 and Part 2 are shown like the real TOEIC: only the letters (A-D, A-C). The statements are heard, not read.
   // A reading passage group (Part 6, 7) keeps its text in groupContent; that text is read on screen, never played as audio.
+  const readingPassage = question.passage || (question.groupType === "PASSAGE" ? question.groupContent : null);
   const listeningText = question.audioText || (question.groupType === "PASSAGE" ? null : question.groupContent);
   const hasListeningSource = Boolean(question.audioUrl || listeningText);
   const lettersOnly = hasListeningSource && (["PHOTO", "LISTENING_ITEM"].includes(question.groupType) || ["Part 1", "Part 2"].includes(attempt.part));
@@ -318,10 +319,10 @@ export default function TestPage() {
       </nav>
 
       <div className="card question-card">
-        {question.passage && (
+        {readingPassage && (
           <section className="question-passage" aria-label="Reading passage">
             <h2>Read the passage</h2>
-            <p>{question.passage}</p>
+            <p>{readingPassage}</p>
           </section>
         )}
         {question.imageUrl && (
