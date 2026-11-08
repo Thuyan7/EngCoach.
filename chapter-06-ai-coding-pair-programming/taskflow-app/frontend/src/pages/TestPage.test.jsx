@@ -52,6 +52,89 @@ describe("Test screen (S7b)", () => {
     expect(screen.queryByText(/correctOption/i)).not.toBeInTheDocument();
   });
 
+  it("offers browser speech playback when a listening script is supplied", async () => {
+    const detail = attemptDetail({
+      questions: [{
+        id: 101,
+        prompt: "Choose the best response.",
+        options: ["Before noon.", "At the front desk.", "The blue folder."],
+        passage: null,
+        imageUrl: null,
+        audioUrl: null,
+        audioText: "When will the shipment arrive?",
+      }],
+    });
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, detail) });
+    renderApp("/practice/7");
+
+    expect(await screen.findByRole("button", { name: "Play listening audio" })).toBeInTheDocument();
+  });
+
+  it("uses shared listening-group content when the individual question has no audio script", async () => {
+    const detail = attemptDetail({
+      type: "TEST",
+      testId: 12,
+      selectedParts: ["Part 3"],
+      timeLimitSeconds: 1020,
+      remainingSeconds: 1010,
+      questions: [{
+        id: 101,
+        prompt: "What does the woman ask?",
+        options: ["A delivery time", "A new invoice"],
+        audioUrl: null,
+        audioText: null,
+        groupId: 88,
+        groupType: "CONVERSATION",
+        groupContent: "W: Could you tell me when the order will arrive?",
+      }],
+    });
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, detail) });
+    renderApp("/practice/7");
+
+    expect(await screen.findByRole("heading", { name: "TOEIC Test" })).toBeInTheDocument();
+    expect(screen.getByRole("timer", { name: "Time remaining" })).toHaveTextContent("16:50");
+    expect(screen.getByRole("button", { name: "Play listening audio for conversation" })).toBeInTheDocument();
+  });
+
+  it("shows the selected Parts of a Test attempt", async () => {
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST",
+        testId: 12,
+        selectedParts: ["Part 1", "Part 3"],
+        timeLimitSeconds: 1200,
+        remainingSeconds: 600,
+      })),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByRole("heading", { name: "TOEIC Test" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Selected Test Parts")).toHaveTextContent("Selected: Part 1, Part 3");
+  });
+
+  it("automatically submits a selected-Part Test once when its time reaches zero", async () => {
+    let submitted = false;
+    const fetchMock = routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST",
+        testId: 12,
+        selectedParts: ["Part 1", "Part 3"],
+        timeLimitSeconds: 1200,
+        remainingSeconds: 0,
+        status: submitted ? "SUBMITTED" : "IN_PROGRESS",
+      })),
+      "POST /attempts/7/submit": () => {
+        submitted = true;
+        return jsonResponse(200, { id: 7, status: "SUBMITTED", score: 2, totalQuestions: 8, answers: [] });
+      },
+    });
+    renderApp("/practice/7");
+
+    // Expiry submits and moves to the result page straight away, so wait for the result, not for the test heading.
+    expect(await screen.findByText("2 / 8")).toBeInTheDocument();
+    expect(fetchMock.mock.calls.filter(([url, init]) => url === "/attempts/7/submit" && init?.method === "POST")).toHaveLength(1);
+  });
+
   it("answering calls PUT /attempts/{id}/answers/{questionId} with the chosen option and shows Saved", async () => {
     const user = userEvent.setup();
     const fetchMock = routeFetch({
@@ -404,5 +487,154 @@ describe("Test screen (S7b)", () => {
       expect(await screen.findByText("3 / 5")).toBeInTheDocument();
       expect(fetchMock.mock.calls.filter(([url, init]) => url === "/attempts/7/submit" && init?.method === "POST")).toHaveLength(1);
     });
+  });
+});
+
+describe("Test screen: Part 2 letters and grouped Part 3-4", () => {
+  const conversation = (firstId, groupId, groupType = "CONVERSATION") => [0, 1, 2].map((n) => ({
+    id: firstId + n,
+    prompt: `Prompt ${firstId + n}?`,
+    options: ["Alpha", "Bravo", "Charlie", "Delta"],
+    audioUrl: `/audio/test-01/g${groupId}.mp3`,
+    audioText: "Shared script",
+    groupId,
+    groupType,
+    groupContent: "Shared script",
+  }));
+
+  it("Part 2 shows only the letters A, B, C and hides the question and answer text", async () => {
+    const user = userEvent.setup();
+    const fetchMock = routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 2"], timeLimitSeconds: 540, remainingSeconds: 500,
+        questions: [{
+          id: 201, prompt: "Where should I put the paper?", options: ["On the desk.", "At noon.", "Yes, he is."],
+          audioUrl: "/audio/test-01/q7.mp3", audioText: "Number 7.", groupId: 5, groupType: "LISTENING_ITEM", groupContent: "x",
+        }],
+      })),
+      "PUT /attempts/7/answers/201": () => jsonResponse(200, { questionId: 201, chosenOption: "At noon." }),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 1 of 1")).toBeInTheDocument();
+    expect(screen.queryByText("Where should I put the paper?")).not.toBeInTheDocument();
+    expect(screen.queryByText("On the desk.")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Option A")).toBeInTheDocument();
+    expect(screen.getByLabelText("Option C")).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText("Option B"));
+    await waitFor(() => expect(putBodies(fetchMock)).toEqual([["/attempts/7/answers/201", { chosenOption: "At noon." }]]));
+  });
+
+  it("Part 3 shows the three questions of one conversation together with one audio player", async () => {
+    const user = userEvent.setup();
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 3"], timeLimitSeconds: 1020, remainingSeconds: 900,
+        questions: [...conversation(301, 11), ...conversation(304, 12)],
+      })),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 1 of 6")).toBeInTheDocument();
+    expect(screen.getByText("Question 2 of 6")).toBeInTheDocument();
+    expect(screen.getByText("Question 3 of 6")).toBeInTheDocument();
+    expect(screen.queryByText("Question 4 of 6")).not.toBeInTheDocument();
+    expect(document.querySelectorAll("audio")).toHaveLength(1);
+    expect(screen.getByLabelText("Audio for questions 1 to 3")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByText("Question 4 of 6")).toBeInTheDocument();
+    expect(screen.queryByText("Question 1 of 6")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  });
+
+  it("clicking a question number jumps to the screen that holds it and Part 4 groups the same way", async () => {
+    const user = userEvent.setup();
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 4"], timeLimitSeconds: 960, remainingSeconds: 900,
+        questions: [...conversation(401, 21, "TALK"), ...conversation(404, 22, "TALK")],
+      })),
+    });
+    renderApp("/practice/7");
+
+    await screen.findByText("Question 1 of 6");
+    await user.click(screen.getByRole("button", { name: "Question 5" }));
+    expect(screen.getByText("Question 4 of 6")).toBeInTheDocument();
+    expect(screen.getByText("Question 6 of 6")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Question 5" })).toHaveAttribute("aria-current", "step");
+  });
+
+  it("resumes at the first screen that still has an unanswered question", async () => {
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 3"], timeLimitSeconds: 1020, remainingSeconds: 900,
+        questions: [...conversation(301, 11), ...conversation(304, 12)],
+        answers: [301, 302, 303].map((id) => ({ questionId: id, chosenOption: "Alpha" })),
+      })),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 4 of 6")).toBeInTheDocument();
+    expect(screen.queryByText("Question 1 of 6")).not.toBeInTheDocument();
+  });
+
+  it("Part 6 and 7 passages are read on screen: no listening audio, and the questions of one passage are shown together", async () => {
+    const user = userEvent.setup();
+    const passageQuestions = (firstId, groupId) => [0, 1].map((n) => ({
+      id: firstId + n,
+      prompt: `Question text ${firstId + n}`,
+      options: ["one", "two", "three", "four"],
+      passage: `Passage number ${groupId}`,
+      audioUrl: null,
+      audioText: null,
+      groupId,
+      groupType: "PASSAGE",
+      groupContent: `Passage number ${groupId}`,
+    }));
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 7"], timeLimitSeconds: 3300, remainingSeconds: 3000,
+        questions: [...passageQuestions(501, 31), ...passageQuestions(503, 32)],
+      })),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 1 of 4")).toBeInTheDocument();
+    expect(screen.getByText("Question 2 of 4")).toBeInTheDocument();
+    expect(screen.getAllByText("Passage number 31")).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: /Play listening audio/ })).not.toBeInTheDocument();
+    expect(screen.queryByText("Computer-generated voice")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByText("Question 3 of 4")).toBeInTheDocument();
+    expect(screen.getByText("Passage number 32")).toBeInTheDocument();
+  });
+
+  it("Part 1 shows the photo with only the letters A to D and hides the statements", async () => {
+    const user = userEvent.setup();
+    const fetchMock = routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, attemptDetail({
+        type: "TEST", testId: 12, selectedParts: ["Part 1"], timeLimitSeconds: 180, remainingSeconds: 170,
+        questions: [{
+          id: 601, prompt: "Look at the photo.", options: ["A man is reading.", "Boxes are stacked.", "A car is parked.", "People are eating."],
+          imageUrl: "/part1/photo-1.jpg", audioUrl: "/audio/test-01/p1.mp3", audioText: "Number 1.", groupId: 3, groupType: "PHOTO",
+          groupContent: "Number 1.",
+        }],
+      })),
+      "PUT /attempts/7/answers/601": () => jsonResponse(200, { questionId: 601, chosenOption: "A car is parked." }),
+    });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 1 of 1")).toBeInTheDocument();
+    expect(screen.getByAltText("Illustration for question 1")).toBeInTheDocument();
+    expect(screen.queryByText("A man is reading.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Look at the photo.")).not.toBeInTheDocument();
+    for (const l of ["A", "B", "C", "D"]) expect(screen.getByLabelText(`Option ${l}`)).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText("Option C"));
+    await waitFor(() => expect(putBodies(fetchMock)).toEqual([["/attempts/7/answers/601", { chosenOption: "A car is parked." }]]));
   });
 });
