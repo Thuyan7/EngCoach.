@@ -30,11 +30,11 @@ engcoach:
     model: ${ANTHROPIC_MODEL:claude-3-5-haiku-latest}
   question-bank:
     # Opt-in local-only starter data. Leave false for normal/production deployments.
-    seed-samples: ${ENGCOACH_SEED_SAMPLE_QUESTIONS:false}
+    seed-samples: ${ENGCOACH_SEED_SAMPLE_QUESTIONS:true}
     # Opt-in: nạp các đề test-*.json do tools/question-generator sinh ra (bỏ qua đề đã có cùng tiêu đề).
-    import-generated: ${ENGCOACH_IMPORT_GENERATED_TESTS:false}
+    import-generated: ${ENGCOACH_IMPORT_GENERATED_TESTS:true}
     # Opt-in: đề đã có cùng tiêu đề thì cập nhật nội dung/audio/ảnh tại chỗ thay vì bỏ qua (dùng sau khi sinh lại audio).
-    refresh-generated: ${ENGCOACH_REFRESH_GENERATED_TESTS:false}
+    refresh-generated: ${ENGCOACH_REFRESH_GENERATED_TESTS:true}
 
 server:
   port: ${PORT:8080}
