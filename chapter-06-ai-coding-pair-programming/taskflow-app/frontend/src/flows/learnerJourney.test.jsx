@@ -66,10 +66,10 @@ describe("learner journey integration", () => {
     await user.type(screen.getByLabelText("Password"), "correct-horse-battery");
     await user.click(screen.getByRole("button", { name: "Log in" }));
 
-    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "Start Part 5" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Make every practice/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /^Part 5/ })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Start Part 5" }));
+    await user.click(screen.getByRole("button", { name: /^Part 5/ }));
     expect(await screen.findByRole("heading", { name: "Part 5 practice" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("radio", { name: /to submit/ }));
@@ -79,8 +79,8 @@ describe("learner journey integration", () => {
     expect(await screen.findByRole("heading", { name: "Part 5 result" })).toBeInTheDocument();
 
     expect(screen.getByText("1 / 1")).toBeInTheDocument();
-    expect(screen.getByText(/Correct answer:/)).toHaveTextContent("Correct answer: B. to submit");
-    expect(screen.getByText(/Your answer:/)).toHaveTextContent("Your answer: B. to submit");
+    expect(screen.getByText(/Correct answer:/).parentElement).toHaveTextContent("Correct answer: B. to submit");
+    expect(screen.getByText(/Your answer:/).parentElement).toHaveTextContent("Your answer: B. to submit");
     expect(fetchMock.mock.calls.some(([url, init]) => url === "/attempts/77/submit" && init?.method === "POST")).toBe(true);
     expect(JSON.parse(window.localStorage.getItem("engcoach.session")).accessToken).toBe(
       "jwt-from-server",
