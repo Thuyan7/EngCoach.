@@ -17,7 +17,6 @@ const TEST_TWO = { id: 22, title: "TOEIC AI Practice Test 02", parts: [{ part: "
 // Both requests the Dashboard makes on load; override per test.
 const ok = (tests = [TEST_ONE], attempts = []) => ({
   "GET /tests": () => jsonResponse(200, tests),
-  "GET /parts": () => jsonResponse(200, []),
   "GET /attempts": () => jsonResponse(200, attempts),
 });
 
@@ -166,7 +165,7 @@ describe("Dashboard — stats from GET /attempts (S10a)", () => {
     expect(within(statCard("Average score")).getByText("…")).toBeInTheDocument();
   });
 
-  it("stats failure shows an alert with Try again, and the Part list still works", async () => {
+  it("stats failure shows an alert with Try again, and the Test list still works", async () => {
     const user = userEvent.setup();
     let calls = 0;
     routeFetch({

@@ -8,7 +8,7 @@ beforeEach(() => {
 });
 
 describe("learner journey integration", () => {
-  it("logs in, starts Part practice, saves an answer, submits, and reviews the correct answer", async () => {
+  it("logs in, starts a Test, saves an answer, submits, and reviews the correct answer", async () => {
     const user = userEvent.setup();
     let submitted = false;
     const question = {
@@ -18,19 +18,21 @@ describe("learner journey integration", () => {
     };
     const fetchMock = routeFetch({
       "POST /auth/login": () => jsonResponse(200, AUTH_OK),
-      "GET /parts": () => jsonResponse(200, ["Part 5"]),
+      "GET /tests": () => jsonResponse(200, [{ id: 5, title: "TOEIC Practice Test 5", parts: [{ part: "Part 5", questionCount: 1, durationSeconds: 600 }] }]),
       "GET /attempts": () => jsonResponse(200, []),
       "POST /attempts": () => jsonResponse(201, {
         id: 77,
-        type: "PART_PRACTICE",
-        part: "Part 5",
+        type: "TEST",
+        testId: 5,
         status: "IN_PROGRESS",
         startedAt: "2026-11-06T08:00:00Z",
       }),
       "GET /attempts/77": () => jsonResponse(200, {
         id: 77,
-        type: "PART_PRACTICE",
-        part: "Part 5",
+        type: "TEST",
+        testId: 5,
+        testTitle: "TOEIC Practice Test 5",
+        selectedParts: ["Part 5"],
         status: submitted ? "SUBMITTED" : "IN_PROGRESS",
         startedAt: "2026-11-06T08:00:00Z",
         remainingSeconds: null,
@@ -67,16 +69,14 @@ describe("learner journey integration", () => {
     await user.click(screen.getByRole("button", { name: "Log in" }));
 
     expect(await screen.findByRole("heading", { name: /Make every practice/ })).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: /^Part 5/ })).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /^Part 5/ }));
-    expect(await screen.findByRole("heading", { name: "Part 5 practice" })).toBeInTheDocument();
+    await user.click(await screen.findByRole("button", { name: "Start full TOEIC Practice Test 5" }));
+    expect(await screen.findByRole("heading", { name: "TOEIC Practice Test 5" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("radio", { name: /to submit/ }));
     expect(await screen.findByText("Saved")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Submit for grading" }));
-    expect(await screen.findByRole("heading", { name: "Part 5 result" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "TOEIC Practice Test 5 result" })).toBeInTheDocument();
 
     expect(screen.getByText("1 / 1")).toBeInTheDocument();
     expect(screen.getByText(/Correct answer:/).parentElement).toHaveTextContent("Correct answer: B. to submit");

@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { listAttempts, startPartPractice, startMockTest, startToeicTest } from "../api/attempts.js";
+import { listAttempts, startToeicTest } from "../api/attempts.js";
 import { request } from "../api/client.js";
-import { listParts } from "../api/parts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { summarizeAttempts } from "../stats.js";
 
-const LOAD_FAILED = "We couldn't load the Part list. Please try again.";
-const NO_QUESTIONS = "There are no questions for this Part yet.";
-const START_FAILED = "We couldn't start this practice. Please try again.";
+const START_FAILED = "We couldn't start this Test. Please try again.";
 const TESTS_FAILED = "We couldn't load the Tests. Please try again.";
 const NO_TEST_QUESTIONS = "There are no questions for this Test yet.";
 const STATS_FAILED = "We couldn't load your stats. Please try again.";
@@ -16,29 +13,12 @@ const STATS_FAILED = "We couldn't load your stats. Please try again.";
 export default function DashboardPage() {
   const { token, signOut } = useAuth();
   const navigate = useNavigate();
-  const [starting, setStarting] = useState(null);
-  const [startError, setStartError] = useState("");
-  const [parts, setParts] = useState({ status: "loading", items: [] });
-  const [partsReload, setPartsReload] = useState(0);
   const [tests, setTests] = useState({ status: "loading", items: [] });
   const [testsReload, setTestsReload] = useState(0);
   const [startingTest, setStartingTest] = useState(null);
   const [testStartError, setTestStartError] = useState("");
   const [stats, setStats] = useState({ status: "loading", attempts: [] });
   const [statsReload, setStatsReload] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    setParts({ status: "loading", items: [] });
-    listParts(token).then((items) => {
-      if (!cancelled) setParts({ status: items.length ? "ready" : "empty", items });
-    }).catch((err) => {
-      if (cancelled) return;
-      if (err.status === 401) return signOut();
-      setParts({ status: "error", items: [] });
-    });
-    return () => { cancelled = true; };
-  }, [token, signOut, partsReload]);
 
   // Practice is organised by Test: GET /tests lists every published Test with its Parts.
   useEffect(() => {
@@ -69,21 +49,6 @@ export default function DashboardPage() {
     });
     return () => { cancelled = true; };
   }, [token, signOut, statsReload]);
-
-  async function start(type, part = null) {
-    setStartError("");
-    setStarting(type === "MOCK_TEST" ? "mock" : part);
-    try {
-      const attempt = type === "MOCK_TEST"
-        ? await startMockTest(token)
-        : await startPartPractice(token, part);
-      navigate(`/practice/${attempt.id}`);
-    } catch (err) {
-      if (err.status === 401) return signOut();
-      setStartError(err.status === 422 ? NO_QUESTIONS : START_FAILED);
-      setStarting(null);
-    }
-  }
 
   async function startTest(test) {
     setTestStartError("");
@@ -183,20 +148,11 @@ export default function DashboardPage() {
           <li className="dash-test" key={test.id}>
             <div><strong>{test.title}</strong><p>{(test.parts || []).length} Parts · {(test.parts || []).reduce((sum, p) => sum + (p.questionCount || 0), 0)} questions</p></div>
             <div className="dash-test-actions">
-              <button type="button" className="btn btn-green" aria-label={`Start full ${test.title}`} disabled={startingTest !== null || starting !== null} onClick={() => startTest(test)}>{startingTest === test.id ? "Starting…" : "Start full test"}</button>
+              <button type="button" className="btn btn-green" aria-label={`Start full ${test.title}`} disabled={startingTest !== null} onClick={() => startTest(test)}>{startingTest === test.id ? "Starting…" : "Start full test"}</button>
               <Link to="/practice" className="btn btn-secondary" aria-label={`Choose Parts of ${test.title}`}>Choose Parts</Link>
             </div>
           </li>
         ))}</ul>}
-      </section>
-
-      <section className="jump-section">
-        <div className="home-section-heading"><div><p className="eyebrow">PICK UP A SKILL</p><h2>Jump into a Part</h2></div><span>Practice exactly what you need</span></div>
-        {startError && <div className="error-msg" role="alert">{startError}</div>}
-        {parts.status === "loading" && <div role="status" className="part-loading">Loading available Parts…</div>}
-        {parts.status === "error" && <div><div className="error-msg" role="alert">{LOAD_FAILED}</div><button type="button" className="btn btn-secondary" onClick={() => setPartsReload((key) => key + 1)}>Try again</button></div>}
-        {parts.status === "empty" && <div className="card empty-state"><p>No practice exercises are available yet.</p></div>}
-        {parts.status === "ready" && <div className="jump-parts-grid">{parts.items.map((part, index) => <button type="button" className="jump-part" key={part} disabled={starting !== null} onClick={() => start("PART_PRACTICE", part)}><span>{part}</span><span className="jump-part-arrow">{starting === part ? "Starting…" : "→"}</span></button>)}</div>}
       </section>
     </>
   );
