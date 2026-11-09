@@ -1,5 +1,6 @@
 package com.engcoach.attempts;
 
+import com.engcoach.attempts.dto.MistakeResponses.MistakesResponse;
 import com.engcoach.attempts.dto.ScoreResponses.AttemptScoreResponse;
 import com.engcoach.attempts.dto.ScoreResponses.PartStatsResponse;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Điểm TOEIC quy đổi và thống kê theo Part. */
@@ -15,9 +17,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class AttemptStatsController {
 
     private final AttemptStatsService attemptStatsService;
+    private final MistakeService mistakeService;
 
-    public AttemptStatsController(AttemptStatsService attemptStatsService) {
+    public AttemptStatsController(AttemptStatsService attemptStatsService, MistakeService mistakeService) {
         this.attemptStatsService = attemptStatsService;
+        this.mistakeService = mistakeService;
+    }
+
+    /** Questions the learner got wrong the last time they answered them, optionally for one Part. */
+    @GetMapping("/mistakes")
+    public ResponseEntity<MistakesResponse> mistakes(@RequestParam(required = false) String part,
+                                                     Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(mistakeService.mistakesOf(userId, part));
     }
 
     /** Tổng hợp mọi bài đã nộp của người dùng. */

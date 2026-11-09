@@ -208,6 +208,10 @@ export default function ProgressPage() {
             </div>
           </section>
 
+          <div className="q-actions">
+            <Link to="/mistakes" className="btn btn-secondary">Review your mistakes</Link>
+          </div>
+
           <EstimateCards estimate={stats?.latestEstimate} />
           <PartBars parts={stats?.parts} weakestPart={stats?.weakestPart} />
 
