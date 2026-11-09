@@ -50,6 +50,102 @@ function playQuestionAudio(text) {
   window.speechSynthesis.speak(utterance);
 }
 
+// Exam mode (TEST attempts): each listening audio can be played once, like the real TOEIC.
+// The "already played" mark is kept in localStorage so a page refresh cannot be used to hear it again.
+function readPlayed(key) {
+  try {
+    return window.localStorage.getItem(key) === "1";
+  } catch (error) {
+    return false;
+  }
+}
+
+function writePlayed(key, played) {
+  try {
+    if (played) window.localStorage.setItem(key, "1");
+    else window.localStorage.removeItem(key);
+  } catch (error) {
+    // Storage can be blocked; the one-time rule then only lasts until the page is reloaded.
+  }
+}
+
+function usePlayedOnce(key) {
+  const [played, setPlayed] = useState(() => readPlayed(key));
+  useEffect(() => {
+    setPlayed(readPlayed(key));
+  }, [key]);
+  function mark(value) {
+    writePlayed(key, value);
+    setPlayed(value);
+  }
+  return [played, mark];
+}
+
+// Audio file played once: no controls, no pause, no replay.
+function OnceAudio({ src, storageKey, label }) {
+  const audioRef = useRef(null);
+  const [played, mark] = usePlayedOnce(storageKey);
+  const [playing, setPlaying] = useState(false);
+
+  function start() {
+    const element = audioRef.current;
+    if (!element || played || playing) return;
+    mark(true);
+    setPlaying(true);
+    try {
+      const result = element.play();
+      if (result && typeof result.catch === "function") {
+        result.catch(() => {
+          // The browser refused to play, so the learner has not heard it: give the play back.
+          mark(false);
+          setPlaying(false);
+        });
+      }
+    } catch (error) {
+      mark(false);
+      setPlaying(false);
+    }
+  }
+
+  let buttonText = "Play audio (one time only)";
+  if (playing) buttonText = "Playing…";
+  else if (played) buttonText = "Audio has been played";
+
+  return (
+    <div className="question-media-audio">
+      <audio ref={audioRef} preload="none" src={src} aria-label={label} onEnded={() => setPlaying(false)}>
+        Your browser does not support audio playback.
+      </audio>
+      <button type="button" className="btn btn-secondary" disabled={played || playing} onClick={start}>
+        {buttonText}
+      </button>
+      <span className="muted-label">Exam mode: you can listen only once.</span>
+    </div>
+  );
+}
+
+// Browser-voice fallback (no audio file) with the same one-time rule.
+function OnceSpeech({ text, storageKey, label }) {
+  const [played, mark] = usePlayedOnce(storageKey);
+  return (
+    <div className="question-media-audio">
+      <button
+        type="button"
+        className="btn btn-secondary"
+        disabled={played}
+        aria-label={played ? "Audio has been played" : label}
+        onClick={() => {
+          mark(true);
+          playQuestionAudio(text);
+        }}
+      >
+        {played ? "Audio has been played" : "Play listening audio (one time only)"}
+      </button>
+      <span className="muted-label">Exam mode: you can listen only once.</span>
+    </div>
+  );
+}
+
 export default function TestPage() {
   const { attemptId } = useParams();
   const { token, signOut } = useAuth();
@@ -247,6 +343,9 @@ export default function TestPage() {
   // A reading passage group (Part 6, 7) keeps its text in groupContent; that text is read on screen, never played as audio.
   const readingPassage = question.passage || (question.groupType === "PASSAGE" ? question.groupContent : null);
   const listeningText = question.audioText || (question.groupType === "PASSAGE" ? null : question.groupContent);
+  // Exam mode: full or partial TEST attempts. Part practice and mock tests keep free replay.
+  const examMode = attempt.type === "TEST";
+  const playedKey = `engcoach.played.${attemptId}.${question.id}`;
   const hasListeningSource = Boolean(question.audioUrl || listeningText);
   const lettersOnly = hasListeningSource && (["PHOTO", "LISTENING_ITEM"].includes(question.groupType) || ["Part 1", "Part 2"].includes(attempt.part));
   const answeredCount = questions.filter((q) => answers[q.id] !== undefined).length;
@@ -333,7 +432,21 @@ export default function TestPage() {
             loading="lazy"
           />
         )}
-        {listeningText && !question.audioUrl && (
+        {examMode && question.audioUrl && (
+          <OnceAudio
+            src={question.audioUrl}
+            storageKey={playedKey}
+            label={firstNumber === lastNumber ? `Audio for question ${firstNumber}` : `Audio for questions ${firstNumber} to ${lastNumber}`}
+          />
+        )}
+        {examMode && !question.audioUrl && listeningText && (
+          <OnceSpeech
+            text={listeningText}
+            storageKey={playedKey}
+            label={question.groupType ? `Play listening audio for ${question.groupType.toLowerCase()}` : "Play listening audio"}
+          />
+        )}
+        {!examMode && listeningText && !question.audioUrl && (
           <div className="question-media-audio">
             <button
               type="button"
@@ -346,7 +459,7 @@ export default function TestPage() {
             <span className="muted-label">Computer-generated voice</span>
           </div>
         )}
-        {question.audioUrl && (
+        {!examMode && question.audioUrl && (
           <div className="question-media-audio">
             <audio
               controls
