@@ -50,3 +50,9 @@ export function getAttemptScore(token, attemptId) {
 export function getPartStats(token) {
   return request("/attempts/part-stats", { token });
 }
+
+// Questions the learner got wrong the last time they answered them; optional Part filter.
+export function getMistakes(token, part) {
+  const query = part ? `?part=${encodeURIComponent(part)}` : "";
+  return request(`/attempts/mistakes${query}`, { token });
+}

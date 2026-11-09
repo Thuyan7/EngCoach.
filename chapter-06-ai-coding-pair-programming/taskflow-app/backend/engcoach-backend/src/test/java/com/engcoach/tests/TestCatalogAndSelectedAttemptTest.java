@@ -251,4 +251,75 @@ class TestCatalogAndSelectedAttemptTest {
         mockMvc.perform(get("/attempts/" + attemptId + "/score"))
                 .andExpect(status().isUnauthorized());
     }
+
+    private long startAndAnswer(String token, Long testId, List<String> parts, Map<Long, String> choices) throws Exception {
+        String start = objectMapper.writeValueAsString(Map.of("type", "TEST", "testId", testId, "parts", parts));
+        String response = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(start))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(response).get("id").asLong();
+        for (Map.Entry<Long, String> choice : choices.entrySet()) {
+            mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + choice.getKey())
+                            .header("Authorization", "Bearer " + token).contentType("application/json")
+                            .content(objectMapper.writeValueAsString(Map.of("chosenOption", choice.getValue()))))
+                    .andExpect(status().isOk());
+        }
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        return attemptId;
+    }
+
+    @Test
+    void mistakes_listLatestWrongAnswers_filterByPart_andDropQuestionsLaterAnsweredRight() throws Exception {
+        String token = token("mistakes@example.com");
+        ToeicTest test = testRepository.save(new ToeicTest("Mistakes Test", "d", true));
+        testPartRepository.save(new TestPart(test.getId(), "Part 5", 2, 600, 5));
+        testPartRepository.save(new TestPart(test.getId(), "Part 7", 1, 600, 7));
+        Long q1 = question("Part 5", "Part 5 question 1");
+        Long q2 = question("Part 5", "Part 5 question 2");
+        Long q3 = question("Part 7", "Part 7 question 1");
+        testQuestionRepository.save(new TestQuestion(test.getId(), q1, null, 1));
+        testQuestionRepository.save(new TestQuestion(test.getId(), q2, null, 2));
+        testQuestionRepository.save(new TestQuestion(test.getId(), q3, null, 3));
+        List<String> parts = List.of("Part 5", "Part 7");
+
+        // Nothing submitted yet: no mistakes.
+        mockMvc.perform(get("/attempts/mistakes").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(0))
+                .andExpect(jsonPath("$.mistakes.length()").value(0));
+
+        // First attempt: q1 wrong, q2 right, q3 wrong. The correct answer is "A".
+        startAndAnswer(token, test.getId(), parts, Map.of(q1, "B", q2, "A", q3, "C"));
+
+        mockMvc.perform(get("/attempts/mistakes").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.partCounts.length()").value(2))
+                .andExpect(jsonPath("$.mistakes.length()").value(2));
+
+        mockMvc.perform(get("/attempts/mistakes").param("part", "Part 5").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.partCounts.length()").value(2))
+                .andExpect(jsonPath("$.mistakes.length()").value(1))
+                .andExpect(jsonPath("$.mistakes[0].part").value("Part 5"))
+                .andExpect(jsonPath("$.mistakes[0].chosenOption").value("B"))
+                .andExpect(jsonPath("$.mistakes[0].question.correctOption").value("A"));
+
+        // Second attempt: q1 answered correctly, so it leaves the list; q3 is still wrong.
+        startAndAnswer(token, test.getId(), parts, Map.of(q1, "A", q3, "D"));
+
+        mockMvc.perform(get("/attempts/mistakes").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.mistakes[0].part").value("Part 7"))
+                .andExpect(jsonPath("$.mistakes[0].chosenOption").value("D"));
+
+        // Other users see nothing; anonymous callers are rejected.
+        mockMvc.perform(get("/attempts/mistakes").header("Authorization", "Bearer " + token("mistakes-other@example.com")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(0));
+        mockMvc.perform(get("/attempts/mistakes")).andExpect(status().isUnauthorized());
+    }
 }
