@@ -1,58 +1,58 @@
-# EngCoach – Ứng dụng luyện thi TOEIC Listening & Reading
+# EngCoach: TOEIC Listening & Reading Practice App
 
-EngCoach là ứng dụng web giúp người học luyện đề TOEIC Listening & Reading. Bộ câu hỏi được sinh bằng AI,
-có kiểm tra định dạng, và được nạp vào hệ thống dưới dạng các đề (Test) hoàn chỉnh. Đây là đồ án môn CS2028.
+EngCoach is a web app for practising TOEIC Listening & Reading. The question bank is generated with AI,
+checked against the real TOEIC format, and imported into the app as complete Tests. It is a course project for CS2028.
 
-## Chức năng
+## Features
 
-- Đăng ký, đăng nhập, quên và đặt lại mật khẩu (JWT).
-- Danh mục đề (Practice Tests): làm cả đề hoặc chỉ chọn một số Part.
-- Luyện theo từng Part (Part 1 đến Part 7), dùng câu hỏi lấy từ các đề.
-- Giao diện đúng định dạng TOEIC:
-  - Part 1: ảnh và các lựa chọn A–D, chỉ hiện chữ cái.
-  - Part 2: chỉ hiện A, B, C.
-  - Part 3, 4: ba câu của cùng một hội thoại hoặc bài nói hiển thị chung một trang với một audio.
-  - Part 6, 7: đoạn văn hiển thị trên màn hình, các câu của cùng một đoạn hiển thị chung.
-- Audio Listening tạo bằng Kokoro TTS (giọng nam, nữ, có ngắt nghỉ giữa các câu).
-- Chế độ thi (bài Test): có đồng hồ đếm ngược, tự nộp bài khi hết giờ, mỗi audio chỉ nghe được một lần.
-- Chấm điểm, giải thích đáp án sai bằng AI (Anthropic), xem lại toàn bộ câu hỏi sau khi nộp.
-- Điểm TOEIC ước tính (Listening, Reading, Tổng) và độ chính xác theo từng Part.
-- Part yếu nhất được gợi ý ở trang My Progress (cần ít nhất 5 câu trong Part đó).
-- Ôn lại các câu sai (`/mistakes`), lọc theo Part. Một câu rời danh sách khi lần làm gần nhất là đúng.
-- Lịch sử làm bài, biểu đồ xu hướng, xóa lần làm.
+- Sign up, log in, forgot and reset password (JWT).
+- Practice Tests catalog: take a whole Test or tick only the Parts you want.
+- Practice by Part (Part 1 to Part 7), using questions taken from the Tests.
+- Screens that follow the real TOEIC format:
+  - Part 1: photo with the choices A to D shown as letters only.
+  - Part 2: only A, B and C are shown.
+  - Parts 3 and 4: the three questions of one conversation or talk are shown together with one audio player.
+  - Parts 6 and 7: the passage is shown on screen, and the questions of one passage are shown together.
+- Listening audio generated with Kokoro TTS (male and female voices, pauses between sentences).
+- Exam mode (Test attempts): countdown timer, automatic submit when time runs out, each audio can be played only once.
+- Grading, AI explanations for wrong answers (Anthropic), and a full review of every question after submitting.
+- Estimated TOEIC score (Listening, Reading, Total) and accuracy for each Part.
+- The weakest Part is suggested on the My Progress page (it needs at least 5 questions in that Part).
+- Review your mistakes (`/mistakes`), filtered by Part. A question leaves the list once its latest answer is correct.
+- Attempt history, a score trend chart, and deleting attempts.
 
-## Công nghệ
+## Tech stack
 
-| Thành phần | Công nghệ |
+| Part | Technology |
 | --- | --- |
 | Backend | Java 21, Spring Boot 3, Spring Security (JWT), Spring Data JPA |
-| Cơ sở dữ liệu | MySQL (H2 khi chạy test) |
+| Database | MySQL (H2 in tests) |
 | Frontend | React 18, Vite, React Router, Vitest |
-| Sinh câu hỏi và audio | Python, kokoro-onnx, ffmpeg (xem `tools/question-generator/README.md`) |
-| CI | GitHub Actions: test backend (Maven) và test + build frontend |
+| Question and audio generation | Python, kokoro-onnx, ffmpeg (see `tools/question-generator/README.md`) |
+| CI | GitHub Actions: backend tests (Maven), frontend tests and build |
 
-## Cấu trúc thư mục
+## Folder structure
 
 ```
 backend/engcoach-backend   Spring Boot API
-frontend                   Ứng dụng React
-tools/question-generator   Công cụ sinh đề, audio và ảnh
-docs                       Tài liệu và ghi chú thiết kế
+frontend                   React app
+tools/question-generator   Tool that generates Tests, audio and images
+docs                       Documentation and design notes
 ```
 
-## Chạy ứng dụng ở máy local
+## Run locally
 
-Yêu cầu: JDK 21, Maven, Node.js 20, MySQL đang chạy.
+Requirements: JDK 21, Maven, Node.js 20, a running MySQL server.
 
-1. Tạo cơ sở dữ liệu `engcoach` trong MySQL.
-2. Chạy backend (phải đứng trong thư mục `backend/engcoach-backend`):
+1. Create a MySQL database named `engcoach`.
+2. Start the backend (you must be inside `backend/engcoach-backend`):
 
    ```powershell
    cd backend\engcoach-backend
    mvn spring-boot:run
    ```
 
-3. Chạy frontend ở cửa sổ khác:
+3. Start the frontend in another window:
 
    ```powershell
    cd frontend
@@ -60,42 +60,43 @@ Yêu cầu: JDK 21, Maven, Node.js 20, MySQL đang chạy.
    npm run dev
    ```
 
-4. Mở địa chỉ Vite in ra (thường là `http://localhost:5173`).
+4. Open the address Vite prints, usually `http://localhost:5173`.
 
-Lần chạy đầu, backend tự nạp các đề đã sinh sẵn nếu có (xem biến `ENGCOACH_IMPORT_GENERATED_TESTS`).
+On the first start the backend imports the generated Tests if they are available
+(see the `ENGCOACH_IMPORT_GENERATED_TESTS` variable).
 
-## Biến môi trường backend
+## Backend environment variables
 
-| Biến | Mặc định | Ý nghĩa |
+| Variable | Default | Meaning |
 | --- | --- | --- |
-| `DB_URL` | `jdbc:mysql://localhost:3306/engcoach` | Địa chỉ cơ sở dữ liệu |
-| `DB_USERNAME`, `DB_PASSWORD` | `root`, `1234` | Tài khoản cơ sở dữ liệu |
-| `JWT_SECRET` | giá trị dev | Khóa ký JWT, bắt buộc đổi khi triển khai thật |
-| `ANTHROPIC_API_KEY` | rỗng | Khóa gọi AI giải thích đáp án. Để trống thì lời giải hiện là "không khả dụng" |
-| `ANTHROPIC_MODEL` | `claude-3-5-haiku-latest` | Model dùng để giải thích |
-| `ENGCOACH_SEED_SAMPLE_QUESTIONS` | `true` | Nạp câu hỏi mẫu |
-| `ENGCOACH_IMPORT_GENERATED_TESTS` | `true` | Nạp các đề do công cụ sinh đề tạo ra |
-| `ENGCOACH_REFRESH_GENERATED_TESTS` | `true` | Cập nhật đề đã có cùng tiêu đề (dùng sau khi sinh lại audio) |
-| `PORT` | `8080` | Cổng của backend |
+| `DB_URL` | `jdbc:mysql://localhost:3306/engcoach` | Database address |
+| `DB_USERNAME`, `DB_PASSWORD` | `root`, `1234` | Database account |
+| `JWT_SECRET` | dev value | Key used to sign JWTs. Must be changed for a real deployment |
+| `ANTHROPIC_API_KEY` | empty | Key for the AI explanations. When empty, explanations show as unavailable |
+| `ANTHROPIC_MODEL` | `claude-3-5-haiku-latest` | Model used for explanations |
+| `ENGCOACH_SEED_SAMPLE_QUESTIONS` | `true` | Load the sample questions |
+| `ENGCOACH_IMPORT_GENERATED_TESTS` | `true` | Import the Tests produced by the generator |
+| `ENGCOACH_REFRESH_GENERATED_TESTS` | `true` | Update a Test that already exists with the same title (use after regenerating audio) |
+| `PORT` | `8080` | Backend port |
 
-Không đưa khóa API hoặc mật khẩu vào mã nguồn. Đặt chúng trong biến môi trường.
+Never commit API keys or passwords. Set them as environment variables.
 
-## Các API chính
+## Main API endpoints
 
-| Phương thức | Đường dẫn | Mô tả |
+| Method | Path | Description |
 | --- | --- | --- |
-| POST | `/auth/register`, `/auth/login` | Đăng ký, đăng nhập |
-| GET | `/tests`, `/tests/{id}` | Danh mục đề và chi tiết đề |
-| POST | `/attempts` | Bắt đầu luyện Part hoặc làm Test |
-| GET | `/attempts`, `/attempts/{id}` | Lịch sử và chi tiết một lần làm |
-| PUT | `/attempts/{id}/answers/{questionId}` | Lưu đáp án |
-| POST | `/attempts/{id}/submit` | Nộp bài và chấm điểm |
-| GET | `/attempts/{id}/score` | Điểm ước tính và điểm theo Part của một lần làm |
-| GET | `/attempts/part-stats` | Độ chính xác theo Part trên mọi lần làm |
-| GET | `/attempts/mistakes?part=Part 5` | Các câu sai gần nhất, có thể lọc theo Part |
-| DELETE | `/attempts/{id}` | Xóa một lần làm |
+| POST | `/auth/register`, `/auth/login` | Sign up and log in |
+| GET | `/tests`, `/tests/{id}` | Test catalog and Test details |
+| POST | `/attempts` | Start a Part practice or a Test |
+| GET | `/attempts`, `/attempts/{id}` | Attempt history and one attempt |
+| PUT | `/attempts/{id}/answers/{questionId}` | Save an answer |
+| POST | `/attempts/{id}/submit` | Submit and grade |
+| GET | `/attempts/{id}/score` | Estimated score and per-Part score of one attempt |
+| GET | `/attempts/part-stats` | Accuracy by Part across all attempts |
+| GET | `/attempts/mistakes?part=Part 5` | Latest wrong answers, optionally filtered by Part |
+| DELETE | `/attempts/{id}` | Delete an attempt |
 
-## Kiểm thử
+## Testing
 
 ```powershell
 # Backend
@@ -108,14 +109,15 @@ npx vitest run
 npx vite build
 ```
 
-Các thay đổi đều đi qua Pull Request, và CI phải chạy qua cả hai nhóm test trước khi gộp vào `main`.
+Every change goes through a Pull Request, and both test jobs in CI must pass before it is merged into `main`.
 
-## Lưu ý về điểm TOEIC ước tính
+## About the estimated TOEIC score
 
-Bảng quy đổi chính thức của ETS không công khai. Ứng dụng ước tính tuyến tính theo tỉ lệ câu đúng của từng phần
-(Listening gồm Part 1–4, Reading gồm Part 5–7), mỗi phần từ 5 đến 495 điểm. Điểm tổng chỉ có khi bài làm có cả hai phần.
-Đây chỉ là con số tham khảo, điểm thi thật có thể khác.
+The official ETS conversion tables are not public. The app makes a linear estimate from the share of correct answers
+in each section (Listening is Parts 1 to 4, Reading is Parts 5 to 7), from 5 to 495 points per section.
+A total score is shown only when the attempt covers both sections.
+It is a rough guide, and a real exam score may differ.
 
-## Sinh đề và audio
+## Generating Tests and audio
 
-Xem `tools/question-generator/README.md` để biết cách sinh đề, tạo audio và ảnh, và cách đưa chúng vào ứng dụng.
+See `tools/question-generator/README.md` for how to generate Tests, audio and images, and how to load them into the app.
