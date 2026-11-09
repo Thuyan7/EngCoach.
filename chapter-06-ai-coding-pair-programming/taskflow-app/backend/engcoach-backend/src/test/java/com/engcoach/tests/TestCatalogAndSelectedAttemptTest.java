@@ -138,4 +138,42 @@ class TestCatalogAndSelectedAttemptTest {
                 .andExpect(jsonPath("$.score").value(1))
                 .andExpect(jsonPath("$.totalQuestions").value(1));
     }
+
+    @Test
+    void partPractice_usesTheQuestionsOfTestsWithTheirGroup_notOldBankQuestions() throws Exception {
+        String token = token("part-practice-groups@example.com");
+        Long oldQuestion = question("Part 3", "Old bank question without media");
+        Long linkedA = question("Part 3", "Conversation question A");
+        Long linkedB = question("Part 3", "Conversation question B");
+        ToeicTest test = testRepository.save(new ToeicTest("Generated Test", "d", true));
+        testPartRepository.save(new TestPart(test.getId(), "Part 3", 2, 600, 3));
+        QuestionGroup group = questionGroupRepository.save(new QuestionGroup("Part 3", "CONVERSATION", "Shared script.",
+                null, "/audio/test-01/g1.mp3"));
+        testQuestionRepository.saveAll(List.of(
+                new TestQuestion(test.getId(), linkedA, group.getId(), 1),
+                new TestQuestion(test.getId(), linkedB, group.getId(), 2)));
+
+        String start = objectMapper.writeValueAsString(Map.of("type", "PART_PRACTICE", "part", "Part 3"));
+        String response = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(start))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(response).get("id").asLong();
+
+        mockMvc.perform(get("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.questions.length()").value(2))
+                .andExpect(jsonPath("$.questions[0].id").value(linkedA))
+                .andExpect(jsonPath("$.questions[0].groupType").value("CONVERSATION"))
+                .andExpect(jsonPath("$.questions[0].audioUrl").value("/audio/test-01/g1.mp3"))
+                .andExpect(jsonPath("$.questions[1].id").value(linkedB));
+
+        // An old-bank question outside every Test is not part of this practice set, so it cannot be answered here.
+        String bad = objectMapper.writeValueAsString(Map.of("chosenOption", "A"));
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + oldQuestion)
+                        .header("Authorization", "Bearer " + token).contentType("application/json").content(bad))
+                .andExpect(status().is4xxClientError());
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + linkedA)
+                        .header("Authorization", "Bearer " + token).contentType("application/json").content(bad))
+                .andExpect(status().isOk());
+    }
 }

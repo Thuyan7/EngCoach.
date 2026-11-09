@@ -133,7 +133,7 @@ public class AttemptGradingService {
         Map<Long, String> correctOptionsByQuestionId = new HashMap<>();
         Iterable<Question> fullQuestionSet;
         if ("PART_PRACTICE".equals(attempt.getType())) {
-            fullQuestionSet = questionRepository.findByPart(attempt.getPart());
+            fullQuestionSet = questionRepository.findPracticeSetByPart(attempt.getPart());
         } else if ("TEST".equals(attempt.getType()) && attempt.getTestId() != null) {
             List<Long> ids = testQuestionRepository.findByTestIdOrderBySortOrderAsc(attempt.getTestId()).stream()
                     .map(TestQuestion::getQuestionId).toList();
