@@ -145,4 +145,24 @@ describe("Progress screen (S10b)", () => {
 
     expect(await screen.findByRole("link", { name: "My Progress" })).toHaveAttribute("aria-current", "page");
   });
+
+  it("shows accuracy by Part and the weakest Part", async () => {
+    routeFetch({
+      "GET /attempts": () => jsonResponse(200, attempts),
+      "GET /attempts/part-stats": () => jsonResponse(200, {
+        attemptsCounted: 2,
+        parts: [
+          { part: "Part 2", correct: 18, total: 20, accuracyPercent: 90 },
+          { part: "Part 5", correct: 6, total: 20, accuracyPercent: 30 },
+        ],
+        weakestPart: "Part 5",
+        latestEstimate: { listening: 400, reading: 300, total: 700 },
+      }),
+    });
+    renderApp("/progress");
+
+    expect(await screen.findByText("Part 5 needs the most practice.")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Part 2 accuracy 90%" })).toBeInTheDocument();
+    expect(screen.getByText("700")).toBeInTheDocument();
+  });
 });

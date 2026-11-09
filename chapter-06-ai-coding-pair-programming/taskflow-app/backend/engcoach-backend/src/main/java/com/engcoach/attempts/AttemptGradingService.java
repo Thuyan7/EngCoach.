@@ -131,23 +131,26 @@ public class AttemptGradingService {
      */
     private Map<Long, String> loadCorrectOptions(Attempt attempt, List<Answer> answers) {
         Map<Long, String> correctOptionsByQuestionId = new HashMap<>();
-        Iterable<Question> fullQuestionSet;
+        for (Question question : assignedQuestions(attempt)) {
+            correctOptionsByQuestionId.put(question.getId(), question.getCorrectOption());
+        }
+        return correctOptionsByQuestionId;
+    }
+
+    /** Bộ câu được giao cho bài làm: dùng chung cho chấm điểm và thống kê theo Part. */
+    public List<Question> assignedQuestions(Attempt attempt) {
         if ("PART_PRACTICE".equals(attempt.getType())) {
-            fullQuestionSet = questionRepository.findPracticeSetByPart(attempt.getPart());
-        } else if ("TEST".equals(attempt.getType()) && attempt.getTestId() != null) {
+            return questionRepository.findPracticeSetByPart(attempt.getPart());
+        }
+        if ("TEST".equals(attempt.getType()) && attempt.getTestId() != null) {
             List<Long> ids = testQuestionRepository.findByTestIdOrderBySortOrderAsc(attempt.getTestId()).stream()
                     .map(TestQuestion::getQuestionId).toList();
             List<String> selected = attempt.getSelectedParts() == null ? List.of()
                     : List.of(attempt.getSelectedParts().split(","));
-            fullQuestionSet = questionRepository.findAllById(ids).stream()
+            return questionRepository.findAllById(ids).stream()
                     .filter(question -> selected.contains(question.getPart())).toList();
-        } else {
-            fullQuestionSet = questionRepository.findAll();
         }
-        for (Question question : fullQuestionSet) {
-            correctOptionsByQuestionId.put(question.getId(), question.getCorrectOption());
-        }
-        return correctOptionsByQuestionId;
+        return questionRepository.findAll();
     }
 
     /**

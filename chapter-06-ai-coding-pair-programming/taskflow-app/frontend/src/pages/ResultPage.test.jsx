@@ -198,4 +198,23 @@ describe("Result screen (S9)", () => {
     expect(await screen.findByRole("heading", { name: "Log in" })).toBeInTheDocument();
     expect(window.localStorage.getItem("engcoach.session")).toBeNull();
   });
+
+  it("shows the estimated TOEIC score and accuracy by Part when the server provides them", async () => {
+    routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, submitted()),
+      "GET /attempts/7/score": () => jsonResponse(200, {
+        parts: [
+          { part: "Part 1", correct: 4, total: 6, accuracyPercent: 67 },
+          { part: "Part 5", correct: 10, total: 30, accuracyPercent: 33 },
+        ],
+        estimate: { listening: 300, reading: 150, total: 450 },
+      }),
+    });
+    renderApp("/result/7", { result: gradedResult() });
+
+    expect(await screen.findByText("450")).toBeInTheDocument();
+    expect(screen.getByText("300 / 495")).toBeInTheDocument();
+    expect(screen.getByText(/may differ/)).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Part 5 accuracy 33%" })).toBeInTheDocument();
+  });
 });

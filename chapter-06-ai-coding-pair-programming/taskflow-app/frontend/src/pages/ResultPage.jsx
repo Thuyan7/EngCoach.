@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useParams } from "react-router-dom";
-import { getAttempt, retryExplanation, submitAttempt } from "../api/attempts.js";
+import { getAttempt, getAttemptScore, retryExplanation, submitAttempt } from "../api/attempts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { EstimateCards, PartBars, validParts } from "../components/ScoreInsights.jsx";
 
 const letter = (i) => String.fromCharCode(65 + i);
 
@@ -24,6 +25,7 @@ export default function ResultPage() {
   const [result, setResult] = useState(null);
   const [retry, setRetry] = useState({}); // questionId -> {status:"retrying"|"failed"}
   const [reloadKey, setReloadKey] = useState(0);
+  const [insights, setInsights] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,6 +56,16 @@ export default function ResultPage() {
     // location.state is read once on arrival; reloads re-fetch from the server.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attemptId, token, signOut, reloadKey]);
+
+  // Estimated TOEIC score and per-Part accuracy are extras: if they fail, the result page still works.
+  useEffect(() => {
+    if (load.status !== "ready") return undefined;
+    let cancelled = false;
+    getAttemptScore(token, attemptId)
+      .then((data) => { if (!cancelled) setInsights(data); })
+      .catch(() => { if (!cancelled) setInsights(null); });
+    return () => { cancelled = true; };
+  }, [load.status, token, attemptId]);
 
   const retryOne = useCallback(
     async (questionId) => {
@@ -160,6 +172,9 @@ export default function ResultPage() {
           </div>
         </div>
       </div>
+
+      <EstimateCards estimate={insights?.estimate} />
+      {validParts(insights).length > 1 && <PartBars parts={insights.parts} heading="Accuracy by Part" />}
 
       <div className="section-head">
         <h2>Review all answers</h2>
