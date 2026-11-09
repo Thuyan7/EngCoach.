@@ -1,6 +1,6 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { attemptDetail, jsonResponse, renderApp, routeFetch, signIn } from "../test/helpers.jsx";
 
 const Q1 = 101; // ids from the questions fixture (test/helpers.jsx)
@@ -653,5 +653,57 @@ describe("Test screen: Part 2 letters and grouped Part 3-4", () => {
 
     await user.click(screen.getByLabelText("Option C"));
     await waitFor(() => expect(putBodies(fetchMock)).toEqual([["/attempts/7/answers/601", { chosenOption: "A car is parked." }]]));
+  });
+});
+
+describe("Exam mode listening audio", () => {
+  const examAttempt = (type, part) => attemptDetail({
+    type, part, testId: type === "TEST" ? 12 : undefined, selectedParts: type === "TEST" ? ["Part 3"] : undefined,
+    timeLimitSeconds: type === "TEST" ? 1020 : null, remainingSeconds: type === "TEST" ? 900 : null,
+    questions: [{
+      id: 301, prompt: "Where does this take place?", options: ["Office", "Bank", "Shop", "Park"],
+      audioUrl: "/audio/test-01/g11.mp3", audioText: "Script", groupId: 11, groupType: "CONVERSATION", groupContent: "Script",
+    }],
+  });
+
+  it("in a Test the audio can be played only once, even after reloading the page", async () => {
+    const user = userEvent.setup();
+    const play = vi.spyOn(window.HTMLMediaElement.prototype, "play").mockImplementation(() => Promise.resolve());
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, examAttempt("TEST", null)) });
+    const first = renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 1 of 1")).toBeInTheDocument();
+    expect(document.querySelector("audio")).not.toHaveAttribute("controls");
+    await user.click(screen.getByRole("button", { name: "Play audio (one time only)" }));
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: /Playing|Audio has been played/ })).toBeDisabled();
+
+    // Simulate a refresh: a fresh render of the same attempt must not allow another play.
+    first.unmount();
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, examAttempt("TEST", null)) });
+    renderApp("/practice/7");
+    expect(await screen.findByRole("button", { name: "Audio has been played" })).toBeDisabled();
+    expect(play).toHaveBeenCalledTimes(1);
+    play.mockRestore();
+  });
+
+  it("gives the play back when the browser refuses to play the audio", async () => {
+    const user = userEvent.setup();
+    const play = vi.spyOn(window.HTMLMediaElement.prototype, "play").mockImplementation(() => Promise.reject(new Error("blocked")));
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, examAttempt("TEST", null)) });
+    renderApp("/practice/7");
+
+    await user.click(await screen.findByRole("button", { name: "Play audio (one time only)" }));
+    expect(await screen.findByRole("button", { name: "Play audio (one time only)" })).toBeEnabled();
+    play.mockRestore();
+  });
+
+  it("in Part practice the audio keeps its normal player controls", async () => {
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, examAttempt("PART_PRACTICE", "Part 3")) });
+    renderApp("/practice/7");
+
+    expect(await screen.findByText("Question 1 of 1")).toBeInTheDocument();
+    expect(document.querySelector("audio")).toHaveAttribute("controls");
+    expect(screen.queryByText(/one time only/)).not.toBeInTheDocument();
   });
 });
