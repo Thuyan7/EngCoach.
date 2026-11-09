@@ -206,7 +206,9 @@ public class AttemptsService {
                 .orElseThrow(InvalidAnswerException::new);
         boolean belongsToAttempt = "MOCK_TEST".equals(attempt.getType())
                 || ("PART_PRACTICE".equals(attempt.getType())
-                    && attempt.getPart() != null && attempt.getPart().equals(question.getPart()))
+                    && attempt.getPart() != null && attempt.getPart().equals(question.getPart())
+                    && questionRepository.findPracticeSetByPart(attempt.getPart()).stream()
+                        .anyMatch(item -> item.getId().equals(questionId)))
                 || ("TEST".equals(attempt.getType()) && attempt.getTestId() != null
                     && selectedParts(attempt).contains(question.getPart())
                     && testQuestionRepository.existsByTestIdAndQuestionId(attempt.getTestId(), questionId));
@@ -276,10 +278,24 @@ public class AttemptsService {
                     .filter(java.util.Objects::nonNull).toList()).forEach(group -> groups.put(group.getId(), group));
             questions = selectedLinks.stream().map(link -> QuestionView.from(byId.get(link.getQuestionId()),
                     link.getGroupId() == null ? null : groups.get(link.getGroupId()), revealAnswers)).toList();
+        } else if ("PART_PRACTICE".equals(attempt.getType()) && attempt.getPart() != null) {
+            // Luyện theo Part dùng cùng bộ câu với phần chấm điểm; câu thuộc đề kèm nhóm để có ảnh/audio/đoạn văn chung.
+            List<Question> practiceSet = questionRepository.findPracticeSetByPart(attempt.getPart());
+            Map<Long, Long> groupIdByQuestion = new HashMap<>();
+            testQuestionRepository.findByQuestionIdInOrderByTestIdAscSortOrderAsc(
+                    practiceSet.stream().map(Question::getId).toList())
+                    .forEach(link -> groupIdByQuestion.putIfAbsent(link.getQuestionId(), link.getGroupId()));
+            Map<Long, QuestionGroup> groups = new HashMap<>();
+            questionGroupRepository.findAllById(groupIdByQuestion.values().stream()
+                    .filter(java.util.Objects::nonNull).distinct().toList())
+                    .forEach(group -> groups.put(group.getId(), group));
+            questions = practiceSet.stream().map(question -> {
+                Long groupId = groupIdByQuestion.get(question.getId());
+                return QuestionView.from(question, groupId == null ? null : groups.get(groupId), revealAnswers);
+            }).toList();
         } else {
-            List<Question> assignedQuestions = "PART_PRACTICE".equals(attempt.getType()) && attempt.getPart() != null
-                    ? questionRepository.findByPartOrderByIdAsc(attempt.getPart())
-                    : "MOCK_TEST".equals(attempt.getType()) ? questionRepository.findAllByOrderByIdAsc() : List.of();
+            List<Question> assignedQuestions = "MOCK_TEST".equals(attempt.getType())
+                    ? questionRepository.findAllByOrderByIdAsc() : List.of();
             questions = assignedQuestions.stream().map(question -> QuestionView.from(question, revealAnswers)).toList();
         }
 

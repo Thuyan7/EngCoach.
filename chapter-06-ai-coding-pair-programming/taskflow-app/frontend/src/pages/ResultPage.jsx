@@ -130,7 +130,11 @@ export default function ResultPage() {
     answer: answerFor.get(question.id),
   }));
 
-  const title = attempt.type === "MOCK_TEST" ? "Mock test result" : `${attempt.part} result`;
+  const title = attempt.type === "MOCK_TEST"
+    ? "Mock test result"
+    : attempt.type === "TEST"
+      ? `${attempt.testTitle || "TOEIC Test"} result`
+      : `${attempt.part} result`;
 
   return (
     <>

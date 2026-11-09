@@ -49,4 +49,18 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
      * established for {@code PART_PRACTICE}).
      */
     List<Question> findAllByOrderByIdAsc();
+
+    /** Câu của một Part nằm trong ít nhất một đề (Test), theo thứ tự id = thứ tự đề được nạp. */
+    @org.springframework.data.jpa.repository.Query("SELECT q FROM Question q WHERE q.part = :part AND EXISTS "
+            + "(SELECT 1 FROM com.engcoach.tests.TestQuestion tq WHERE tq.questionId = q.id) ORDER BY q.id")
+    List<Question> findLinkedToTestsByPart(@org.springframework.data.repository.query.Param("part") String part);
+
+    /**
+     * Bộ câu của bài luyện theo Part: ưu tiên các câu thuộc đề (có ảnh, audio, nhóm hội thoại/đoạn văn đầy đủ);
+     * nếu Part chưa có câu nào trong đề thì dùng tất cả câu của Part như trước.
+     */
+    default List<Question> findPracticeSetByPart(String part) {
+        List<Question> linked = findLinkedToTestsByPart(part);
+        return linked.isEmpty() ? findByPartOrderByIdAsc(part) : linked;
+    }
 }

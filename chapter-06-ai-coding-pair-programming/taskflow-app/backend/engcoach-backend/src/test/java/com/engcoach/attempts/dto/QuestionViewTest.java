@@ -53,7 +53,7 @@ class QuestionViewTest {
 
     @Test
     void usesSharedGroupImageAndAudioWhenQuestionHasNoIndividualMedia() throws Exception {
-        Question question = new Question("Part 1", "Choose the statement.", "[\\"A\\",\\"B\\"]", "A");
+        Question question = new Question("Part 1", "Choose the statement.", "[\"A\",\"B\"]", "A");
         QuestionGroup group = new QuestionGroup("Part 1", "PHOTO", "Shared audio script.",
                 "https://example.com/group-photo.jpg", "https://example.com/group-audio.mp3");
 
