@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { deleteAttempt, listAttempts } from "../api/attempts.js";
+import { deleteAttempt, getPartStats, listAttempts } from "../api/attempts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { EstimateCards, PartBars } from "../components/ScoreInsights.jsx";
 
 const formatDate = (value) => {
   if (!value) return "Date unavailable";
@@ -26,6 +27,7 @@ export default function ProgressPage() {
   const { token, signOut } = useAuth();
   const [history, setHistory] = useState({ status: "loading", attempts: [] });
   const [reloadKey, setReloadKey] = useState(0);
+  const [stats, setStats] = useState(null);
   const [selected, setSelected] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -56,6 +58,15 @@ export default function ProgressPage() {
       cancelled = true;
     };
   }, [token, signOut, reloadKey]);
+
+  // Per-Part analysis is optional: a failure just hides it.
+  useEffect(() => {
+    let cancelled = false;
+    getPartStats(token)
+      .then((data) => { if (!cancelled) setStats(data); })
+      .catch(() => { if (!cancelled) setStats(null); });
+    return () => { cancelled = true; };
+  }, [token, reloadKey, history.attempts.length]);
 
   useEffect(() => {
     if (!selected) {
@@ -196,6 +207,9 @@ export default function ProgressPage() {
               <p className="value">{summary.average === null ? "—" : `${summary.average}%`}</p>
             </div>
           </section>
+
+          <EstimateCards estimate={stats?.latestEstimate} />
+          <PartBars parts={stats?.parts} weakestPart={stats?.weakestPart} />
 
           <section className="card trend-card" aria-labelledby="trend-heading">
             <div className="trend-heading">

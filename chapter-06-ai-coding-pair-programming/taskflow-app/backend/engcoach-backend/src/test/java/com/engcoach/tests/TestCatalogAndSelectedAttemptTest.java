@@ -176,4 +176,79 @@ class TestCatalogAndSelectedAttemptTest {
                         .header("Authorization", "Bearer " + token).contentType("application/json").content(bad))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void scoreAndPartStats_countUnansweredAsWrongAndEstimateTheToeicScore() throws Exception {
+        String token = token("score-and-stats@example.com");
+        ToeicTest test = testRepository.save(new ToeicTest("Scored Test", "d", true));
+        List<String> parts = List.of("Part 1", "Part 2", "Part 3", "Part 4", "Part 5", "Part 6", "Part 7");
+        Map<String, List<Long>> byPart = new java.util.HashMap<>();
+        int order = 1;
+        for (String part : parts) {
+            testPartRepository.save(new TestPart(test.getId(), part, 2, 600, Integer.parseInt(part.substring(5))));
+            for (int n = 1; n <= 2; n++) {
+                Long id = question(part, part + " question " + n);
+                byPart.computeIfAbsent(part, key -> new java.util.ArrayList<>()).add(id);
+                testQuestionRepository.save(new TestQuestion(test.getId(), id, null, order++));
+            }
+        }
+
+        String start = objectMapper.writeValueAsString(Map.of("type", "TEST", "testId", test.getId(), "parts", parts));
+        String response = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(start))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        long attemptId = objectMapper.readTree(response).get("id").asLong();
+
+        // Part 1: both right, Part 2: one right, everything else left unanswered.
+        List<Long> answered = List.of(byPart.get("Part 1").get(0), byPart.get("Part 1").get(1), byPart.get("Part 2").get(0));
+        for (Long questionId : answered) {
+            mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + questionId)
+                            .header("Authorization", "Bearer " + token).contentType("application/json")
+                            .content(objectMapper.writeValueAsString(Map.of("chosenOption", "A"))))
+                    .andExpect(status().isOk());
+        }
+
+        // Before submitting there is nothing to score yet.
+        mockMvc.perform(get("/attempts/" + attemptId + "/score").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.parts.length()").value(0))
+                .andExpect(jsonPath("$.estimate.total").value(org.hamcrest.Matchers.nullValue()));
+
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/attempts/" + attemptId + "/score").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.parts.length()").value(7))
+                .andExpect(jsonPath("$.parts[0].part").value("Part 1"))
+                .andExpect(jsonPath("$.parts[0].correct").value(2))
+                .andExpect(jsonPath("$.parts[0].accuracyPercent").value(100))
+                .andExpect(jsonPath("$.parts[1].correct").value(1))
+                .andExpect(jsonPath("$.parts[1].total").value(2))
+                .andExpect(jsonPath("$.parts[1].accuracyPercent").value(50))
+                .andExpect(jsonPath("$.parts[4].correct").value(0))
+                // Listening: 3 right of 8 -> 190; Reading: 0 of 6 -> 5; total 195.
+                .andExpect(jsonPath("$.estimate.listening").value(190))
+                .andExpect(jsonPath("$.estimate.reading").value(5))
+                .andExpect(jsonPath("$.estimate.total").value(195));
+
+        mockMvc.perform(get("/attempts/part-stats").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.attemptsCounted").value(1))
+                .andExpect(jsonPath("$.parts.length()").value(7))
+                .andExpect(jsonPath("$.latestEstimate.total").value(195))
+                // Every Part has only 2 questions, too few to name a weakest Part.
+                .andExpect(jsonPath("$.weakestPart").value(org.hamcrest.Matchers.nullValue()));
+
+        // Another user cannot read this attempt's score.
+        String other = token("score-other@example.com");
+        mockMvc.perform(get("/attempts/" + attemptId + "/score").header("Authorization", "Bearer " + other))
+                .andExpect(status().is4xxClientError());
+        mockMvc.perform(get("/attempts/part-stats").header("Authorization", "Bearer " + other))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.attemptsCounted").value(0))
+                .andExpect(jsonPath("$.parts.length()").value(0));
+        mockMvc.perform(get("/attempts/" + attemptId + "/score"))
+                .andExpect(status().isUnauthorized());
+    }
 }

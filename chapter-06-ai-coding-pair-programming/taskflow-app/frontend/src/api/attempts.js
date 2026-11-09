@@ -40,3 +40,13 @@ export function startMockTest(token) {
 export function startToeicTest(token, testId, parts) {
   return request("/attempts", { method: "POST", token, body: { type: "TEST", testId, parts } });
 }
+
+// Estimated TOEIC score and per-Part accuracy of one submitted attempt.
+export function getAttemptScore(token, attemptId) {
+  return request(`/attempts/${attemptId}/score`, { token });
+}
+
+// Accuracy by Part across all submitted attempts, plus the latest estimate.
+export function getPartStats(token) {
+  return request("/attempts/part-stats", { token });
+}
