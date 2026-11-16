@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -321,5 +322,73 @@ class TestCatalogAndSelectedAttemptTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(0));
         mockMvc.perform(get("/attempts/mistakes")).andExpect(status().isUnauthorized());
+    }
+
+    private long startMistakePractice(String token, String part) throws Exception {
+        Map<String, Object> body = part == null ? Map.of("type", "MISTAKE_PRACTICE")
+                : Map.of("type", "MISTAKE_PRACTICE", "part", part);
+        String response = mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(response).get("id").asLong();
+    }
+
+    @Test
+    void mistakePractice_asksOnlyTheWrongQuestions_gradesThem_andClearsFixedMistakes() throws Exception {
+        String token = token("retry@example.com");
+        ToeicTest test = testRepository.save(new ToeicTest("Retry Test", "d", true));
+        testPartRepository.save(new TestPart(test.getId(), "Part 5", 2, 600, 5));
+        testPartRepository.save(new TestPart(test.getId(), "Part 7", 1, 600, 7));
+        Long q1 = question("Part 5", "Retry question 1");
+        Long q2 = question("Part 5", "Retry question 2");
+        Long q3 = question("Part 7", "Retry question 3");
+        testQuestionRepository.save(new TestQuestion(test.getId(), q1, null, 1));
+        testQuestionRepository.save(new TestQuestion(test.getId(), q2, null, 2));
+        testQuestionRepository.save(new TestQuestion(test.getId(), q3, null, 3));
+
+        // No mistakes yet: nothing to practise.
+        mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content("{\"type\":\"MISTAKE_PRACTICE\"}"))
+                .andExpect(status().isUnprocessableEntity());
+
+        // q1 and q3 wrong, q2 right. The correct answer is "A".
+        startAndAnswer(token, test.getId(), List.of("Part 5", "Part 7"), Map.of(q1, "B", q2, "A", q3, "C"));
+
+        // Only Part 5 mistakes: just q1.
+        long partFive = startMistakePractice(token, "Part 5");
+        mockMvc.perform(get("/attempts/" + partFive).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type").value("MISTAKE_PRACTICE"))
+                .andExpect(jsonPath("$.questions.length()").value(1))
+                .andExpect(jsonPath("$.questions[0].id").value(q1.intValue()));
+        mockMvc.perform(delete("/attempts/" + partFive).header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        // All mistakes: q1 and q3, and the attempt resumes instead of duplicating.
+        long attemptId = startMistakePractice(token, null);
+        org.junit.jupiter.api.Assertions.assertEquals(attemptId, startMistakePractice(token, null));
+        mockMvc.perform(get("/attempts/" + attemptId).header("Authorization", "Bearer " + token))
+                .andExpect(jsonPath("$.questions.length()").value(2));
+
+        // q2 was answered correctly before, so it is not part of this attempt.
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + q2).header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content("{\"chosenOption\":\"A\"}"))
+                .andExpect(status().isUnprocessableEntity());
+
+        // Fix q1, miss q3 again.
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + q1).header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content("{\"chosenOption\":\"A\"}"))
+                .andExpect(status().isOk());
+        mockMvc.perform(put("/attempts/" + attemptId + "/answers/" + q3).header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content("{\"chosenOption\":\"D\"}"))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/attempts/" + attemptId + "/submit").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.score").value(1))
+                .andExpect(jsonPath("$.totalQuestions").value(2));
+
+        mockMvc.perform(get("/attempts/mistakes").header("Authorization", "Bearer " + token))
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.mistakes[0].question.id").value(q3.intValue()));
     }
 }

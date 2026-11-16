@@ -146,7 +146,9 @@ export default function ResultPage() {
     ? "Mock test result"
     : attempt.type === "TEST"
       ? `${attempt.testTitle || "TOEIC Test"} result`
-      : `${attempt.part} result`;
+      : attempt.type === "MISTAKE_PRACTICE"
+        ? "Mistakes practice result"
+        : `${attempt.part} result`;
 
   return (
     <>

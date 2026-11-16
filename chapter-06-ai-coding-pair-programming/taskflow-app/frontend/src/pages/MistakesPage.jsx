@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { getMistakes } from "../api/attempts.js";
+import { Link, useNavigate } from "react-router-dom";
+import { getMistakes, startMistakePractice } from "../api/attempts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 const letter = (i) => String.fromCharCode(65 + i);
@@ -12,6 +12,9 @@ export default function MistakesPage() {
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("loading");
   const [reloadKey, setReloadKey] = useState(0);
+  const navigate = useNavigate();
+  const [startError, setStartError] = useState("");
+  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,6 +37,22 @@ export default function MistakesPage() {
       cancelled = true;
     };
   }, [token, signOut, part, reloadKey]);
+
+  async function practiceMistakes() {
+    setStartError("");
+    setStarting(true);
+    try {
+      const attempt = await startMistakePractice(token, part);
+      navigate(`/practice/${attempt.id}`);
+    } catch (error) {
+      if (error.status === 401) {
+        signOut();
+        return;
+      }
+      setStartError("We couldn't start the practice. Please try again.");
+      setStarting(false);
+    }
+  }
 
   const partCounts = data && Array.isArray(data.partCounts) ? data.partCounts : [];
   const mistakes = data && Array.isArray(data.mistakes) ? data.mistakes : [];
@@ -84,6 +103,14 @@ export default function MistakesPage() {
               </button>
             ))}
           </div>
+
+          <div className="q-actions">
+            <button type="button" className="btn btn-primary" disabled={starting} onClick={practiceMistakes}>
+              {starting ? "Starting…" : part ? `Practice these ${part} mistakes` : "Practice my mistakes"}
+            </button>
+            <span className="muted-label">Up to 30 questions at a time.</span>
+          </div>
+          {startError && <div className="error-msg" role="alert">{startError}</div>}
 
           <ul className="explain-list">
             {mistakes.map((item) => (

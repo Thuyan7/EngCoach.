@@ -14,6 +14,7 @@ const formatDate = (value) => {
 
 const attemptName = (attempt) => {
   if (attempt.type === "MOCK_TEST") return "Full mock test";
+  if (attempt.type === "MISTAKE_PRACTICE") return attempt.part ? `Mistakes: ${attempt.part}` : "Mistakes practice";
   if (attempt.type === "TEST") return `TOEIC Test #${attempt.testId ?? attempt.id}`;
   return attempt.part || "Part practice";
 };
