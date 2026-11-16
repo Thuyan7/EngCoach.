@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { listAttempts, startPartPractice, startMockTest, startToeicTest } from "../api/attempts.js";
+import { getMistakes, listAttempts, startPartPractice, startMockTest, startToeicTest } from "../api/attempts.js";
 import { request } from "../api/client.js";
 import { listParts } from "../api/parts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [testStartError, setTestStartError] = useState("");
   const [stats, setStats] = useState({ status: "loading", attempts: [] });
   const [statsReload, setStatsReload] = useState(0);
+  const [mistakeCount, setMistakeCount] = useState(null); // null until loaded; stays null if the call fails
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +70,15 @@ export default function DashboardPage() {
     });
     return () => { cancelled = true; };
   }, [token, signOut, statsReload]);
+
+  // The Review Mistakes card is an extra: if this call fails the card still opens the page.
+  useEffect(() => {
+    let cancelled = false;
+    getMistakes(token).then((data) => {
+      if (!cancelled && typeof data?.total === "number") setMistakeCount(data.total);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [token, statsReload]);
 
   async function start(type, part = null) {
     setStartError("");
@@ -169,6 +179,9 @@ export default function DashboardPage() {
           </button>
           <button className="quick-card" type="button" onClick={() => navigate("/progress")}>
             <span className="quick-icon quick-dark" aria-hidden="true">▥</span><strong>My Progress</strong><p>Review your completed attempts and track your scores.</p><small>YOUR LEARNING HISTORY</small>
+          </button>
+          <button className="quick-card" type="button" onClick={() => navigate("/mistakes")}>
+            <span className="quick-icon quick-red" aria-hidden="true">↺</span><strong>Review Mistakes</strong><p>Go back over the questions you got wrong and practise them again.</p><small>{mistakeCount === null ? "FIX WHAT YOU MISSED" : mistakeCount === 0 ? "NO MISTAKES YET" : `${mistakeCount} ${mistakeCount === 1 ? "QUESTION" : "QUESTIONS"} TO REVIEW`}</small>
           </button>
         </div>
       </section>

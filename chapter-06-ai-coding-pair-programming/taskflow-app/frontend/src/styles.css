@@ -621,11 +621,11 @@ body{background:#F8FBFD;color:#1D2939;}
 .home-section-heading h2{margin:0;color:#1F3044;font-size:21px;font-weight:850;letter-spacing:-.5px;}
 .home-section-heading>span{color:#8B99A8;font-size:11px;}
 .quick-access-section,.jump-section,.practice-parts-section{margin-top:34px;}
-.quick-access-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;}
+.quick-access-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;}
 .quick-card{display:flex;flex-direction:column;align-items:flex-start;min-height:190px;padding:20px;border:1px solid #E0E8EF;border-radius:17px;background:#fff;text-align:left;box-shadow:0 2px 5px rgba(15,35,55,.04);cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;}
 .quick-card:hover{transform:translateY(-3px);border-color:#B8E6D5;box-shadow:0 10px 24px rgba(15,85,63,.08);}
 .quick-icon{display:grid;place-items:center;width:45px;height:45px;margin-bottom:15px;border-radius:13px;color:#fff;font-size:22px;}
-.quick-dark{background:#202B3B;}.quick-green{background:#D7F8EB;color:#008F69;}
+.quick-dark{background:#202B3B;}.quick-green{background:#D7F8EB;color:#008F69;}.quick-red{background:#FDE7E1;color:#C2562B;}
 .quick-card strong{color:#20364A;font-size:15px;font-weight:850;}
 .quick-card p{flex:1;margin:9px 0 15px;color:#758599;font-size:12px;line-height:1.65;}
 .quick-card small{color:#00A978;font-size:9.5px;font-weight:850;letter-spacing:.06em;}
