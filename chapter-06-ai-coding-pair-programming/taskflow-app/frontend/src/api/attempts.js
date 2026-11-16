@@ -61,3 +61,23 @@ export function getMistakes(token, part) {
   const query = part ? `?part=${encodeURIComponent(part)}` : "";
   return request(`/attempts/mistakes${query}`, { token });
 }
+
+// The learner's time zone decides which calendar day an answer belongs to.
+function timeZoneQuery() {
+  try {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return zone ? `?timeZone=${encodeURIComponent(zone)}` : "";
+  } catch (error) {
+    return "";
+  }
+}
+
+// Study goals, today's progress and streak.
+export function getGoals(token) {
+  return request(`/goals${timeZoneQuery()}`, { token });
+}
+
+// targetScore may be null (no target); dailyQuestionGoal is required.
+export function saveGoals(token, targetScore, dailyQuestionGoal) {
+  return request(`/goals${timeZoneQuery()}`, { method: "PUT", token, body: { targetScore, dailyQuestionGoal } });
+}
