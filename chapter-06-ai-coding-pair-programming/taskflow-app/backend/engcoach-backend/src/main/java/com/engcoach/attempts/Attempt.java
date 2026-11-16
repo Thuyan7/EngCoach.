@@ -81,6 +81,10 @@ public class Attempt {
     @Column(name = "selected_parts", length = 128)
     private String selectedParts;
 
+    /** Comma-separated question ids for a MISTAKE_PRACTICE attempt, in the order they are shown. */
+    @Column(name = "question_ids", length = 2000)
+    private String questionIds;
+
     @Column
     private Integer score;
 
@@ -121,6 +125,14 @@ public class Attempt {
         this.testId = testId;
         this.selectedParts = selectedParts;
         this.createdAt = startedAt;
+    }
+
+    public String getQuestionIds() {
+        return questionIds;
+    }
+
+    public void setQuestionIds(String questionIds) {
+        this.questionIds = questionIds;
     }
 
     public Long getId() {

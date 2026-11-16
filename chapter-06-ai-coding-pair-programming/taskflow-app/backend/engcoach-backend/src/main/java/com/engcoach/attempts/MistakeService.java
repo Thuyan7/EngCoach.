@@ -46,14 +46,13 @@ public class MistakeService {
         this.questionGroupRepository = questionGroupRepository;
     }
 
-    @Transactional(readOnly = true)
-    public MistakesResponse mistakesOf(Long userId, String part) {
+    /** Latest graded answer per question, newest attempt first: question id -> answer. */
+    private Map<Long, Answer> latestAnswers(Long userId, Map<Long, Attempt> attemptOfAnswer) {
         List<Attempt> attempts = attemptRepository
                 .findByUserIdAndStatusOrderByStartedAtDesc(userId, Attempt.STATUS_SUBMITTED);
 
-        // question id -> its most recent answer (attempts are newest first, so the first one seen wins)
+        // attempts are newest first, so the first answer seen for a question wins
         Map<Long, Answer> latest = new LinkedHashMap<>();
-        Map<Long, Attempt> attemptOfAnswer = new HashMap<>();
         for (Attempt attempt : attempts) {
             for (Answer answer : answerRepository.findByAttemptId(attempt.getId())) {
                 if (latest.putIfAbsent(answer.getQuestionId(), answer) == null) {
@@ -61,6 +60,40 @@ public class MistakeService {
                 }
             }
         }
+        return latest;
+    }
+
+    /**
+     * Question ids for a mistake-practice attempt: the learner's current mistakes (optionally one Part), ordered by
+     * Test and position so the questions of one conversation or passage stay together, at most {@code limit}.
+     */
+    @Transactional(readOnly = true)
+    public List<Long> practiceQuestionIds(Long userId, String part, int limit) {
+        List<Long> wrongIds = latestAnswers(userId, new HashMap<>()).values().stream()
+                .filter(answer -> Boolean.FALSE.equals(answer.getIsCorrect()))
+                .map(Answer::getQuestionId).toList();
+        Map<Long, Question> questions = new HashMap<>();
+        questionRepository.findAllById(wrongIds).forEach(question -> questions.put(question.getId(), question));
+        List<Long> wanted = wrongIds.stream().filter(id -> {
+            Question question = questions.get(id);
+            return question != null && (part == null || part.isBlank() || part.equals(question.getPart()));
+        }).toList();
+
+        Map<Long, int[]> position = new HashMap<>();
+        testQuestionRepository.findByQuestionIdInOrderByTestIdAscSortOrderAsc(wanted).forEach(link ->
+                position.putIfAbsent(link.getQuestionId(), new int[] {link.getTestId().intValue(), link.getSortOrder()}));
+        return wanted.stream()
+                .sorted(java.util.Comparator
+                        .comparingInt((Long id) -> position.containsKey(id) ? position.get(id)[0] : Integer.MAX_VALUE)
+                        .thenComparingInt(id -> position.containsKey(id) ? position.get(id)[1] : 0)
+                        .thenComparing(java.util.Comparator.naturalOrder()))
+                .limit(limit).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public MistakesResponse mistakesOf(Long userId, String part) {
+        Map<Long, Attempt> attemptOfAnswer = new HashMap<>();
+        Map<Long, Answer> latest = latestAnswers(userId, attemptOfAnswer);
         List<Long> wrongIds = latest.values().stream()
                 .filter(answer -> Boolean.FALSE.equals(answer.getIsCorrect()))
                 .map(Answer::getQuestionId).toList();

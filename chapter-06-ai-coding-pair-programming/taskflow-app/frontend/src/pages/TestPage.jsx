@@ -354,7 +354,7 @@ export default function TestPage() {
     <>
       <div className={`page-head${["MOCK_TEST", "TEST"].includes(attempt.type) ? " mock-test-head" : ""}`}>
         <div className="mock-test-heading">
-          <h1>{attempt.type === "MOCK_TEST" ? "Mock test" : attempt.type === "TEST" ? (attempt.testTitle || "TOEIC Test") : `${attempt.part} practice`}</h1>
+          <h1>{attempt.type === "MOCK_TEST" ? "Mock test" : attempt.type === "TEST" ? (attempt.testTitle || "TOEIC Test") : attempt.type === "MISTAKE_PRACTICE" ? "Mistakes practice" : `${attempt.part} practice`}</h1>
           <p>
             {answeredCount} of {questions.length} answered
           </p>

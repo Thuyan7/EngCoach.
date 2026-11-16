@@ -98,6 +98,9 @@ public class AttemptsService {
     /** S11 approved decision #4: TOEIC's real test duration, 2 hours. */
     static final int MOCK_TEST_TIME_LIMIT_SECONDS = 2 * 60 * 60;
 
+    /** Questions in one mistake-practice session. */
+    static final int MISTAKE_PRACTICE_SIZE = 30;
+
     private final AttemptRepository attemptRepository;
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
@@ -107,6 +110,7 @@ public class AttemptsService {
     private final TestPartRepository testPartRepository;
     private final TestQuestionRepository testQuestionRepository;
     private final QuestionGroupRepository questionGroupRepository;
+    private final MistakeService mistakeService;
 
     public AttemptsService(AttemptRepository attemptRepository,
                             AnswerRepository answerRepository,
@@ -114,7 +118,8 @@ public class AttemptsService {
                             AttemptGradingService attemptGradingService,
                             AnthropicExplanationService explanationService,
                             ToeicTestRepository toeicTestRepository, TestPartRepository testPartRepository,
-                            TestQuestionRepository testQuestionRepository, QuestionGroupRepository questionGroupRepository) {
+                            TestQuestionRepository testQuestionRepository, QuestionGroupRepository questionGroupRepository,
+                            MistakeService mistakeService) {
         this.attemptRepository = attemptRepository;
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
@@ -124,6 +129,7 @@ public class AttemptsService {
         this.testPartRepository = testPartRepository;
         this.testQuestionRepository = testQuestionRepository;
         this.questionGroupRepository = questionGroupRepository;
+        this.mistakeService = mistakeService;
     }
 
     @Transactional
@@ -131,6 +137,9 @@ public class AttemptsService {
         String type = request.getType();
         if ("TEST".equals(type)) {
             return startSelectedTest(userId, request);
+        }
+        if ("MISTAKE_PRACTICE".equals(type)) {
+            return startMistakePractice(userId, request.getPart());
         }
         if (!"PART_PRACTICE".equals(type) && !"MOCK_TEST".equals(type)) {
             throw new IllegalArgumentException("Unsupported attempt type.");
@@ -149,6 +158,21 @@ public class AttemptsService {
 
         Integer timeLimitSeconds = "MOCK_TEST".equals(type) ? MOCK_TEST_TIME_LIMIT_SECONDS : null;
         Attempt attempt = new Attempt(userId, type, part, Attempt.STATUS_IN_PROGRESS, Instant.now(), timeLimitSeconds);
+        return AttemptResponse.from(attemptRepository.save(attempt));
+    }
+
+    /** Practice built from the learner's current mistakes (optionally only one Part). */
+    private AttemptResponse startMistakePractice(Long userId, String part) {
+        String partFilter = part == null || part.isBlank() ? null : part;
+        Attempt existing = attemptRepository
+                .findFirstByUserIdAndTypeAndPartAndStatus(userId, "MISTAKE_PRACTICE", partFilter, Attempt.STATUS_IN_PROGRESS)
+                .orElse(null);
+        if (existing != null) return AttemptResponse.from(existing);
+
+        List<Long> ids = mistakeService.practiceQuestionIds(userId, partFilter, MISTAKE_PRACTICE_SIZE);
+        if (ids.isEmpty()) throw new PartHasNoQuestionsException();
+        Attempt attempt = new Attempt(userId, "MISTAKE_PRACTICE", partFilter, Attempt.STATUS_IN_PROGRESS, Instant.now());
+        attempt.setQuestionIds(ids.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(",")));
         return AttemptResponse.from(attemptRepository.save(attempt));
     }
 
@@ -211,7 +235,9 @@ public class AttemptsService {
                         .anyMatch(item -> item.getId().equals(questionId)))
                 || ("TEST".equals(attempt.getType()) && attempt.getTestId() != null
                     && selectedParts(attempt).contains(question.getPart())
-                    && testQuestionRepository.existsByTestIdAndQuestionId(attempt.getTestId(), questionId));
+                    && testQuestionRepository.existsByTestIdAndQuestionId(attempt.getTestId(), questionId))
+                || ("MISTAKE_PRACTICE".equals(attempt.getType())
+                    && AttemptGradingService.parseQuestionIds(attempt).contains(questionId));
         if (!belongsToAttempt || !QuestionView.from(question).options().contains(request.getChosenOption())) {
             throw new InvalidAnswerException();
         }
@@ -226,6 +252,22 @@ public class AttemptsService {
         answer = answerRepository.save(answer);
 
         return AnswerResponse.from(answer);
+    }
+
+    /** Questions with the shared image, audio or passage of their group (from the first Test that contains them). */
+    private List<QuestionView> viewsWithGroups(List<Question> set, boolean revealAnswers) {
+        Map<Long, Long> groupIdByQuestion = new HashMap<>();
+        testQuestionRepository.findByQuestionIdInOrderByTestIdAscSortOrderAsc(
+                set.stream().map(Question::getId).toList())
+                .forEach(link -> groupIdByQuestion.putIfAbsent(link.getQuestionId(), link.getGroupId()));
+        Map<Long, QuestionGroup> groups = new HashMap<>();
+        questionGroupRepository.findAllById(groupIdByQuestion.values().stream()
+                .filter(java.util.Objects::nonNull).distinct().toList())
+                .forEach(group -> groups.put(group.getId(), group));
+        return set.stream().map(question -> {
+            Long groupId = groupIdByQuestion.get(question.getId());
+            return QuestionView.from(question, groupId == null ? null : groups.get(groupId), revealAnswers);
+        }).toList();
     }
 
     private List<String> selectedParts(Attempt attempt) {
@@ -280,19 +322,9 @@ public class AttemptsService {
                     link.getGroupId() == null ? null : groups.get(link.getGroupId()), revealAnswers)).toList();
         } else if ("PART_PRACTICE".equals(attempt.getType()) && attempt.getPart() != null) {
             // Luyện theo Part dùng cùng bộ câu với phần chấm điểm; câu thuộc đề kèm nhóm để có ảnh/audio/đoạn văn chung.
-            List<Question> practiceSet = questionRepository.findPracticeSetByPart(attempt.getPart());
-            Map<Long, Long> groupIdByQuestion = new HashMap<>();
-            testQuestionRepository.findByQuestionIdInOrderByTestIdAscSortOrderAsc(
-                    practiceSet.stream().map(Question::getId).toList())
-                    .forEach(link -> groupIdByQuestion.putIfAbsent(link.getQuestionId(), link.getGroupId()));
-            Map<Long, QuestionGroup> groups = new HashMap<>();
-            questionGroupRepository.findAllById(groupIdByQuestion.values().stream()
-                    .filter(java.util.Objects::nonNull).distinct().toList())
-                    .forEach(group -> groups.put(group.getId(), group));
-            questions = practiceSet.stream().map(question -> {
-                Long groupId = groupIdByQuestion.get(question.getId());
-                return QuestionView.from(question, groupId == null ? null : groups.get(groupId), revealAnswers);
-            }).toList();
+            questions = viewsWithGroups(questionRepository.findPracticeSetByPart(attempt.getPart()), revealAnswers);
+        } else if ("MISTAKE_PRACTICE".equals(attempt.getType())) {
+            questions = viewsWithGroups(attemptGradingService.assignedQuestions(attempt), revealAnswers);
         } else {
             List<Question> assignedQuestions = "MOCK_TEST".equals(attempt.getType())
                     ? questionRepository.findAllByOrderByIdAsc() : List.of();

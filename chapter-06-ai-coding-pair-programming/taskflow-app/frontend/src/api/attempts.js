@@ -6,6 +6,11 @@ export function startPartPractice(token, part) {
   return request("/attempts", { method: "POST", token, body: { type: "PART_PRACTICE", part } });
 }
 
+// Practice built from the learner's current mistakes; `part` is optional. Resumes an unfinished one.
+export function startMistakePractice(token, part) {
+  return request("/attempts", { method: "POST", token, body: part ? { type: "MISTAKE_PRACTICE", part } : { type: "MISTAKE_PRACTICE" } });
+}
+
 export function getAttempt(token, attemptId) {
   return request(`/attempts/${attemptId}`, { token });
 }

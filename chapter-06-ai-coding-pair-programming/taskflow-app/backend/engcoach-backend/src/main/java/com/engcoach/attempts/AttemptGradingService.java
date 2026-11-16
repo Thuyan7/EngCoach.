@@ -150,7 +150,21 @@ public class AttemptGradingService {
             return questionRepository.findAllById(ids).stream()
                     .filter(question -> selected.contains(question.getPart())).toList();
         }
+        if ("MISTAKE_PRACTICE".equals(attempt.getType())) {
+            List<Long> ids = parseQuestionIds(attempt);
+            Map<Long, Question> byId = new HashMap<>();
+            questionRepository.findAllById(ids).forEach(question -> byId.put(question.getId(), question));
+            return ids.stream().map(byId::get).filter(java.util.Objects::nonNull).toList();
+        }
         return questionRepository.findAll();
+    }
+
+    /** The stored question ids of a mistake-practice attempt, in display order. */
+    static List<Long> parseQuestionIds(Attempt attempt) {
+        String stored = attempt.getQuestionIds();
+        if (stored == null || stored.isBlank()) return List.of();
+        return java.util.Arrays.stream(stored.split(",")).map(String::trim).filter(id -> !id.isEmpty())
+                .map(Long::valueOf).toList();
     }
 
     /**

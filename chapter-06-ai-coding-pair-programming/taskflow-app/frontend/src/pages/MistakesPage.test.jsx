@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { jsonResponse, renderApp, routeFetch, signIn } from "../test/helpers.jsx";
+import { attemptDetail, jsonResponse, renderApp, routeFetch, signIn } from "../test/helpers.jsx";
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -59,5 +59,33 @@ describe("Review your mistakes", () => {
     renderApp("/mistakes");
     expect(await screen.findByRole("alert")).toHaveTextContent("couldn't load your mistakes");
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+  });
+
+  it("starts a practice from the mistakes and opens it, passing the selected Part", async () => {
+    const fetchMock = routeFetch({
+      "GET /attempts/mistakes": () => jsonResponse(200, everything),
+      "GET /attempts/mistakes?part=Part%205": () => jsonResponse(200, { ...everything, mistakes: [everything.mistakes[0]] }),
+      "POST /attempts": () => jsonResponse(201, { id: 55, type: "MISTAKE_PRACTICE", part: "Part 5", status: "IN_PROGRESS" }),
+      "GET /attempts/55": () => jsonResponse(200, attemptDetail({ type: "MISTAKE_PRACTICE", part: "Part 5" })),
+    });
+    renderApp("/mistakes");
+
+    await userEvent.click(await screen.findByRole("button", { name: "Part 5 (1)" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Practice these Part 5 mistakes" }));
+
+    expect(await screen.findByRole("heading", { name: "Mistakes practice" })).toBeInTheDocument();
+    const post = fetchMock.mock.calls.find(([url, init]) => url === "/attempts" && init?.method === "POST");
+    expect(JSON.parse(post[1].body)).toEqual({ type: "MISTAKE_PRACTICE", part: "Part 5" });
+  });
+
+  it("shows an error when the practice cannot be started", async () => {
+    routeFetch({
+      "GET /attempts/mistakes": () => jsonResponse(200, everything),
+      "POST /attempts": () => jsonResponse(422, { title: "none" }),
+    });
+    renderApp("/mistakes");
+
+    await userEvent.click(await screen.findByRole("button", { name: "Practice my mistakes" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("couldn't start the practice");
   });
 });
