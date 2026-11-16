@@ -723,3 +723,16 @@ body{background:#F8FBFD;color:#1D2939;}
 .mistake-options li{padding:8px 12px;border-radius:10px;border:1px solid var(--border);}
 .mistake-options .is-correct{border-color:#2e8b57;font-weight:600;}
 .mistake-options .is-chosen{border-color:#c2562b;}
+
+/* Study goals on Home */
+.goals-card{margin-top:34px;padding:20px 22px;}
+.goals-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+.goals-head h2{margin:0;font-size:19px;}
+.goals-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
+.goals-grid .label{margin:0;font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:.04em;text-transform:uppercase;}
+.goals-value{margin:4px 0 2px;font-size:26px;font-weight:800;}
+.goals-note{margin:0;font-size:12.5px;color:var(--text-secondary);line-height:1.5;}
+.goals-form{display:grid;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);max-width:360px;}
+.goals-form label{display:grid;gap:5px;font-size:13.5px;font-weight:600;}
+.goals-form input{padding:9px 11px;border:1px solid var(--border);border-radius:9px;font:inherit;}
+@media(max-width:680px){.goals-grid{grid-template-columns:1fr}}
