@@ -106,11 +106,11 @@ class GoalsApiTest {
         mockMvc.perform(get("/goals").header("Authorization", "Bearer " + token))
                 .andExpect(jsonPath("$.targetScore").doesNotExist());
 
-        putGoals(token, Map.of("targetScore", 5, "dailyQuestionGoal", 10), 400);
-        putGoals(token, Map.of("targetScore", 1000, "dailyQuestionGoal", 10), 400);
-        putGoals(token, Map.of("dailyQuestionGoal", 0), 400);
-        putGoals(token, Map.of("dailyQuestionGoal", 501), 400);
-        putGoals(token, Map.of("targetScore", 700), 400);
+        putGoals(token, Map.of("targetScore", 5, "dailyQuestionGoal", 10), 422);
+        putGoals(token, Map.of("targetScore", 1000, "dailyQuestionGoal", 10), 422);
+        putGoals(token, Map.of("dailyQuestionGoal", 0), 422);
+        putGoals(token, Map.of("dailyQuestionGoal", 501), 422);
+        putGoals(token, Map.of("targetScore", 700), 422);
     }
 
     @Test
