@@ -30,4 +30,7 @@ public interface AttemptRepository extends JpaRepository<Attempt, Long> {
      * no separate "submitted at" timestamp exists on {@code Attempt}.
      */
     List<Attempt> findByUserIdAndStatusOrderByStartedAtDesc(Long userId, String status);
+
+    /** Every attempt of a user, in any status; used for the study streak and daily goal. */
+    List<Attempt> findByUserId(Long userId);
 }
