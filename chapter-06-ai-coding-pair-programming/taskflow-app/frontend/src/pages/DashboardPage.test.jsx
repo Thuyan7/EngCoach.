@@ -195,4 +195,21 @@ describe("Dashboard — stats from GET /attempts (S10a)", () => {
     expect(await screen.findByRole("heading", { name: "Log in" })).toBeInTheDocument();
     expect(window.localStorage.getItem("engcoach.session")).toBeNull();
   });
+
+  it("shows a Review Mistakes card with the number of questions to review and opens the page", async () => {
+    const user = userEvent.setup();
+    routeFetch({ ...ok([TEST_ONE]), "GET /attempts/mistakes": () => jsonResponse(200, { total: 7, partCounts: [], mistakes: [] }) });
+    renderApp("/dashboard");
+
+    expect(await screen.findByText("7 QUESTIONS TO REVIEW")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Review Mistakes/ }));
+    expect(await screen.findByRole("heading", { name: "Review your mistakes" })).toBeInTheDocument();
+  });
+
+  it("still shows the Review Mistakes card when the count cannot be loaded", async () => {
+    routeFetch({ ...ok([TEST_ONE]), "GET /attempts/mistakes": () => new TypeError("Failed to fetch") });
+    renderApp("/dashboard");
+
+    expect(await screen.findByText("FIX WHAT YOU MISSED")).toBeInTheDocument();
+  });
 });
