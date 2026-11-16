@@ -1,4 +1,4 @@
-package com.engcoach.goals;
+package com.engcoach.streak;
 
 import org.junit.jupiter.api.Test;
 

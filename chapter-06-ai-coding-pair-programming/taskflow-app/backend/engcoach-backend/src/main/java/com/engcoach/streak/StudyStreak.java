@@ -1,4 +1,4 @@
-package com.engcoach.goals;
+package com.engcoach.streak;
 
 import java.time.LocalDate;
 import java.util.Set;
