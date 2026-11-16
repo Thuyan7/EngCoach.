@@ -50,6 +50,10 @@ public class Answer {
     @Column(name = "chosen_option", nullable = false)
     private String chosenOption;
 
+    /** When the learner last saved this answer; null for answers saved before this column existed. */
+    @Column(name = "answered_at")
+    private java.time.Instant answeredAt;
+
     @Column(name = "is_correct")
     private Boolean isCorrect;
 
@@ -88,6 +92,14 @@ public class Answer {
 
     public void setChosenOption(String chosenOption) {
         this.chosenOption = chosenOption;
+    }
+
+    public java.time.Instant getAnsweredAt() {
+        return answeredAt;
+    }
+
+    public void setAnsweredAt(java.time.Instant answeredAt) {
+        this.answeredAt = answeredAt;
     }
 
     public Boolean getIsCorrect() {

@@ -249,6 +249,7 @@ public class AttemptsService {
         } else {
             answer.setChosenOption(request.getChosenOption());
         }
+        answer.setAnsweredAt(Instant.now());
         answer = answerRepository.save(answer);
 
         return AnswerResponse.from(answer);
