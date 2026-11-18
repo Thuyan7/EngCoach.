@@ -4,7 +4,7 @@ import { getMistakes, listAttempts, startPartPractice, startMockTest, startToeic
 import { request } from "../api/client.js";
 import { listParts } from "../api/parts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
-import GoalsCard from "../components/GoalsCard.jsx";
+import StreakCalendar from "../components/StreakCalendar.jsx";
 import { summarizeAttempts } from "../stats.js";
 
 const LOAD_FAILED = "We couldn't load the Part list. Please try again.";
@@ -169,7 +169,7 @@ export default function DashboardPage() {
         {stats.status === "error" && <div className="stats-error"><div className="error-msg" role="alert">{STATS_FAILED}</div><button className="btn btn-secondary" onClick={() => setStatsReload((key) => key + 1)}>Try again</button></div>}
       </section>
 
-      <GoalsCard />
+      <StreakCalendar />
 
       <section className="quick-access-section">
         <div className="home-section-heading"><div><p className="eyebrow">GET STARTED</p><h2>Quick access</h2></div><span>Choose how you want to learn</span></div>

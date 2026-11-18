@@ -724,15 +724,19 @@ body{background:#F8FBFD;color:#1D2939;}
 .mistake-options .is-correct{border-color:#2e8b57;font-weight:600;}
 .mistake-options .is-chosen{border-color:#c2562b;}
 
-/* Study goals on Home */
-.goals-card{margin-top:34px;padding:20px 22px;}
-.goals-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
-.goals-head h2{margin:0;font-size:19px;}
-.goals-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
-.goals-grid .label{margin:0;font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:.04em;text-transform:uppercase;}
-.goals-value{margin:4px 0 2px;font-size:26px;font-weight:800;}
-.goals-note{margin:0;font-size:12.5px;color:var(--text-secondary);line-height:1.5;}
-.goals-form{display:grid;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);max-width:360px;}
-.goals-form label{display:grid;gap:5px;font-size:13.5px;font-weight:600;}
-.goals-form input{padding:9px 11px;border:1px solid var(--border);border-radius:9px;font:inherit;}
-@media(max-width:680px){.goals-grid{grid-template-columns:1fr}}
+/* Study streak calendar on Home */
+.streak-card{margin-top:34px;padding:20px 22px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:28px;align-items:start;}
+.streak-card .label{margin:0;font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:.04em;text-transform:uppercase;}
+.streak-value{margin:4px 0 6px;font-size:34px;font-weight:800;}
+.streak-note{margin:0 0 4px;font-size:13.5px;color:var(--text-secondary);line-height:1.5;}
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.cal-head .btn{min-width:38px;padding:4px 10px;font-size:18px;line-height:1;}
+.cal-weekdays,.cal-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;}
+.cal-weekdays{margin-bottom:6px;font-size:11.5px;font-weight:700;color:var(--text-secondary);text-align:center;text-transform:uppercase;}
+.cal-day{aspect-ratio:1;max-height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;font-size:13.5px;border:1px solid var(--border);background:var(--surface);}
+.cal-day.studied{background:var(--primary,#10b981);border-color:var(--primary,#10b981);color:#fff;font-weight:700;}
+.cal-day.studied::after{content:"\2713";font-size:10px;margin-left:3px;}
+.cal-day.today{outline:2px solid #202B3B;outline-offset:1px;}
+.cal-legend{display:flex;align-items:center;gap:8px;margin:12px 0 0;font-size:12.5px;color:var(--text-secondary);}
+.cal-swatch{width:14px;height:14px;border-radius:4px;background:var(--primary,#10b981);display:inline-block;}
+@media(max-width:760px){.streak-card{grid-template-columns:1fr}}
