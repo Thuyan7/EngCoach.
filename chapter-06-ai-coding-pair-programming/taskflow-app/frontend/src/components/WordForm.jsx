@@ -2,7 +2,10 @@ import { useState } from "react";
 
 // Form to save or edit one word. `onSubmit({ word, meaning, example })` must return a promise;
 // if it rejects with an Error, the message is shown and the form stays open.
-export default function WordForm({ initial, submitLabel, onSubmit, onCancel }) {
+// `initial` with an id means editing a saved word; `initial` without an id only pre-fills a new word
+// (for example from selected text), and `focusMeaning` puts the cursor in the meaning field.
+export default function WordForm({ initial, submitLabel, onSubmit, onCancel, focusMeaning = false }) {
+  const isEdit = initial != null && initial.id != null;
   const [word, setWord] = useState(initial?.word ?? "");
   const [meaning, setMeaning] = useState(initial?.meaning ?? "");
   const [example, setExample] = useState(initial?.example ?? "");
@@ -19,7 +22,7 @@ export default function WordForm({ initial, submitLabel, onSubmit, onCancel }) {
     setError("");
     try {
       await onSubmit({ word: word.trim(), meaning: meaning.trim(), example: example.trim() });
-      if (!initial) {
+      if (!isEdit) {
         setWord("");
         setMeaning("");
         setExample("");
@@ -38,7 +41,7 @@ export default function WordForm({ initial, submitLabel, onSubmit, onCancel }) {
       </label>
       <label>
         Meaning
-        <input type="text" maxLength={500} value={meaning} onChange={(e) => setMeaning(e.target.value)} />
+        <input type="text" maxLength={500} value={meaning} autoFocus={focusMeaning} onChange={(e) => setMeaning(e.target.value)} />
       </label>
       <label>
         Example sentence (optional)
