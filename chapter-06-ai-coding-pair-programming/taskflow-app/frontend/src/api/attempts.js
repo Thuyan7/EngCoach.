@@ -61,3 +61,20 @@ export function getMistakes(token, part) {
   const query = part ? `?part=${encodeURIComponent(part)}` : "";
   return request(`/attempts/mistakes${query}`, { token });
 }
+
+// The learner's time zone decides which calendar day an answer belongs to.
+function timeZoneQuery() {
+  try {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return zone ? `?timeZone=${encodeURIComponent(zone)}` : "";
+  } catch (error) {
+    return "";
+  }
+}
+
+// Study streak and the study days of one month (yyyy-MM; omit for the current month).
+export function getStreak(token, month) {
+  const zone = timeZoneQuery();
+  const monthPart = month ? `${zone ? "&" : "?"}month=${encodeURIComponent(month)}` : "";
+  return request(`/streak${zone}${monthPart}`, { token });
+}
