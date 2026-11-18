@@ -7,7 +7,7 @@ import config from "../vite.config.js";
 describe("Vite dev proxy", () => {
   it("forwards every API path used by the app to the backend", () => {
     const proxied = Object.keys(config.server.proxy);
-    for (const path of ["/auth", "/parts", "/attempts", "/tests", "/goals"]) {
+    for (const path of ["/auth", "/parts", "/attempts", "/tests", "/streak"]) {
       expect(proxied).toContain(path);
     }
   });

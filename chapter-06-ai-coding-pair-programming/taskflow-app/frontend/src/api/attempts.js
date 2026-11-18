@@ -72,12 +72,9 @@ function timeZoneQuery() {
   }
 }
 
-// Study goals, today's progress and streak.
-export function getGoals(token) {
-  return request(`/goals${timeZoneQuery()}`, { token });
-}
-
-// targetScore may be null (no target); dailyQuestionGoal is required.
-export function saveGoals(token, targetScore, dailyQuestionGoal) {
-  return request(`/goals${timeZoneQuery()}`, { method: "PUT", token, body: { targetScore, dailyQuestionGoal } });
+// Study streak and the study days of one month (yyyy-MM; omit for the current month).
+export function getStreak(token, month) {
+  const zone = timeZoneQuery();
+  const monthPart = month ? `${zone ? "&" : "?"}month=${encodeURIComponent(month)}` : "";
+  return request(`/streak${zone}${monthPart}`, { token });
 }
