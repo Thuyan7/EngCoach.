@@ -27,3 +27,8 @@ export function getReviewDeck(token, limit) {
 export function reviewWord(token, id, remembered) {
   return request(`/vocab/${id}/review`, { method: "POST", token, body: { remembered } });
 }
+
+// A suggested Vietnamese meaning for a selected word: { meaning, partOfSpeech, phonetic }, any of them may be null.
+export function lookupWord(token, word, context) {
+  return request(`/vocab/lookup?word=${encodeURIComponent(word)}&context=${encodeURIComponent(context || "")}`, { token });
+}
