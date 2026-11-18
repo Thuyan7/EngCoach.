@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, screen } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { attemptDetail, jsonResponse, questionsFixture, renderApp, routeFetch, signIn } from "../test/helpers.jsx";
 
@@ -35,6 +35,15 @@ function select(text, node) {
   });
 }
 
+// The card attaches its selection listener in an effect that can run just after the text appears, so a selection
+// made at that moment may be missed. Make the selection again until the expected result shows up.
+async function selectUntil(text, getNode, expectation) {
+  await waitFor(() => {
+    select(text, getNode());
+    expectation();
+  });
+}
+
 const passageNodes = () => screen.getAllByText(PASSAGE).map((paragraph) => paragraph.firstChild);
 
 describe("Saving a selected word", () => {
@@ -47,8 +56,8 @@ describe("Saving a selected word", () => {
     renderApp("/mistakes");
     await screen.findAllByText(PASSAGE);
 
-    select("quarterly invoice", passageNodes()[0]);
-    expect(await screen.findByText("quarterly invoice", { selector: "strong" })).toBeInTheDocument();
+    await selectUntil("quarterly invoice", () => passageNodes()[0],
+      () => expect(screen.getByText("quarterly invoice", { selector: "strong" })).toBeInTheDocument());
     expect(screen.getByRole("link", { name: "Look it up" })).toHaveAttribute("href", expect.stringContaining("quarterly%20invoice"));
 
     await user.click(screen.getByRole("button", { name: 'Save "quarterly invoice"' }));
@@ -74,8 +83,8 @@ describe("Saving a selected word", () => {
     renderApp("/mistakes");
     await screen.findAllByText(PASSAGE);
 
-    select("meeting", passageNodes()[1]);
-    expect(await screen.findAllByText("meeting", { selector: "strong" })).toHaveLength(1);
+    await selectUntil("meeting", () => passageNodes()[1],
+      () => expect(screen.getAllByText("meeting", { selector: "strong" })).toHaveLength(1));
     expect(screen.getAllByRole("button", { name: 'Save "meeting"' })).toHaveLength(1);
     expect(screen.getAllByText("Select a word or phrase in the text above to save it to your vocabulary.")).toHaveLength(1);
   });
@@ -85,7 +94,14 @@ describe("Saving a selected word", () => {
     renderApp("/mistakes");
     await screen.findAllByText(PASSAGE);
 
-    select("meeting", document.body);
+    // Prove the listener is attached by making one valid selection, then dismiss it before the ignored ones.
+    await selectUntil("meeting", () => passageNodes()[0],
+      () => expect(screen.getAllByRole("button", { name: "Dismiss" })).toHaveLength(1));
+    select("", passageNodes()[0]); // the real browser selection is gone once the learner clicks elsewhere
+    await userEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+    expect(screen.queryByRole("group", { name: "Selected text" })).not.toBeInTheDocument();
+
+    select("word", document.body);
     select("   ", passageNodes()[0]);
     select("word ".repeat(30), passageNodes()[0]);
     expect(screen.queryByRole("group", { name: "Selected text" })).not.toBeInTheDocument();
@@ -97,8 +113,8 @@ describe("Saving a selected word", () => {
     renderApp("/mistakes");
     await screen.findAllByText(PASSAGE);
 
-    select("meeting", passageNodes()[0]);
-    expect(await screen.findByRole("button", { name: 'Save "meeting"' })).toBeInTheDocument();
+    await selectUntil("meeting", () => passageNodes()[0],
+      () => expect(screen.getByRole("button", { name: 'Save "meeting"' })).toBeInTheDocument());
 
     // Pressing a button empties the browser selection; the Save button must still be there.
     select("", passageNodes()[0]);
@@ -150,7 +166,7 @@ describe("Result review", () => {
     expect(screen.getAllByText("Shared passage about the new office.")).toHaveLength(1);
     expect(screen.getAllByText("A second passage about travel.")).toHaveLength(1);
 
-    select("office", screen.getByText("Shared passage about the new office.").firstChild);
-    expect(await screen.findByRole("button", { name: 'Save "office"' })).toBeInTheDocument();
+    await selectUntil("office", () => screen.getByText("Shared passage about the new office.").firstChild,
+      () => expect(screen.getByRole("button", { name: 'Save "office"' })).toBeInTheDocument());
   });
 });
