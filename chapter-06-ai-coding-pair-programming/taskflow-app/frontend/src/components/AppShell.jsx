@@ -5,6 +5,7 @@ const navItems = [
   { to: "/dashboard", label: "Home", icon: "M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z" },
   { to: "/practice", label: "Practice Tests", icon: "M8 5v14l11-7z" },
   { to: "/progress", label: "My Progress", icon: "M4 19V5m0 14h17M7 15l4-4 3 2 6-7" },
+  { to: "/vocabulary", label: "Vocabulary", icon: "M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z" },
 ];
 
 export default function AppShell() {
