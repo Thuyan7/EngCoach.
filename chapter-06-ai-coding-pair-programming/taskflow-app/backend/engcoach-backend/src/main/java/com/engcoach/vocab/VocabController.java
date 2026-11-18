@@ -24,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class VocabController {
 
     private final VocabService vocabService;
+    private final WordLookupSource lookupSource;
 
-    public VocabController(VocabService vocabService) {
+    public VocabController(VocabService vocabService, WordLookupSource lookupSource) {
         this.vocabService = vocabService;
+        this.lookupSource = lookupSource;
     }
 
     private Long userId(Authentication authentication) {
@@ -53,6 +55,18 @@ public class VocabController {
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
         vocabService.delete(userId(authentication), id);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Suggests a Vietnamese meaning for a selected word, so the learner can save it without typing. */
+    @GetMapping("/lookup")
+    public ResponseEntity<WordLookup> lookup(@RequestParam String word,
+                                             @RequestParam(required = false) String context) {
+        String trimmed = word.trim();
+        if (trimmed.isEmpty() || trimmed.length() > 100) {
+            return ResponseEntity.ok(WordLookup.empty());
+        }
+        String sentence = context == null ? null : context.substring(0, Math.min(context.length(), 500));
+        return ResponseEntity.ok(lookupSource.find(trimmed, sentence));
     }
 
     /** The flashcards due now (default 20, at most 50). */

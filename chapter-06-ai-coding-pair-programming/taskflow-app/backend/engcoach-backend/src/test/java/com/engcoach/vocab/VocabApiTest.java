@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashMap;
@@ -23,6 +24,7 @@ class VocabApiTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
+    @MockBean private WordLookupSource lookupSource;
 
     private String token(String email) throws Exception {
         String body = objectMapper.writeValueAsString(Map.of("email", email, "password", "correct-horse-battery"));
@@ -177,5 +179,29 @@ class VocabApiTest {
         add(other, "contract", "own meaning");
         mockMvc.perform(get("/vocab").header("Authorization", auth(mine)))
                 .andExpect(jsonPath("$.words[0].meaning").value("hop dong"));
+    }
+
+    @Test
+    void lookupSuggestsAMeaningForASelectedWord() throws Exception {
+        String token = token("lookup@example.com");
+        org.mockito.Mockito.when(lookupSource.find("invoice", "Please bring the invoice."))
+                .thenReturn(new WordLookup("hoa don", "noun", "/x/"));
+
+        mockMvc.perform(get("/vocab/lookup").param("word", " invoice ").param("context", "Please bring the invoice.")
+                        .header("Authorization", auth(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.meaning").value("hoa don"))
+                .andExpect(jsonPath("$.partOfSpeech").value("noun"))
+                .andExpect(jsonPath("$.phonetic").value("/x/"));
+    }
+
+    @Test
+    void lookupIsEmptyForBlankOrTooLongWordsAndNeedsSignIn() throws Exception {
+        String token = token("lookup2@example.com");
+        mockMvc.perform(get("/vocab/lookup").param("word", "   ").header("Authorization", auth(token)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.meaning").doesNotExist());
+        mockMvc.perform(get("/vocab/lookup").param("word", "a".repeat(101)).header("Authorization", auth(token)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.meaning").doesNotExist());
+        mockMvc.perform(get("/vocab/lookup").param("word", "invoice")).andExpect(status().isUnauthorized());
     }
 }

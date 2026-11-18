@@ -59,15 +59,22 @@ public class AnthropicExplanationService {
      */
     public Optional<String> generateExplanation(String questionPrompt, String optionsJson,
                                                   String correctOption, String chosenOption) {
+        return complete(buildUserMessage(questionPrompt, optionsJson, correctOption, chosenOption), MAX_TOKENS);
+    }
+
+    /**
+     * Sends one user message and returns the model's text. Same failure contract as above: a blank key or any
+     * failure gives {@link Optional#empty()} and nothing is thrown. Also used to translate a saved word in context.
+     */
+    public Optional<String> complete(String userMessage, int maxTokens) {
         if (apiKey == null || apiKey.isBlank()) {
             return Optional.empty();
         }
 
         try {
-            String userMessage = buildUserMessage(questionPrompt, optionsJson, correctOption, chosenOption);
             Map<String, Object> requestBody = Map.of(
                     "model", model,
-                    "max_tokens", MAX_TOKENS,
+                    "max_tokens", maxTokens,
                     "messages", List.of(Map.of("role", "user", "content", userMessage))
             );
 
@@ -81,18 +88,15 @@ public class AnthropicExplanationService {
                     .body(AnthropicMessageResponse.class);
 
             if (response == null || response.content() == null || response.content().isEmpty()) {
-                log.warn("Anthropic explanation call returned no content");
+                log.warn("Anthropic call returned no content");
                 return Optional.empty();
             }
 
             String text = response.content().get(0).text();
             return (text == null || text.isBlank()) ? Optional.empty() : Optional.of(text.trim());
         } catch (Exception ex) {
-            // Any failure — timeout, connection error, non-2xx, malformed
-            // body — degrades to UNAVAILABLE rather than breaking the
-            // caller's request (ADR-004's consequence, approved decision
-            // #4). Logged, not rethrown.
-            log.warn("Anthropic explanation call failed: {}", ex.getMessage());
+            // Any failure degrades to "unavailable" rather than breaking the caller's request. Logged, not rethrown.
+            log.warn("Anthropic call failed: {}", ex.getMessage());
             return Optional.empty();
         }
     }
