@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getMistakes, startMistakePractice } from "../api/attempts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import SaveWordButton from "../components/SaveWordButton.jsx";
 
 const letter = (i) => String.fromCharCode(65 + i);
 
@@ -148,6 +149,7 @@ function MistakeCard({ item }) {
         })}
       </ul>
       {item.explanationText && <p className="body explanation-text">{item.explanationText}</p>}
+      <SaveWordButton questionId={question.id} />
     </div>
   );
 }

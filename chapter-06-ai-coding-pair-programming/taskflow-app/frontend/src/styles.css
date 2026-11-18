@@ -766,3 +766,7 @@ body{background:#F8FBFD;color:#1D2939;}
 .flashcard-meaning{margin:0;font-size:20px;}
 .flashcard-example{margin:0;font-size:14.5px;color:var(--text-secondary);font-style:italic;}
 .flashcard-exit{text-align:center;margin-top:18px;font-size:13.5px;}
+
+/* Save a word from a reviewed question */
+.save-word{margin-top:10px;}
+.save-word-done{color:var(--primary,#10b981);font-weight:600;}

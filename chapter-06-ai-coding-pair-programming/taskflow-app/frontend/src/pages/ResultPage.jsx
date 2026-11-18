@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { getAttempt, getAttemptScore, retryExplanation, submitAttempt } from "../api/attempts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import SaveWordButton from "../components/SaveWordButton.jsx";
 import { EstimateCards, PartBars, validParts } from "../components/ScoreInsights.jsx";
 
 const letter = (i) => String.fromCharCode(65 + i);
@@ -253,6 +254,7 @@ function ReviewCard({ question, number, answer, retry, onRetry }) {
           </button>
         </>
       )}
+      <SaveWordButton questionId={question.id} />
     </div>
   );
 }
