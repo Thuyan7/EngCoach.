@@ -17,6 +17,7 @@ export default defineConfig({
       "/attempts": API_TARGET,
       "/tests": API_TARGET,
       "/streak": API_TARGET,
+      "/vocab": API_TARGET,
     },
   },
   test: {
