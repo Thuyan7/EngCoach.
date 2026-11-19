@@ -368,3 +368,8 @@ img,svg{max-width:100%;}
 .page-head .eyebrow{color:var(--primary-ink);font-size:12px;font-weight:800;margin:0 0 6px;}
 input[type="checkbox"],input[type="radio"]{accent-color:var(--primary);}
 .wordmark.light svg{color:#fff;}
+
+.restart-test{margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;}
+.restart-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 14px;border:1px solid color-mix(in srgb,var(--amber) 40%,transparent);border-radius:12px;background:var(--amber-soft);color:var(--amber-ink);font-weight:600;font-size:14px;}
+.restart-confirm .btn{height:36px;padding:0 14px;font-size:13.5px;}
+.restart-test .error-msg{margin:0;}

@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { attemptDetail, jsonResponse, renderApp, routeFetch, signIn } from "../test/helpers.jsx";
@@ -676,7 +676,11 @@ describe("Exam mode listening audio", () => {
     expect(document.querySelector("audio")).not.toHaveAttribute("controls");
     await user.click(screen.getByRole("button", { name: "Play audio (one time only)" }));
     expect(play).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("button", { name: /Playing|Audio has been played/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Playing…" })).toBeDisabled();
+
+    // The audio plays to the end: now it counts as heard.
+    fireEvent.ended(document.querySelector("audio"));
+    expect(await screen.findByRole("button", { name: "Audio has been played" })).toBeDisabled();
 
     // Simulate a refresh: a fresh render of the same attempt must not allow another play.
     first.unmount();
@@ -685,6 +689,63 @@ describe("Exam mode listening audio", () => {
     expect(await screen.findByRole("button", { name: "Audio has been played" })).toBeDisabled();
     expect(play).toHaveBeenCalledTimes(1);
     play.mockRestore();
+  });
+
+  it("gives the play back when the learner leaves before the audio has finished", async () => {
+    const user = userEvent.setup();
+    const play = vi.spyOn(window.HTMLMediaElement.prototype, "play").mockImplementation(() => Promise.resolve());
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, examAttempt("TEST", null)) });
+    const first = renderApp("/practice/7");
+
+    await user.click(await screen.findByRole("button", { name: "Play audio (one time only)" }));
+    first.unmount(); // left the page while it was still playing
+
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, examAttempt("TEST", null)) });
+    renderApp("/practice/7");
+    expect(await screen.findByRole("button", { name: "Play audio (one time only)" })).toBeEnabled();
+    play.mockRestore();
+  });
+
+  it("every question has its own audio, even when Next is pressed while one is playing", async () => {
+    const user = userEvent.setup();
+    const play = vi.spyOn(window.HTMLMediaElement.prototype, "play").mockImplementation(() => Promise.resolve());
+    const two = examAttempt("TEST", null);
+    two.questions = [
+      { ...two.questions[0] },
+      { id: 302, prompt: "Who is speaking?", options: ["A", "B", "C", "D"], audioUrl: "/audio/test-01/g12.mp3", audioText: "Script 2", groupId: 12, groupType: "CONVERSATION", groupContent: "Script 2" },
+    ];
+    routeFetch({ "GET /attempts/7": () => jsonResponse(200, two) });
+    renderApp("/practice/7");
+
+    await user.click(await screen.findByRole("button", { name: "Play audio (one time only)" }));
+    expect(screen.getByRole("button", { name: "Playing…" })).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByText("Question 2 of 2")).toBeInTheDocument();
+    const second = screen.getByRole("button", { name: "Play audio (one time only)" });
+    expect(second).toBeEnabled();
+    await user.click(second);
+    expect(play).toHaveBeenCalledTimes(2);
+    play.mockRestore();
+  });
+
+  it("Start over throws the attempt away and opens a fresh one for the same Test and Parts", async () => {
+    const user = userEvent.setup();
+    const fetchMock = routeFetch({
+      "GET /attempts/7": () => jsonResponse(200, examAttempt("TEST", null)),
+      "DELETE /attempts/7": () => new Response(null, { status: 204 }),
+      "POST /attempts": () => jsonResponse(201, { id: 8 }),
+      "GET /attempts/8": () => jsonResponse(200, { ...examAttempt("TEST", null), id: 8 }),
+    });
+    renderApp("/practice/7");
+
+    await user.click(await screen.findByRole("button", { name: "Start over" }));
+    await user.click(screen.getByRole("button", { name: "Yes, start over" }));
+
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => url === "/attempts/8")).toBe(true));
+    const post = fetchMock.mock.calls.find(([url, init]) => url === "/attempts" && init?.method === "POST");
+    expect(JSON.parse(post[1].body)).toEqual({ type: "TEST", testId: 12, parts: ["Part 3"] });
+    expect(fetchMock.mock.calls.some(([url, init]) => url === "/attempts/7" && init?.method === "DELETE")).toBe(true);
   });
 
   it("gives the play back when the browser refuses to play the audio", async () => {
