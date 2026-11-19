@@ -88,4 +88,23 @@ describe("Review your mistakes", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Practice my mistakes" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("couldn't start the practice");
   });
+
+  it("saves a word from a mistake together with its question", async () => {
+    const user = userEvent.setup();
+    const fetchMock = routeFetch({
+      "GET /attempts/mistakes": () => jsonResponse(200, { ...everything, mistakes: [everything.mistakes[0]] }),
+      "POST /vocab": () => jsonResponse(201, { id: 9, word: "station", meaning: "ga" }),
+    });
+    renderApp("/mistakes");
+
+    await user.click(await screen.findByRole("button", { name: "Save a word" }));
+    await user.type(screen.getByLabelText("Word or phrase"), "station");
+    await user.type(screen.getByLabelText("Meaning"), "ga");
+    await user.click(screen.getByRole("button", { name: "Save word" }));
+
+    expect(await screen.findByText('Saved "station" to your vocabulary.')).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save another word" })).toBeInTheDocument();
+    const post = fetchMock.mock.calls.find(([url, init]) => url === "/vocab" && init?.method === "POST");
+    expect(JSON.parse(post[1].body)).toEqual({ word: "station", meaning: "ga", example: null, questionId: 1 });
+  });
 });

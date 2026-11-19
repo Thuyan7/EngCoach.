@@ -17,6 +17,8 @@ export default defineConfig({
       "/attempts": API_TARGET,
       "/tests": API_TARGET,
       "/streak": API_TARGET,
+      // A plain "/vocab" key is a prefix match and would also catch the page /vocabulary on reload.
+      "^/vocab(/|$|\\?)": API_TARGET,
     },
   },
   test: {
