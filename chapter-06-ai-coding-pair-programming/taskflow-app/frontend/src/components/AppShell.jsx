@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import ThemeToggle from "./ThemeToggle.jsx";
 
 const navItems = [
   { to: "/dashboard", label: "Home", icon: "M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z" },
@@ -31,6 +32,7 @@ export default function AppShell() {
           </nav>
           <div className="header-actions">
             <span className="header-tagline">Your TOEIC study space</span>
+            <ThemeToggle />
             <button type="button" className="header-signout" onClick={signOut}>Log out</button>
           </div>
         </div>
