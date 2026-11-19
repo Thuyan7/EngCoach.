@@ -105,6 +105,31 @@ class AttemptsControllerTest {
     }
 
     @Test
+    void startingAgainAfterTheTimeRanOut_gradesTheOldAttemptAndOpensAFreshOne() throws Exception {
+        String token = registerAndGetToken("restart-after-timeout@example.com");
+        seedQuestion("Part 2");
+        long oldId = startAttemptAndGetId(token, Map.of("type", "MOCK_TEST"));
+        expireAttempt(oldId);
+
+        long newId = startAttemptAndGetId(token, Map.of("type", "MOCK_TEST"));
+
+        org.junit.jupiter.api.Assertions.assertNotEquals(oldId, newId);
+        mockMvc.perform(get("/attempts/" + oldId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SUBMITTED"));
+        mockMvc.perform(get("/attempts/" + newId).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+    }
+
+    @Test
+    void startingAgainBeforeTheTimeRunsOut_resumesTheSameAttempt() throws Exception {
+        String token = registerAndGetToken("resume-in-time@example.com");
+        seedQuestion("Part 2");
+        long firstId = startAttemptAndGetId(token, Map.of("type", "MOCK_TEST"));
+
+        org.junit.jupiter.api.Assertions.assertEquals(firstId, startAttemptAndGetId(token, Map.of("type", "MOCK_TEST")));
+    }
+
+    @Test
     void saveAnswer_afterMockTestExpires_returns409AndDoesNotPersist() throws Exception {
         String token = registerAndGetToken("timeout-no-answer@example.com");
         Long questionId = seedQuestion("Part 2");

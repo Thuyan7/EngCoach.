@@ -148,6 +148,7 @@ public class AttemptsService {
         Attempt existing = attemptRepository
                 .findFirstByUserIdAndTypeAndPartAndStatus(userId, type, part, Attempt.STATUS_IN_PROGRESS)
                 .orElse(null);
+        existing = resumable(userId, existing);
         if (existing != null) return AttemptResponse.from(existing);
 
         if ("PART_PRACTICE".equals(type)) {
@@ -192,6 +193,7 @@ public class AttemptsService {
         String selectedKey = String.join(",", selected);
         Attempt existing = attemptRepository.findFirstByUserIdAndTestIdAndSelectedPartsAndStatus(
                 userId, test.getId(), selectedKey, Attempt.STATUS_IN_PROGRESS).orElse(null);
+        existing = resumable(userId, existing);
         if (existing != null) return AttemptResponse.from(existing);
 
         List<TestQuestion> links = testQuestionRepository.findByTestIdOrderBySortOrderAsc(test.getId());
@@ -274,6 +276,20 @@ public class AttemptsService {
     private List<String> selectedParts(Attempt attempt) {
         return attempt.getSelectedParts() == null || attempt.getSelectedParts().isBlank()
                 ? List.of() : List.of(attempt.getSelectedParts().split(","));
+    }
+
+    /**
+     * An unfinished attempt is resumed when the learner starts the same practice again, but not once its time has
+     * run out: resuming it would open a test with no time left that is submitted at once. Such an attempt is graded
+     * with the answers it already has and the caller starts a fresh one (null is returned).
+     */
+    private Attempt resumable(Long userId, Attempt existing) {
+        if (existing == null) return null;
+        if (isTimeExpired(existing, Instant.now())) {
+            attemptGradingService.gradeAndPersist(userId, existing.getId());
+            return null;
+        }
+        return existing;
     }
 
     private boolean isTimeExpired(Attempt attempt, Instant now) {
