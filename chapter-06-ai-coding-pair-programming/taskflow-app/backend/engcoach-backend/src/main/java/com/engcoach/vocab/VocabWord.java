@@ -50,6 +50,14 @@ public class VocabWord {
     @Column(name = "review_count", nullable = false)
     private int reviewCount;
 
+    /** The learner says they know this word. Flashcards can still be used with it at any time. */
+    @Column(nullable = false)
+    private boolean learned;
+
+    /** The learner starred this word to study it as flashcards. */
+    @Column(nullable = false)
+    private boolean marked;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -82,6 +90,13 @@ public class VocabWord {
         this.box = next.box();
         this.nextReviewAt = next.nextReviewAt();
         this.reviewCount++;
+        this.learned = remembered;
+    }
+
+    /** Changes only the flags that are given. */
+    public void flag(Boolean learned, Boolean marked) {
+        if (learned != null) this.learned = learned;
+        if (marked != null) this.marked = marked;
     }
 
     public Long getId() { return id; }
@@ -93,5 +108,7 @@ public class VocabWord {
     public int getBox() { return box; }
     public Instant getNextReviewAt() { return nextReviewAt; }
     public int getReviewCount() { return reviewCount; }
+    public boolean isLearned() { return learned; }
+    public boolean isMarked() { return marked; }
     public Instant getCreatedAt() { return createdAt; }
 }

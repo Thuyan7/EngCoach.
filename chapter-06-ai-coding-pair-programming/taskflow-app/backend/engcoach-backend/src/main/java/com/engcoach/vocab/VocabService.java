@@ -28,10 +28,10 @@ public class VocabService {
 
     @Transactional(readOnly = true)
     public VocabListResponse list(Long userId) {
-        Instant now = Instant.now();
         List<WordResponse> words = repository.findByUserIdOrderByCreatedAtDescIdDesc(userId).stream()
-                .map(word -> WordResponse.from(word, now)).toList();
-        return new VocabListResponse(words.size(), repository.countByUserIdAndNextReviewAtLessThanEqual(userId, now), words);
+                .map(WordResponse::from).toList();
+        return new VocabListResponse(words.size(), repository.countByUserIdAndLearned(userId, true),
+                repository.countByUserIdAndLearned(userId, false), repository.countByUserIdAndMarkedTrue(userId), words);
     }
 
     @Transactional
@@ -42,7 +42,7 @@ public class VocabService {
         Instant now = Instant.now();
         VocabWord saved = repository.save(new VocabWord(userId, request.word(), request.meaning(),
                 request.example(), request.questionId(), now));
-        return WordResponse.from(saved, now);
+        return WordResponse.from(saved);
     }
 
     @Transactional
@@ -54,7 +54,7 @@ public class VocabService {
                     throw new VocabWordAlreadyExistsException();
                 });
         word.edit(request.word(), request.meaning(), request.example());
-        return WordResponse.from(repository.save(word), Instant.now());
+        return WordResponse.from(repository.save(word));
     }
 
     @Transactional
@@ -62,22 +62,61 @@ public class VocabService {
         repository.delete(repository.findByIdAndUserId(id, userId).orElseThrow(VocabWordNotFoundException::new));
     }
 
-    /** The words due now, the ones waiting longest first. */
-    @Transactional(readOnly = true)
-    public ReviewDeckResponse deck(Long userId, Integer limit) {
-        int size = limit == null ? DEFAULT_DECK_SIZE : Math.max(1, Math.min(limit, MAX_DECK_SIZE));
-        Instant now = Instant.now();
-        List<WordResponse> cards = repository
-                .findByUserIdAndNextReviewAtLessThanEqualOrderByNextReviewAtAscIdAsc(userId, now, PageRequest.of(0, size))
-                .stream().map(word -> WordResponse.from(word, now)).toList();
-        return new ReviewDeckResponse(repository.countByUserIdAndNextReviewAtLessThanEqual(userId, now), cards);
+    /** Which words a flashcard session covers. */
+    public enum Scope {
+        ALL, LEARNING, LEARNED, MARKED;
+
+        /** Unknown or missing names mean every word. */
+        public static Scope parse(String name) {
+            if (name == null) return ALL;
+            for (Scope scope : values()) {
+                if (scope.name().equalsIgnoreCase(name.trim())) return scope;
+            }
+            return ALL;
+        }
     }
 
+    /** Flashcards can be studied at any time: the chosen group of words, the ones reviewed longest ago first. */
+    @Transactional(readOnly = true)
+    public ReviewDeckResponse deck(Long userId, Scope scope, Integer limit) {
+        int size = limit == null ? DEFAULT_DECK_SIZE : Math.max(1, Math.min(limit, MAX_DECK_SIZE));
+        PageRequest page = PageRequest.of(0, size);
+        List<VocabWord> words;
+        long total;
+        switch (scope) {
+            case LEARNING -> {
+                words = repository.findByUserIdAndLearnedOrderByNextReviewAtAscIdAsc(userId, false, page);
+                total = repository.countByUserIdAndLearned(userId, false);
+            }
+            case LEARNED -> {
+                words = repository.findByUserIdAndLearnedOrderByNextReviewAtAscIdAsc(userId, true, page);
+                total = repository.countByUserIdAndLearned(userId, true);
+            }
+            case MARKED -> {
+                words = repository.findByUserIdAndMarkedTrueOrderByNextReviewAtAscIdAsc(userId, page);
+                total = repository.countByUserIdAndMarkedTrue(userId);
+            }
+            default -> {
+                words = repository.findByUserIdOrderByNextReviewAtAscIdAsc(userId, page);
+                total = repository.countByUserId(userId);
+            }
+        }
+        return new ReviewDeckResponse(total, words.stream().map(WordResponse::from).toList());
+    }
+
+    /** Stars a word for flashcards and/or sets whether the learner knows it. */
+    @Transactional
+    public WordResponse flag(Long userId, Long id, Boolean learned, Boolean marked) {
+        VocabWord word = repository.findByIdAndUserId(id, userId).orElseThrow(VocabWordNotFoundException::new);
+        word.flag(learned, marked);
+        return WordResponse.from(repository.save(word));
+    }
+
+    /** Records the answer on a card. Remembering it counts as learned, forgetting it as still learning. */
     @Transactional
     public WordResponse review(Long userId, Long id, boolean remembered) {
         VocabWord word = repository.findByIdAndUserId(id, userId).orElseThrow(VocabWordNotFoundException::new);
-        Instant now = Instant.now();
-        word.review(remembered, now);
-        return WordResponse.from(repository.save(word), now);
+        word.review(remembered, Instant.now());
+        return WordResponse.from(repository.save(word));
     }
 }

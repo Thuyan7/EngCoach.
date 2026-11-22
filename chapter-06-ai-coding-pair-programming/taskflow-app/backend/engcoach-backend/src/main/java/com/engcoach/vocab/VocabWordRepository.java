@@ -3,7 +3,6 @@ package com.engcoach.vocab;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,8 +16,16 @@ public interface VocabWordRepository extends JpaRepository<VocabWord, Long> {
 
     Optional<VocabWord> findByUserIdAndWordKey(Long userId, String wordKey);
 
-    long countByUserIdAndNextReviewAtLessThanEqual(Long userId, Instant now);
+    long countByUserId(Long userId);
 
-    List<VocabWord> findByUserIdAndNextReviewAtLessThanEqualOrderByNextReviewAtAscIdAsc(
-            Long userId, Instant now, Pageable pageable);
+    long countByUserIdAndLearned(Long userId, boolean learned);
+
+    long countByUserIdAndMarkedTrue(Long userId);
+
+    /** Study order: the words that waited longest since their last review come first. */
+    List<VocabWord> findByUserIdOrderByNextReviewAtAscIdAsc(Long userId, Pageable pageable);
+
+    List<VocabWord> findByUserIdAndLearnedOrderByNextReviewAtAscIdAsc(Long userId, boolean learned, Pageable pageable);
+
+    List<VocabWord> findByUserIdAndMarkedTrueOrderByNextReviewAtAscIdAsc(Long userId, Pageable pageable);
 }

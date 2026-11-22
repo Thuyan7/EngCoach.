@@ -1,5 +1,6 @@
 package com.engcoach.vocab;
 
+import com.engcoach.vocab.VocabDtos.FlagsRequest;
 import com.engcoach.vocab.VocabDtos.ReviewDeckResponse;
 import com.engcoach.vocab.VocabDtos.ReviewRequest;
 import com.engcoach.vocab.VocabDtos.VocabListResponse;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -69,11 +71,22 @@ public class VocabController {
         return ResponseEntity.ok(lookupSource.find(trimmed, sentence));
     }
 
-    /** The flashcards due now (default 20, at most 50). */
+    /**
+     * The flashcards to study, at any time. {@code scope} is all (default), learning, learned or marked; the default
+     * deck has 20 cards and at most 50.
+     */
     @GetMapping("/review")
-    public ResponseEntity<ReviewDeckResponse> deck(@RequestParam(required = false) Integer limit,
+    public ResponseEntity<ReviewDeckResponse> deck(@RequestParam(required = false) String scope,
+                                                   @RequestParam(required = false) Integer limit,
                                                    Authentication authentication) {
-        return ResponseEntity.ok(vocabService.deck(userId(authentication), limit));
+        return ResponseEntity.ok(vocabService.deck(userId(authentication), VocabService.Scope.parse(scope), limit));
+    }
+
+    /** Star a word for flashcards and/or mark it as learned or still learning. */
+    @PatchMapping("/{id}")
+    public ResponseEntity<WordResponse> flag(@PathVariable Long id, @RequestBody FlagsRequest request,
+                                             Authentication authentication) {
+        return ResponseEntity.ok(vocabService.flag(userId(authentication), id, request.learned(), request.marked()));
     }
 
     /** Record whether the learner remembered a card; moves it between boxes and schedules the next review. */

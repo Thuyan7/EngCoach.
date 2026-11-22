@@ -13,6 +13,7 @@ import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -70,7 +71,8 @@ class VocabApiTest {
                 .andExpect(jsonPath("$.meaning").value("hoa don"))
                 .andExpect(jsonPath("$.example").value("Please send the invoice."))
                 .andExpect(jsonPath("$.box").value(1))
-                .andExpect(jsonPath("$.due").value(true))
+                .andExpect(jsonPath("$.learned").value(false))
+                .andExpect(jsonPath("$.marked").value(false))
                 .andExpect(jsonPath("$.reviewCount").value(0));
 
         // The same word in another case is a duplicate; blank or oversized fields are invalid.
@@ -87,35 +89,37 @@ class VocabApiTest {
         mockMvc.perform(get("/vocab").header("Authorization", auth(token)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(1))
-                .andExpect(jsonPath("$.dueCount").value(1))
+                .andExpect(jsonPath("$.learningCount").value(1))
+                .andExpect(jsonPath("$.learnedCount").value(0))
+                .andExpect(jsonPath("$.markedCount").value(0))
                 .andExpect(jsonPath("$.words[0].word").value("Invoice"));
     }
 
     @Test
-    void reviewingACard_movesItBetweenBoxesAndRemovesItFromTheDeck() throws Exception {
+    void reviewingACard_setsLearnedOrLearning_andTheCardStaysAvailableForStudy() throws Exception {
         String token = token("vocab-review@example.com");
         long id = add(token, "deadline", "han chot");
 
         mockMvc.perform(get("/vocab/review").header("Authorization", auth(token)))
-                .andExpect(jsonPath("$.dueCount").value(1))
+                .andExpect(jsonPath("$.total").value(1))
                 .andExpect(jsonPath("$.cards.length()").value(1));
 
-        // Remembered: box 2, next review in days, so the deck is empty.
+        // Remembered: box 2 and learned, yet the word can still be studied right away.
         mockMvc.perform(post("/vocab/" + id + "/review").header("Authorization", auth(token))
                         .contentType("application/json").content("{\"remembered\":true}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.box").value(2))
-                .andExpect(jsonPath("$.due").value(false))
+                .andExpect(jsonPath("$.learned").value(true))
                 .andExpect(jsonPath("$.reviewCount").value(1));
         mockMvc.perform(get("/vocab/review").header("Authorization", auth(token)))
-                .andExpect(jsonPath("$.dueCount").value(0))
-                .andExpect(jsonPath("$.cards.length()").value(0));
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.cards.length()").value(1));
 
-        // Forgotten: back to box 1, due again in a few minutes (not now).
+        // Forgotten: back to box 1 and still learning.
         mockMvc.perform(post("/vocab/" + id + "/review").header("Authorization", auth(token))
                         .contentType("application/json").content("{\"remembered\":false}"))
                 .andExpect(jsonPath("$.box").value(1))
-                .andExpect(jsonPath("$.due").value(false))
+                .andExpect(jsonPath("$.learned").value(false))
                 .andExpect(jsonPath("$.reviewCount").value(2));
 
         mockMvc.perform(post("/vocab/" + id + "/review").header("Authorization", auth(token))
@@ -124,15 +128,59 @@ class VocabApiTest {
     }
 
     @Test
-    void theDeckIsLimited_butItReportsEveryDueWord() throws Exception {
+    void theDeckIsLimited_butItReportsEveryWordInTheGroup() throws Exception {
         String token = token("vocab-deck@example.com");
         add(token, "alpha", "a");
         add(token, "beta", "b");
         add(token, "gamma", "c");
 
         mockMvc.perform(get("/vocab/review").param("limit", "2").header("Authorization", auth(token)))
-                .andExpect(jsonPath("$.dueCount").value(3))
+                .andExpect(jsonPath("$.total").value(3))
                 .andExpect(jsonPath("$.cards.length()").value(2));
+    }
+
+    @Test
+    void words_canBeStarredAndSortedIntoLearnedAndLearning_andDecksFollowTheGroup() throws Exception {
+        String token = token("vocab-flags@example.com");
+        long alpha = add(token, "alpha", "a");
+        long beta = add(token, "beta", "b");
+        add(token, "gamma", "c");
+
+        mockMvc.perform(patch("/vocab/" + alpha).header("Authorization", auth(token))
+                        .contentType("application/json").content("{\"learned\":true}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.learned").value(true))
+                .andExpect(jsonPath("$.marked").value(false));
+        // Only the given flag changes.
+        mockMvc.perform(patch("/vocab/" + beta).header("Authorization", auth(token))
+                        .contentType("application/json").content("{\"marked\":true}"))
+                .andExpect(jsonPath("$.learned").value(false))
+                .andExpect(jsonPath("$.marked").value(true));
+        mockMvc.perform(patch("/vocab/" + alpha).header("Authorization", auth(token))
+                        .contentType("application/json").content("{\"marked\":true}"))
+                .andExpect(jsonPath("$.learned").value(true))
+                .andExpect(jsonPath("$.marked").value(true));
+
+        mockMvc.perform(get("/vocab").header("Authorization", auth(token)))
+                .andExpect(jsonPath("$.total").value(3))
+                .andExpect(jsonPath("$.learnedCount").value(1))
+                .andExpect(jsonPath("$.learningCount").value(2))
+                .andExpect(jsonPath("$.markedCount").value(2));
+
+        String[][] groups = {{"all", "3"}, {"learning", "2"}, {"learned", "1"}, {"marked", "2"}, {"nonsense", "3"}};
+        for (String[] group : groups) {
+            mockMvc.perform(get("/vocab/review").param("scope", group[0]).header("Authorization", auth(token)))
+                    .andExpect(jsonPath("$.total").value(Integer.parseInt(group[1])))
+                    .andExpect(jsonPath("$.cards.length()").value(Integer.parseInt(group[1])));
+        }
+
+        mockMvc.perform(patch("/vocab/99999").header("Authorization", auth(token))
+                        .contentType("application/json").content("{\"marked\":true}"))
+                .andExpect(status().isNotFound());
+        String other = token("vocab-flags-other@example.com");
+        mockMvc.perform(patch("/vocab/" + alpha).header("Authorization", auth(other))
+                        .contentType("application/json").content("{\"marked\":false}"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

@@ -23,21 +23,27 @@ public final class VocabDtos {
     public record ReviewRequest(@NotNull Boolean remembered) {
     }
 
-    public record WordResponse(Long id, String word, String meaning, String example, Long questionId,
-                               int box, Instant nextReviewAt, int reviewCount, Instant createdAt, boolean due) {
+    /** Either flag may be left out to keep its current value. */
+    public record FlagsRequest(Boolean learned, Boolean marked) {
+    }
 
-        static WordResponse from(VocabWord word, Instant now) {
+    public record WordResponse(Long id, String word, String meaning, String example, Long questionId,
+                               int box, Instant nextReviewAt, int reviewCount, Instant createdAt,
+                               boolean learned, boolean marked) {
+
+        static WordResponse from(VocabWord word) {
             return new WordResponse(word.getId(), word.getWord(), word.getMeaning(), word.getExample(),
                     word.getQuestionId(), word.getBox(), word.getNextReviewAt(), word.getReviewCount(),
-                    word.getCreatedAt(), !word.getNextReviewAt().isAfter(now));
+                    word.getCreatedAt(), word.isLearned(), word.isMarked());
         }
     }
 
-    /** All saved words (newest first) and how many are due for review now. */
-    public record VocabListResponse(int total, long dueCount, List<WordResponse> words) {
+    /** All saved words (newest first) with how many are learned, still being learned and starred. */
+    public record VocabListResponse(int total, long learnedCount, long learningCount, long markedCount,
+                                    List<WordResponse> words) {
     }
 
-    /** The cards to study now, at most the requested limit; {@code dueCount} counts all due words. */
-    public record ReviewDeckResponse(long dueCount, List<WordResponse> cards) {
+    /** The cards to study, at most the requested limit; {@code total} counts every word in the chosen group. */
+    public record ReviewDeckResponse(long total, List<WordResponse> cards) {
     }
 }
