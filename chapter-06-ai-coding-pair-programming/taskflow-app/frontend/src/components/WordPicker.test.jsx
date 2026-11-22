@@ -56,23 +56,30 @@ describe("Saving a selected word", () => {
     return post && JSON.parse(post[1].body);
   };
 
-  it("looks the meaning up and saves the word with one click", async () => {
+  const meaningBox = () => screen.getByRole("textbox", { name: "Meaning" });
+
+  it("looks the meaning up, fills it in and saves the word with one click", async () => {
     const user = userEvent.setup();
     const fetchMock = routeFetch({
       "GET /attempts/mistakes": () => jsonResponse(200, mistakes),
-      [lookupKey("quarterly invoice", SENTENCE)]: () => jsonResponse(200, { meaning: "hoa don hang quy", partOfSpeech: "noun", phonetic: null }),
+      [lookupKey("quarterly invoice", SENTENCE)]: () => jsonResponse(200, { meaning: "hoa don hang quy", partOfSpeech: "noun", phonetic: "/x/" }),
       "POST /vocab": () => jsonResponse(201, { id: 1, word: "quarterly invoice", meaning: "hoa don hang quy" }),
     });
     renderApp("/mistakes");
     await screen.findAllByText(PASSAGE);
 
     await selectInvoice();
-    expect(await screen.findByText("hoa don hang quy")).toBeInTheDocument();
+    await waitFor(() => expect(meaningBox()).toHaveValue("hoa don hang quy"));
+    expect(screen.getByText("noun")).toBeInTheDocument();
+    expect(screen.getByText("/x/")).toBeInTheDocument();
+    expect(screen.getByText(SENTENCE, { selector: ".word-bar-example" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Look it up" })).toHaveAttribute("href", expect.stringContaining("quarterly%20invoice"));
 
+    select("", passageNodes()[0]); // a real browser drops the highlight once the learner clicks the button
     await user.click(screen.getByRole("button", { name: 'Save "quarterly invoice"' }));
 
     expect(await screen.findByText('Saved "quarterly invoice" to your vocabulary.')).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Save selected word" })).not.toBeInTheDocument();
     expect(postedBody(fetchMock)).toEqual({
       word: "quarterly invoice",
       meaning: "hoa don hang quy",
@@ -81,7 +88,7 @@ describe("Saving a selected word", () => {
     });
   });
 
-  it("lets the learner change the suggested meaning with Edit first", async () => {
+  it("lets the learner correct the suggested meaning in the bar and save with Enter", async () => {
     const user = userEvent.setup();
     const fetchMock = routeFetch({
       "GET /attempts/mistakes": () => jsonResponse(200, mistakes),
@@ -92,21 +99,38 @@ describe("Saving a selected word", () => {
     await screen.findAllByText(PASSAGE);
 
     await selectInvoice();
-    await screen.findByText("hoa don");
-    await user.click(screen.getByRole("button", { name: "Edit first" }));
-    expect(screen.getByLabelText("Word or phrase")).toHaveValue("quarterly invoice");
-    expect(screen.getByLabelText("Meaning")).toHaveValue("hoa don");
-    expect(screen.getByLabelText(/Example sentence/)).toHaveValue(SENTENCE);
-
-    await user.clear(screen.getByLabelText("Meaning"));
-    await user.type(screen.getByLabelText("Meaning"), "hoa don hang quy");
-    await user.click(screen.getByRole("button", { name: "Save word" }));
+    await waitFor(() => expect(meaningBox()).toHaveValue("hoa don"));
+    await user.clear(meaningBox());
+    await user.type(meaningBox(), "hoa don hang quy{Enter}");
 
     expect(await screen.findByText('Saved "quarterly invoice" to your vocabulary.')).toBeInTheDocument();
     expect(postedBody(fetchMock)).toMatchObject({ meaning: "hoa don hang quy" });
   });
 
-  it("opens the form when no meaning could be found", async () => {
+  it("does not overwrite what the learner typed when the lookup answers late", async () => {
+    const user = userEvent.setup();
+    let release;
+    const late = new Promise((resolve) => { release = resolve; });
+    routeFetch({
+      "GET /attempts/mistakes": () => jsonResponse(200, mistakes),
+      [lookupKey("quarterly invoice", SENTENCE)]: async () => {
+        await late;
+        return jsonResponse(200, { meaning: "suggested", partOfSpeech: null, phonetic: null });
+      },
+    });
+    renderApp("/mistakes");
+    await screen.findAllByText(PASSAGE);
+
+    await selectInvoice();
+    expect(meaningBox()).toHaveAttribute("placeholder", "Looking up the meaning…");
+    await user.type(meaningBox(), "mine");
+    release();
+    await act(async () => { await late; });
+    await waitFor(() => expect(meaningBox()).toHaveAttribute("placeholder", "Type the meaning"));
+    expect(meaningBox()).toHaveValue("mine");
+  });
+
+  it("asks for a meaning when none could be found, then saves what the learner types", async () => {
     const user = userEvent.setup();
     const fetchMock = routeFetch({
       "GET /attempts/mistakes": () => jsonResponse(200, mistakes),
@@ -117,19 +141,19 @@ describe("Saving a selected word", () => {
     await screen.findAllByText(PASSAGE);
 
     await selectInvoice();
-    expect(await screen.findByText("No meaning found. You can type one.")).toBeInTheDocument();
+    await waitFor(() => expect(meaningBox()).toHaveAttribute("placeholder", "Type the meaning"));
+    expect(meaningBox()).toHaveValue("");
     await user.click(screen.getByRole("button", { name: 'Save "quarterly invoice"' }));
-    expect(screen.getByLabelText("Meaning")).toHaveValue("");
-    expect(screen.getByLabelText("Meaning")).toHaveFocus();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Type the meaning first.");
+    expect(postedBody(fetchMock)).toBeUndefined();
 
-    await user.type(screen.getByLabelText("Meaning"), "hoa don hang quy");
-    await user.click(screen.getByRole("button", { name: "Save word" }));
+    await user.type(meaningBox(), "hoa don hang quy");
+    await user.click(screen.getByRole("button", { name: 'Save "quarterly invoice"' }));
     expect(await screen.findByText('Saved "quarterly invoice" to your vocabulary.')).toBeInTheDocument();
     expect(postedBody(fetchMock)).toMatchObject({ word: "quarterly invoice", meaning: "hoa don hang quy" });
   });
 
   it("falls back to typing when the lookup fails", async () => {
-    const user = userEvent.setup();
     routeFetch({
       "GET /attempts/mistakes": () => jsonResponse(200, mistakes),
       [lookupKey("quarterly invoice", SENTENCE)]: () => jsonResponse(500, { detail: "boom" }),
@@ -138,9 +162,21 @@ describe("Saving a selected word", () => {
     await screen.findAllByText(PASSAGE);
 
     await selectInvoice();
-    expect(await screen.findByText("No meaning found. You can type one.")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: 'Save "quarterly invoice"' }));
-    expect(screen.getByLabelText("Meaning")).toBeInTheDocument();
+    await waitFor(() => expect(meaningBox()).toHaveAttribute("placeholder", "Type the meaning"));
+    expect(meaningBox()).toHaveValue("");
+  });
+
+  it("keeps a single bar open when text is selected in another card", async () => {
+    routeFetch({ "GET /attempts/mistakes": () => jsonResponse(200, mistakes) });
+    renderApp("/mistakes");
+    await screen.findAllByText(PASSAGE);
+
+    await selectUntil("meeting", () => passageNodes()[0],
+      () => expect(screen.getAllByRole("group", { name: "Save selected word" })).toHaveLength(1));
+    await selectUntil("quarterly invoice", () => passageNodes()[1],
+      () => expect(screen.getByText("quarterly invoice", { selector: "strong" })).toBeInTheDocument());
+    expect(screen.getAllByRole("group", { name: "Save selected word" })).toHaveLength(1);
+    expect(screen.queryByText("meeting", { selector: "strong" })).not.toBeInTheDocument();
   });
 
   it("shows the selection only on the card where the text was selected", async () => {
@@ -151,7 +187,7 @@ describe("Saving a selected word", () => {
     await selectUntil("meeting", () => passageNodes()[1],
       () => expect(screen.getAllByText("meeting", { selector: "strong" })).toHaveLength(1));
     expect(screen.getAllByRole("button", { name: 'Save "meeting"' })).toHaveLength(1);
-    expect(screen.getAllByText("Select a word or phrase in the text above to save it to your vocabulary.")).toHaveLength(1);
+    expect(screen.getAllByRole("group", { name: "Save selected word" })).toHaveLength(1);
   });
 
   it("ignores a selection outside the cards, one that is empty and one that is too long", async () => {
@@ -164,12 +200,12 @@ describe("Saving a selected word", () => {
       () => expect(screen.getAllByRole("button", { name: "Dismiss" })).toHaveLength(1));
     select("", passageNodes()[0]); // the real browser selection is gone once the learner clicks elsewhere
     await userEvent.click(screen.getByRole("button", { name: "Dismiss" }));
-    expect(screen.queryByRole("group", { name: "Selected text" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Save selected word" })).not.toBeInTheDocument();
 
     select("word", document.body);
     select("   ", passageNodes()[0]);
     select("word ".repeat(30), passageNodes()[0]);
-    expect(screen.queryByRole("group", { name: "Selected text" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Save selected word" })).not.toBeInTheDocument();
   });
 
   it("keeps the selection when the browser clears it, and Dismiss removes it", async () => {

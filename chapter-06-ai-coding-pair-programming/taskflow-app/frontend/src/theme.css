@@ -421,3 +421,46 @@ kbd{display:inline-block;min-width:22px;padding:1px 6px;border:1px solid var(--b
   .study-rate .btn kbd{display:none;}
 }
 @media (prefers-reduced-motion:reduce){.flashcard-face{animation:none;}.study-progress span{transition:none;}}
+
+/* ---------- Save-word bar (opens when text is selected in a reviewed question) ---------- */
+.word-bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:40;width:min(720px,calc(100vw - 24px));
+  display:grid;gap:10px;padding:14px 16px;background:var(--surface);border:1px solid var(--border-strong);border-radius:18px;
+  box-shadow:0 18px 40px -12px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.08);animation:bar-in .18s ease;}
+@keyframes bar-in{from{transform:translate(-50%,12px);opacity:0;}to{transform:translate(-50%,0);opacity:1;}}
+.word-bar-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;}
+.word-bar-word{font-size:18px;font-weight:800;color:var(--ink);overflow-wrap:anywhere;}
+.word-bar-chip{padding:2px 9px;border-radius:99px;background:var(--surface-2);color:var(--ink-soft);font-size:12px;font-weight:700;}
+.word-bar-link{margin-left:auto;font-size:13px;font-weight:700;color:var(--primary-ink);}
+.word-bar-close{width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:22px;line-height:1;cursor:pointer;}
+.word-bar-close:hover{background:var(--surface-2);color:var(--ink);}
+.word-bar-row{display:flex;gap:10px;}
+.word-bar-input{flex:1;min-width:0;height:44px;}
+.word-bar-row .btn{flex:none;white-space:nowrap;max-width:46%;overflow:hidden;text-overflow:ellipsis;}
+.word-bar-example{margin:0;color:var(--ink-faint);font-size:13px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.word-bar .error-msg{margin:0;padding:8px 12px;font-size:13px;}
+@media (max-width:680px){
+  .word-bar{bottom:0;width:100%;border-radius:18px 18px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));}
+  .word-bar-row{flex-direction:column;}
+  .word-bar-row .btn{max-width:none;width:100%;}
+}
+@media (prefers-reduced-motion:reduce){.word-bar{animation:none;}}
+
+/* ---------- Phone fixes ---------- */
+@media (max-width:900px){
+  .login-split{grid-template-columns:minmax(0,1fr);}
+  .login-formside{min-width:0;padding:24px 16px;}
+  .login-card{width:100%;min-width:0;padding:28px 22px;}
+}
+@media (max-width:680px){
+  .test-choice-head{flex-direction:column;align-items:stretch;gap:14px;}
+  .test-choice-head .btn{width:100%;}
+  .test-choice .section-head{flex-direction:column;align-items:stretch;gap:10px;}
+  .test-choice .section-head span{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .test-choice .section-head .btn{height:42px;padding:0 12px;}
+  .test-choice>.btn{width:100%;}
+}
+@media (max-width:680px){
+  .word-bar-input{flex:none;width:100%;height:44px;}
+  .q-actions{flex-wrap:wrap;}
+  .q-actions .muted-label{flex:1 1 100%;}
+}
