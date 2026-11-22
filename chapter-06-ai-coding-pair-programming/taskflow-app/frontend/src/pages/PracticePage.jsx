@@ -4,6 +4,11 @@ import { request } from "../api/client.js";
 import { startToeicTest } from "../api/attempts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 
+// "1 Part", "2 Parts".
+function countOf(n, noun) {
+  return `${n} ${noun}${n === 1 ? "" : "s"}`;
+}
+
 const PARTS = ["Part 1", "Part 2", "Part 3", "Part 4", "Part 5", "Part 6", "Part 7"];
 const PART_INFO = {
   "Part 1": "Photographs · Listening",
@@ -86,7 +91,7 @@ export default function PracticePage() {
           <div><h3>{test.title}</h3>{test.description && <p>{test.description}</p>}</div>
           <button type="button" className="btn btn-primary" disabled={busy || allParts.length === 0}
             onClick={() => beginTest(test, allParts, `full-${test.id}`)}>
-            {starting === `full-${test.id}` ? "Starting…" : `Start full test (${allParts.length} Parts)`}
+            {starting === `full-${test.id}` ? "Starting…" : `Start full test (${countOf(allParts.length, "Part")})`}
           </button>
         </div>
         <div className="section-head"><strong>Or choose your Parts</strong>
@@ -102,7 +107,7 @@ export default function PracticePage() {
             <span><strong>{part}</strong><small>{PART_INFO[part] || ""}</small><small>{detail?.questionCount ?? 0} questions</small></span>
           </label>;
         })}</div>
-        <p className="muted-label" aria-live="polite">{chosen.length} Parts · {total} questions · {Math.ceil(seconds / 60)} minutes</p>
+        <p className="muted-label" aria-live="polite">{countOf(chosen.length, "Part")} · {countOf(total, "question")} · {countOf(Math.ceil(seconds / 60), "minute")}</p>
         <button type="button" className="btn btn-secondary" disabled={busy || chosen.length === 0} onClick={() => beginTest(test, chosen, `test-${test.id}`)}>
           {starting === `test-${test.id}` ? "Starting…" : "Start selected Parts"}
         </button>
