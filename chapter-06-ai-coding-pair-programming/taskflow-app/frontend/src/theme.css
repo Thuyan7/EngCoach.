@@ -332,6 +332,35 @@ img,svg{max-width:100%;}
 .selection-bar a{color:var(--primary-ink);font-weight:700;}
 .word-form input{height:44px;}
 
+/* ---------- Vocabulary groups, stars and learned state ---------- */
+.vocab-filters{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px;}
+.vocab-filter{padding:7px 15px;border:1px solid var(--border-strong);border-radius:99px;background:var(--surface);color:var(--ink);font-size:14px;font-weight:700;transition:background .15s,border-color .15s;}
+.vocab-filter:hover{border-color:var(--primary);}
+.vocab-filter span{margin-left:4px;color:var(--ink-soft);font-weight:800;}
+.vocab-filter.is-active{background:var(--primary);border-color:var(--primary);color:#fff;}
+.vocab-filter.is-active span{color:#fff;opacity:.85;}
+:root[data-theme="dark"] .vocab-filter.is-active,:root[data-theme="dark"] .vocab-filter.is-active span{color:#07210F;}
+.vocab-item{align-items:center;}
+.vocab-text{flex:1;}
+.vocab-star{flex:none;width:38px;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--ink-soft);font-size:20px;line-height:1;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+.vocab-star:hover{border-color:#E0A800;color:#E0A800;}
+.vocab-star.is-on{background:#FFF4CC;border-color:#E0A800;color:#B07F00;}
+:root[data-theme="dark"] .vocab-star.is-on{background:#3A3000;color:#FFD54A;}
+.vocab-state{font-weight:700;}
+.vocab-state.is-learned{color:var(--primary-ink);}
+.vocab-actions{flex-wrap:wrap;justify-content:flex-end;}
+.study-scope{margin:0 0 8px;color:var(--ink-soft);font-size:13px;font-weight:700;}
+.study-flags{display:flex;justify-content:center;margin:16px 0;}
+.study-star{padding:7px 16px;border:1px solid var(--border-strong);border-radius:99px;background:var(--surface);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer;}
+.study-star:hover{border-color:#E0A800;}
+.study-star.is-on{background:#FFF4CC;border-color:#E0A800;color:#B07F00;}
+:root[data-theme="dark"] .study-star.is-on{background:#3A3000;color:#FFD54A;}
+@media (max-width:620px){
+  .vocab-item{flex-wrap:wrap;align-items:flex-start;flex-direction:row;}
+  .vocab-text{flex-basis:calc(100% - 54px);}
+  .vocab-actions{flex-basis:100%;justify-content:flex-start;}
+}
+
 /* ---------- Small screens ---------- */
 @media (max-width:900px){
   .site-header-inner{gap:14px;}

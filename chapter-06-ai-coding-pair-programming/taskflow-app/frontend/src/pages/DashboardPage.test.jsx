@@ -213,20 +213,20 @@ describe("Dashboard — stats from GET /attempts (S10a)", () => {
     expect(await screen.findByText("FIX WHAT YOU MISSED")).toBeInTheDocument();
   });
 
-  it("shows a Vocabulary card with the number of words due and opens the vocabulary page", async () => {
+  it("shows a Vocabulary card with the number of words to learn and opens the vocabulary page", async () => {
     const user = userEvent.setup();
     routeFetch({
       ...ok([TEST_ONE]),
-      "GET /vocab": () => jsonResponse(200, { total: 9, dueCount: 4, words: [] }),
+      "GET /vocab": () => jsonResponse(200, { total: 9, learnedCount: 5, learningCount: 4, markedCount: 0, words: [] }),
     });
     renderApp("/dashboard");
 
-    expect(await screen.findByText("4 WORDS DUE")).toBeInTheDocument();
+    expect(await screen.findByText("4 WORDS TO LEARN")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Vocabulary/ }));
     expect(await screen.findByRole("heading", { name: "Vocabulary" })).toBeInTheDocument();
   });
 
-  it("still shows the Vocabulary card when the number of due words cannot be loaded", async () => {
+  it("still shows the Vocabulary card when the number of words cannot be loaded", async () => {
     routeFetch({ ...ok([TEST_ONE]), "GET /vocab": () => new TypeError("Failed to fetch") });
     renderApp("/dashboard");
 

@@ -9,26 +9,33 @@ beforeEach(() => {
 });
 
 const word = (id, text, meaning, extra = {}) => ({
-  id, word: text, meaning, example: null, questionId: null, box: 1, due: true, reviewCount: 0,
+  id, word: text, meaning, example: null, questionId: null, box: 1, learned: false, marked: false, reviewCount: 0,
   nextReviewAt: "2026-11-18T00:00:00Z", createdAt: "2026-11-18T00:00:00Z", ...extra,
 });
 
-const list = (words, dueCount = words.filter((w) => w.due).length) => ({ total: words.length, dueCount, words });
+const list = (words) => ({
+  total: words.length,
+  learnedCount: words.filter((w) => w.learned).length,
+  learningCount: words.filter((w) => !w.learned).length,
+  markedCount: words.filter((w) => w.marked).length,
+  words,
+});
 
 describe("Vocabulary page", () => {
-  it("lists the saved words and how many are due, with a link to study", async () => {
-    routeFetch({ "GET /vocab": () => jsonResponse(200, list([word(1, "invoice", "hoa don", { example: "Send the invoice." }), word(2, "deadline", "han chot", { due: false, box: 3 })])) });
+  it("lists the saved words with their state, and links to study them", async () => {
+    routeFetch({ "GET /vocab": () => jsonResponse(200, list([word(1, "invoice", "hoa don", { example: "Send the invoice." }), word(2, "deadline", "han chot", { learned: true, box: 3 })])) });
     renderApp("/vocabulary");
 
-    expect(await screen.findByText("1 word due for review")).toBeInTheDocument();
-    expect(screen.getByText("You have 2 saved words.")).toBeInTheDocument();
+    expect(await screen.findByText("2 words to study")).toBeInTheDocument();
+    expect(screen.getByText(/You have 2 saved words\./)).toBeInTheDocument();
     expect(screen.getByText("invoice")).toBeInTheDocument();
     expect(screen.getByText("Send the invoice.")).toBeInTheDocument();
-    expect(screen.getByText("Box 3 of 5")).toBeInTheDocument();
+    expect(screen.getByText("Learned", { selector: "small" })).toBeInTheDocument();
+    expect(screen.getByText("Still learning", { selector: "small" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Study flashcards" })).toHaveAttribute("href", "/vocabulary/review");
   });
 
-  it("disables studying when nothing is due and shows an empty state with no words", async () => {
+  it("disables studying with no words and shows an empty state with no words", async () => {
     routeFetch({ "GET /vocab": () => jsonResponse(200, list([])) });
     renderApp("/vocabulary");
 
@@ -49,7 +56,7 @@ describe("Vocabulary page", () => {
     await user.type(screen.getByLabelText("Meaning"), "hoan tien");
     await user.click(screen.getByRole("button", { name: "Save word" }));
 
-    expect(await screen.findByText("1 word due for review")).toBeInTheDocument();
+    expect(await screen.findByText("1 word to study")).toBeInTheDocument();
     expect(screen.getByLabelText("Word or phrase")).toHaveValue("");
     const post = fetchMock.mock.calls.find(([url, init]) => url === "/vocab" && init?.method === "POST");
     expect(JSON.parse(post[1].body)).toEqual({ word: "refund", meaning: "hoan tien", example: null, questionId: null });
@@ -116,6 +123,65 @@ describe("Vocabulary page", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("couldn't load your vocabulary");
     expect(within(document.body).getByRole("button", { name: "Try again" })).toBeInTheDocument();
+  });
+
+  describe("groups, stars and learned words", () => {
+    const words = () => [
+      word(1, "invoice", "hoa don"),
+      word(2, "deadline", "han chot", { learned: true, marked: true }),
+      word(3, "refund", "hoan tien", { marked: true }),
+    ];
+
+    it("filters the list by group and studies the chosen group", async () => {
+      const user = userEvent.setup();
+      routeFetch({ "GET /vocab": () => jsonResponse(200, list(words())) });
+      renderApp("/vocabulary");
+
+      expect(await screen.findByText("3 words to study")).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Study flashcards" })).toHaveAttribute("href", "/vocabulary/review");
+
+      await user.click(screen.getByRole("button", { name: /^Starred/ }));
+      expect(screen.getByText("2 words to study")).toBeInTheDocument();
+      expect(screen.queryByText("invoice")).not.toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Study flashcards" })).toHaveAttribute("href", "/vocabulary/review?scope=marked");
+
+      await user.click(screen.getByRole("button", { name: /^Learned/ }));
+      expect(screen.getByText("deadline")).toBeInTheDocument();
+      expect(screen.queryByText("refund")).not.toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Study flashcards" })).toHaveAttribute("href", "/vocabulary/review?scope=learned");
+    });
+
+    it("stars a word and marks it as learned without leaving the page", async () => {
+      const user = userEvent.setup();
+      let current = words();
+      const fetchMock = routeFetch({
+        "GET /vocab": () => jsonResponse(200, list(current)),
+        "PATCH /vocab/1": (init) => {
+          const flags = JSON.parse(init.body);
+          current = current.map((w) => (w.id === 1 ? { ...w, ...flags } : w));
+          return jsonResponse(200, current[0]);
+        },
+      });
+      renderApp("/vocabulary");
+
+      await user.click(await screen.findByRole("button", { name: "Star invoice for flashcards" }));
+      expect(await screen.findByRole("button", { name: "Remove star from invoice" })).toHaveAttribute("aria-pressed", "true");
+      await user.click(screen.getByRole("button", { name: "Mark invoice as learned" }));
+      expect(await screen.findByRole("button", { name: "Mark invoice as still learning" })).toBeInTheDocument();
+
+      const bodies = fetchMock.mock.calls.filter(([url, init]) => url === "/vocab/1" && init?.method === "PATCH").map(([, init]) => JSON.parse(init.body));
+      expect(bodies).toEqual([{ marked: true }, { learned: true }]);
+    });
+
+    it("says so when a group is empty", async () => {
+      const user = userEvent.setup();
+      routeFetch({ "GET /vocab": () => jsonResponse(200, list([word(1, "invoice", "hoa don")])) });
+      renderApp("/vocabulary");
+
+      await user.click(await screen.findByRole("button", { name: /^Learned/ }));
+      expect(screen.getByText("No words in this group yet.")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Study flashcards" })).toBeDisabled();
+    });
   });
 
   describe("add form", () => {

@@ -8,13 +8,13 @@ beforeEach(() => {
   signIn();
 });
 
-const card = (id, text, meaning, example = null) => ({ id, word: text, meaning, example, box: 1, due: true });
+const card = (id, text, meaning, example = null) => ({ id, word: text, meaning, example, box: 1, learned: false, marked: false });
 
 describe("Flashcards page", () => {
   it("shows one card at a time, reveals the meaning, records each answer and ends with a summary", async () => {
     const user = userEvent.setup();
     const fetchMock = routeFetch({
-      "GET /vocab/review": () => jsonResponse(200, { dueCount: 2, cards: [card(1, "invoice", "hoa don", "Send the invoice."), card(2, "deadline", "han chot")] }),
+      "GET /vocab/review": () => jsonResponse(200, { total: 2, cards: [card(1, "invoice", "hoa don", "Send the invoice."), card(2, "deadline", "han chot")] }),
       "POST /vocab/1/review": () => jsonResponse(200, card(1, "invoice", "hoa don")),
       "POST /vocab/2/review": () => jsonResponse(200, card(2, "deadline", "han chot")),
     });
@@ -43,33 +43,33 @@ describe("Flashcards page", () => {
     expect(bodies).toEqual([["/vocab/1/review", { remembered: true }], ["/vocab/2/review", { remembered: false }]]);
   });
 
-  it("offers to study more when more words are due than the deck holds", async () => {
+  it("offers to study more when more words are in this group than the deck holds", async () => {
     const user = userEvent.setup();
     let calls = 0;
     routeFetch({
-      "GET /vocab/review": () => { calls += 1; return jsonResponse(200, { dueCount: calls === 1 ? 5 : 4, cards: [card(1, "alpha", "a")] }); },
+      "GET /vocab/review": () => { calls += 1; return jsonResponse(200, { total: calls === 1 ? 5 : 4, cards: [card(1, "alpha", "a")] }); },
       "POST /vocab/1/review": () => jsonResponse(200, card(1, "alpha", "a")),
     });
     renderApp("/vocabulary/review");
 
     await user.click(await screen.findByRole("button", { name: /Show meaning/ }));
     await user.click(screen.getByRole("button", { name: "I remembered" }));
-    expect(await screen.findByText("4 more words are due.")).toBeInTheDocument();
+    expect(await screen.findByText("4 more words are in this group.")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Study more" }));
     expect(await screen.findByText("Card 1 of 1")).toBeInTheDocument();
   });
 
-  it("says so when no word is due", async () => {
-    routeFetch({ "GET /vocab/review": () => jsonResponse(200, { dueCount: 0, cards: [] }) });
+  it("says so when the group has no words", async () => {
+    routeFetch({ "GET /vocab/review": () => jsonResponse(200, { total: 0, cards: [] }) });
     renderApp("/vocabulary/review");
-    expect(await screen.findByText("No words are due for review right now.")).toBeInTheDocument();
+    expect(await screen.findByText("You have no saved words to study yet.")).toBeInTheDocument();
   });
 
   it("keeps the card and shows an error when an answer cannot be saved", async () => {
     const user = userEvent.setup();
     routeFetch({
-      "GET /vocab/review": () => jsonResponse(200, { dueCount: 1, cards: [card(1, "alpha", "a")] }),
+      "GET /vocab/review": () => jsonResponse(200, { total: 1, cards: [card(1, "alpha", "a")] }),
       "POST /vocab/1/review": () => jsonResponse(500, { title: "boom" }),
     });
     renderApp("/vocabulary/review");
@@ -87,9 +87,33 @@ describe("Flashcards page", () => {
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
   });
 
+  it("studies the group named in the link, and shows which group it is", async () => {
+    routeFetch({
+      "GET /vocab/review?scope=learned": () => jsonResponse(200, { total: 1, cards: [card(3, "refund", "hoan tien", null)] }),
+    });
+    renderApp("/vocabulary/review?scope=learned");
+
+    expect(await screen.findByText("Card 1 of 1")).toBeInTheDocument();
+    expect(screen.getByText("Words you have learned")).toBeInTheDocument();
+  });
+
+  it("stars the current word for later", async () => {
+    const user = userEvent.setup();
+    const fetchMock = routeFetch({
+      "GET /vocab/review": () => jsonResponse(200, { total: 1, cards: [card(1, "invoice", "hoa don")] }),
+      "PATCH /vocab/1": () => jsonResponse(200, { ...card(1, "invoice", "hoa don"), marked: true }),
+    });
+    renderApp("/vocabulary/review");
+
+    await user.click(await screen.findByRole("button", { name: "☆ Star this word" }));
+    expect(await screen.findByRole("button", { name: "★ Starred" })).toHaveAttribute("aria-pressed", "true");
+    const patch = fetchMock.mock.calls.find(([url, init]) => url === "/vocab/1" && init?.method === "PATCH");
+    expect(JSON.parse(patch[1].body)).toEqual({ marked: true });
+  });
+
   describe("keyboard", () => {
     const twoCards = () => routeFetch({
-      "GET /vocab/review": () => jsonResponse(200, { dueCount: 2, cards: [card(1, "invoice", "hoa don", "Send the invoice."), card(2, "deadline", "han chot")] }),
+      "GET /vocab/review": () => jsonResponse(200, { total: 2, cards: [card(1, "invoice", "hoa don", "Send the invoice."), card(2, "deadline", "han chot")] }),
       "POST /vocab/1/review": () => jsonResponse(200, card(1, "invoice", "hoa don")),
       "POST /vocab/2/review": () => jsonResponse(200, card(2, "deadline", "han chot")),
     });
@@ -154,7 +178,7 @@ describe("Flashcards page", () => {
 
       await user.keyboard("{ArrowRight}{ArrowRight}");
       expect(await screen.findByText("Session complete")).toBeInTheDocument();
-      expect(screen.getByText("You skipped 2 cards; they stay due.")).toBeInTheDocument();
+      expect(screen.getByText("You skipped 2 cards.")).toBeInTheDocument();
     });
 
     it("ignores the shortcuts while typing", async () => {

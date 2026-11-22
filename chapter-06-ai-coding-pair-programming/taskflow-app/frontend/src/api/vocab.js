@@ -18,12 +18,22 @@ export function deleteWord(token, id) {
   return request(`/vocab/${id}`, { method: "DELETE", token });
 }
 
-// The flashcards due now (the server limits the deck), plus the total number of due words.
-export function getReviewDeck(token, limit) {
-  return request(`/vocab/review${limit ? `?limit=${limit}` : ""}`, { token });
+// The flashcards to study, available at any time. scope is "all" (default), "learning", "learned" or "marked";
+// total counts every word in that group while the server limits the deck.
+export function getReviewDeck(token, { scope, limit } = {}) {
+  const params = new URLSearchParams();
+  if (scope && scope !== "all") params.set("scope", scope);
+  if (limit) params.set("limit", String(limit));
+  const query = params.toString();
+  return request(`/vocab/review${query ? `?${query}` : ""}`, { token });
 }
 
-// remembered = true moves the card up a box; false sends it back to box 1.
+// Star a word for flashcards and/or mark it learned; a flag that is left out keeps its value.
+export function flagWord(token, id, { learned, marked }) {
+  return request(`/vocab/${id}`, { method: "PATCH", token, body: { learned, marked } });
+}
+
+// remembered = true moves the card up a box and counts it as learned; false sends it back to box 1 as still learning.
 export function reviewWord(token, id, remembered) {
   return request(`/vocab/${id}/review`, { method: "POST", token, body: { remembered } });
 }

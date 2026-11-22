@@ -28,7 +28,7 @@ export default function DashboardPage() {
   const [testStartError, setTestStartError] = useState("");
   const [stats, setStats] = useState({ status: "loading", attempts: [] });
   const [statsReload, setStatsReload] = useState(0);
-  const [dueWords, setDueWords] = useState(null); // number of vocabulary words due; null until loaded or if it fails
+  const [wordsToLearn, setWordsToLearn] = useState(null); // number of vocabulary words still being learned; null until loaded or if it fails
   const [mistakeCount, setMistakeCount] = useState(null); // null until loaded; stays null if the call fails
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export default function DashboardPage() {
   useEffect(() => {
     let cancelled = false;
     listWords(token).then((data) => {
-      if (!cancelled && typeof data?.dueCount === "number") setDueWords(data.dueCount);
+      if (!cancelled && typeof data?.learningCount === "number") setWordsToLearn(data.learningCount);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [token, statsReload]);
@@ -198,7 +198,7 @@ export default function DashboardPage() {
             <span className="quick-icon quick-red" aria-hidden="true">↺</span><strong>Review Mistakes</strong><p>Go back over the questions you got wrong and practise them again.</p><small>{mistakeCount === null ? "FIX WHAT YOU MISSED" : mistakeCount === 0 ? "NO MISTAKES YET" : `${mistakeCount} ${mistakeCount === 1 ? "QUESTION" : "QUESTIONS"} TO REVIEW`}</small>
           </button>
           <button className="quick-card" type="button" onClick={() => navigate("/vocabulary")}>
-            <span className="quick-icon quick-gold" aria-hidden="true">Aa</span><strong>Vocabulary</strong><p>Save new words and study them as flashcards.</p><small>{dueWords === null ? "YOUR WORD NOTEBOOK" : dueWords === 0 ? "NOTHING DUE NOW" : `${dueWords} ${dueWords === 1 ? "WORD" : "WORDS"} DUE`}</small>
+            <span className="quick-icon quick-gold" aria-hidden="true">Aa</span><strong>Vocabulary</strong><p>Save new words and study them as flashcards.</p><small>{wordsToLearn === null ? "YOUR WORD NOTEBOOK" : wordsToLearn === 0 ? "NO WORDS TO LEARN" : `${wordsToLearn} ${wordsToLearn === 1 ? "WORD" : "WORDS"} TO LEARN`}</small>
           </button>
         </div>
       </section>
