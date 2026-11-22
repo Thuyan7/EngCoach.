@@ -98,7 +98,8 @@ export default function VocabularyPage() {
           </section>
 
           <section className="card vocab-add">
-            <h2>Save a word</h2>
+            <h2>Add a word</h2>
+            <p className="vocab-add-note">Type the word and its meaning is filled in for you.</p>
             <WordForm submitLabel="Save word" onSubmit={handleAdd} />
           </section>
 

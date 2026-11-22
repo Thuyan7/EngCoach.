@@ -464,3 +464,18 @@ kbd{display:inline-block;min-width:22px;padding:1px 6px;border:1px solid var(--b
   .q-actions{flex-wrap:wrap;}
   .q-actions .muted-label{flex:1 1 100%;}
 }
+
+/* ---------- Add / edit word form ---------- */
+.word-form{max-width:none;gap:10px;}
+.word-form label{gap:5px;font-size:12.5px;font-weight:800;color:var(--ink-soft);letter-spacing:.02em;}
+.word-form-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) auto;gap:10px;align-items:end;}
+.word-form-row .btn{height:46px;}
+.word-form-hint{margin:-2px 0 0;display:flex;gap:6px;flex-wrap:wrap;}
+.word-form-add{justify-self:start;padding:0;}
+.vocab-add{padding:20px 22px;}
+.vocab-add h2{margin:0 0 2px;font-size:17px;font-weight:800;}
+.vocab-add-note{margin:0 0 14px;color:var(--ink-soft);font-size:13.5px;font-weight:500;}
+@media (max-width:680px){
+  .word-form-row{grid-template-columns:1fr;}
+  .word-form-row .btn{width:100%;}
+}

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { jsonResponse, renderApp, routeFetch, signIn } from "../test/helpers.jsx";
 
@@ -116,5 +116,55 @@ describe("Vocabulary page", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("couldn't load your vocabulary");
     expect(within(document.body).getByRole("button", { name: "Try again" })).toBeInTheDocument();
+  });
+
+  describe("add form", () => {
+    const lookup = (w) => `GET /vocab/lookup?word=${w}&context=`;
+
+    it("fills in the meaning and details while the word is typed, so only the word is needed", async () => {
+      const user = userEvent.setup();
+      const fetchMock = routeFetch({
+        "GET /vocab": () => jsonResponse(200, list([])),
+        [lookup("refund")]: () => jsonResponse(200, { meaning: "hoan tien", partOfSpeech: "noun", phonetic: "/rifund/" }),
+        "POST /vocab": () => jsonResponse(201, word(5, "refund", "hoan tien")),
+      });
+      renderApp("/vocabulary");
+
+      await user.type(await screen.findByLabelText("Word or phrase"), "refund");
+      await waitFor(() => expect(screen.getByLabelText("Meaning")).toHaveValue("hoan tien"), { timeout: 4000 });
+      expect(screen.getByText("noun")).toBeInTheDocument();
+      expect(screen.getByText("/rifund/")).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Save word" }));
+      await waitFor(() => expect(screen.getByLabelText("Word or phrase")).toHaveValue(""));
+      const post = fetchMock.mock.calls.find(([url, init]) => url === "/vocab" && init?.method === "POST");
+      expect(JSON.parse(post[1].body)).toMatchObject({ word: "refund", meaning: "hoan tien" });
+      expect(screen.getByLabelText("Meaning")).toHaveValue("");
+    });
+
+    it("never overwrites a meaning the learner typed", async () => {
+      const user = userEvent.setup();
+      routeFetch({
+        "GET /vocab": () => jsonResponse(200, list([])),
+        [lookup("refund")]: () => jsonResponse(200, { meaning: "suggested", partOfSpeech: null, phonetic: null }),
+      });
+      renderApp("/vocabulary");
+
+      await user.type(await screen.findByLabelText("Meaning"), "mine");
+      await user.type(screen.getByLabelText("Word or phrase"), "refund");
+      await act(async () => { await new Promise((resolve) => setTimeout(resolve, 1200)); });
+      expect(screen.getByLabelText("Meaning")).toHaveValue("mine");
+    });
+
+    it("keeps the example sentence out of the way until it is asked for", async () => {
+      const user = userEvent.setup();
+      routeFetch({ "GET /vocab": () => jsonResponse(200, list([])) });
+      renderApp("/vocabulary");
+
+      await screen.findByLabelText("Word or phrase");
+      expect(screen.queryByLabelText(/Example sentence/)).not.toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "+ Add an example sentence" }));
+      expect(screen.getByLabelText(/Example sentence/)).toBeInTheDocument();
+    });
   });
 });
