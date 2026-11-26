@@ -143,10 +143,10 @@ function OnceAudio({ src, storageKey, label }) {
       >
         Your browser does not support audio playback.
       </audio>
-      <button type="button" className="btn btn-secondary" disabled={played || playing} onClick={start}>
+      <button type="button" className="audio-play" disabled={played || playing} onClick={start}>
         {playButtonText(played, playing, "Play audio (one time only)")}
       </button>
-      <span className="muted-label">Exam mode: you can listen only once.</span>
+      <span className="audio-note">Exam mode: you can listen only once.</span>
     </div>
   );
 }
@@ -171,14 +171,14 @@ function OnceSpeech({ text, storageKey, label }) {
     <div className="question-media-audio">
       <button
         type="button"
-        className="btn btn-secondary"
+        className="audio-play"
         disabled={played || playing}
         aria-label={played ? "Audio has been played" : label}
         onClick={start}
       >
         {playButtonText(played, playing, "Play listening audio (one time only)")}
       </button>
-      <span className="muted-label">Exam mode: you can listen only once.</span>
+      <span className="audio-note">Exam mode: you can listen only once.</span>
     </div>
   );
 }
@@ -476,21 +476,8 @@ export default function TestPage() {
         </div>
       )}
 
-      <nav aria-label="Questions" className="q-nav">
-        {questions.map((q, i) => (
-          <button
-            key={q.id}
-            type="button"
-            className="q-dot"
-            aria-current={stepOfQuestion[i] === stepIndex ? "step" : undefined}
-            aria-label={`Question ${i + 1}${answers[q.id] !== undefined ? ", answered" : ""}`}
-            data-answered={answers[q.id] !== undefined}
-            onClick={() => setIndex(stepOfQuestion[i])}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </nav>
+      <div className="exam-layout">
+      <div className="exam-main">
 
       <div className="card question-card">
         {readingPassage && (
@@ -527,13 +514,13 @@ export default function TestPage() {
           <div className="question-media-audio">
             <button
               type="button"
-              className="btn btn-secondary"
+              className="audio-play"
               onClick={() => playQuestionAudio(listeningText)}
               aria-label={question.groupType ? `Play listening audio for ${question.groupType.toLowerCase()}` : "Play listening audio"}
             >
               Play listening audio
             </button>
-            <span className="muted-label">Computer-generated voice</span>
+            <span className="audio-note">Computer-generated voice</span>
           </div>
         )}
         {!examMode && question.audioUrl && (
@@ -561,7 +548,7 @@ export default function TestPage() {
                   </span>
                   {!lettersOnly && <span className="q-prompt">{q.prompt}</span>}
                 </legend>
-                <div className={lettersOnly ? "q-letter-row" : undefined}>
+                <div className={lettersOnly ? "q-letter-row" : "q-options"}>
                   {q.options.map((opt, i) => (
                     <label key={i} className={`q-option${lettersOnly ? " q-option--letter" : ""}`}>
                       <input
@@ -668,6 +655,28 @@ export default function TestPage() {
           )}
         </div>
       )}
+      </div>
+      <aside className="exam-side" aria-label="Question navigator">
+        <p className="exam-side-title">Questions</p>
+        <p className="exam-side-count">{answeredCount} / {questions.length} done</p>
+        <div className="exam-side-progress" aria-hidden="true"><span style={{ width: `${questions.length ? (answeredCount / questions.length) * 100 : 0}%` }} /></div>
+      <nav aria-label="Questions" className="q-nav">
+        {questions.map((q, i) => (
+          <button
+            key={q.id}
+            type="button"
+            className="q-dot"
+            aria-current={stepOfQuestion[i] === stepIndex ? "step" : undefined}
+            aria-label={`Question ${i + 1}${answers[q.id] !== undefined ? ", answered" : ""}`}
+            data-answered={answers[q.id] !== undefined}
+            onClick={() => setIndex(stepOfQuestion[i])}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </nav>
+      </aside>
+      </div>
     </>
   );
 }

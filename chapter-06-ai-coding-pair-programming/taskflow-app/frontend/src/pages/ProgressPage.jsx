@@ -24,10 +24,14 @@ const percent = (attempt) =>
     ? Math.round((Number(attempt.score) / Number(attempt.totalQuestions)) * 100)
     : null;
 
+// The history shows the latest attempts first; the rest sit behind a button so the page stays short.
+const HISTORY_PREVIEW = 6;
+
 export default function ProgressPage() {
   const { token, signOut } = useAuth();
   const [history, setHistory] = useState({ status: "loading", attempts: [] });
   const [reloadKey, setReloadKey] = useState(0);
+  const [showAll, setShowAll] = useState(false);
   const [stats, setStats] = useState(null);
   const [selected, setSelected] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -209,12 +213,17 @@ export default function ProgressPage() {
             </div>
           </section>
 
-          <div className="q-actions">
-            <Link to="/mistakes" className="btn btn-secondary">Review your mistakes</Link>
+          <div className="progress-grid">
+            <div className="progress-side">
+              <EstimateCards estimate={stats?.latestEstimate} />
+              <section className="card mistakes-cta" aria-label="Mistakes">
+                <p className="mistakes-cta-title">Learn from your mistakes</p>
+                <p className="stats-note">Questions you got wrong are collected in one place, so you can review them and save new words.</p>
+                <Link to="/mistakes" className="btn btn-secondary">Review your mistakes</Link>
+              </section>
+            </div>
+            <PartBars parts={stats?.parts} weakestPart={stats?.weakestPart} />
           </div>
-
-          <EstimateCards estimate={stats?.latestEstimate} />
-          <PartBars parts={stats?.parts} weakestPart={stats?.weakestPart} />
 
           <section className="card trend-card" aria-labelledby="trend-heading">
             <div className="trend-heading">
@@ -250,7 +259,7 @@ export default function ProgressPage() {
                 <span className="history-count">{history.attempts.length} {history.attempts.length === 1 ? "attempt" : "attempts"}</span>
               </div>
               <ul className="history-list">
-                {history.attempts.map((attempt) => {
+                {(showAll ? history.attempts : history.attempts.slice(0, HISTORY_PREVIEW)).map((attempt) => {
                   const accuracy = percent(attempt);
                   const name = attemptName(attempt);
                   const deletingThis = deleting && String(selected?.id) === String(attempt.id);
@@ -281,6 +290,11 @@ export default function ProgressPage() {
                   );
                 })}
               </ul>
+              {history.attempts.length > HISTORY_PREVIEW && (
+                <button type="button" className="history-more" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
+                  {showAll ? "Show fewer attempts" : `Show all ${history.attempts.length} attempts`}
+                </button>
+              )}
             </div>
           </section>
         </>
