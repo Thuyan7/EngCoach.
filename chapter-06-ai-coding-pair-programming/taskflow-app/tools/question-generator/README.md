@@ -1,26 +1,28 @@
-# EngCoach question generator (nhánh thử nghiệm)
+# EngCoach question generator (experimental branch)
 
-Công cụ sinh các đề TOEIC Listening & Reading hoàn chỉnh (200 câu, đủ 7 Part) bằng AI, để không phải tự nhập
-câu hỏi, đáp án hay audio. Nội dung là **nội dung gốc do AI viết theo cấu trúc TOEIC**, không lấy từ đề thật.
-Chạy trên máy của bạn; kết quả là các file `test-XX.json` mà backend nạp bằng `GeneratedTestImporter`.
+A tool that generates complete TOEIC Listening & Reading Tests (200 questions, all 7 Parts) with AI, so nobody has to
+type questions, answer keys or audio by hand. The content is **original text written by AI to follow the TOEIC structure**,
+not copied from real exams. It runs on your own machine. The output is a set of `test-XX.json` files that the backend
+imports with `GeneratedTestImporter`.
 
-## Quy trình
+## Pipeline
 
 ```
-kế hoạch đề (plan) -> LLM sinh từng unit -> kiểm tra schema/độ dài -> so trùng với kho + đề trước
-   -> giải mù bằng một lượt gọi LLM khác -> xáo option, cân bằng vị trí đáp án -> kiểm tra cấu trúc TOEIC
-   -> (Pexels) ảnh Part 1 -> (Kokoro) mp3 -> test-XX.json + report-XX.html
+test plan -> LLM generates each unit -> schema/length check -> duplicate check against the bank and earlier Tests
+   -> blind solve by a second LLM call -> shuffle options, balance answer positions -> TOEIC structure check
+   -> (Pexels) Part 1 photos -> (Kokoro) mp3 -> test-XX.json + report-XX.html
 ```
 
-- Một đề gồm 59 unit (6 ảnh Part 1, 5 lô Part 2, 13 hội thoại Part 3, 10 bài nói Part 4, 6 lô Part 5, 4 bài Part 6,
-  15 bài Part 7). Cấu trúc lấy từ `qgen/toeic_spec.py` (đúng số câu, nhóm câu, số option, kiểu bài đọc Part 7).
-- Mỗi đề có chủ đề, tình huống, mức độ khác nhau, xác định theo `--seed` và số thứ tự đề.
-- Mỗi unit được lưu cache trong `work/`; nếu bị ngắt (hết hạn mức gọi API) chỉ cần chạy lại lệnh cũ.
-- Bài nào trùng gần như nguyên văn với đề trước hoặc kho hiện có (độ giống 3-gram từ 0,45 trở lên) sẽ bị sinh lại.
-- Bước giải mù: model thứ hai chỉ thấy bài và câu hỏi, không thấy đáp án; nếu chọn khác đáp án đã khai hoặc thấy mơ hồ
-  thì unit bị sinh lại (tối đa 3 lần, sau đó dừng và báo unit nào lỗi).
+- One Test has 59 units (6 photos for Part 1, 5 batches for Part 2, 13 conversations for Part 3, 10 talks for Part 4,
+  6 batches for Part 5, 4 texts for Part 6, 15 texts for Part 7). The structure comes from `qgen/toeic_spec.py`
+  (question counts, question groups, number of options, Part 7 text types).
+- Each Test gets a different topic, situation and difficulty, decided by `--seed` and the Test number.
+- Every unit is cached in `work/`. If a run is interrupted (for example the API quota runs out), run the same command again.
+- A text that is almost identical to an earlier Test or to the existing bank (3-gram similarity of 0.45 or more) is regenerated.
+- Blind solve: a second model sees only the text and the question, not the answer key. If it picks a different answer
+  or finds the item ambiguous, the unit is regenerated (up to 3 times, then the run stops and reports which unit failed).
 
-## Chạy thử không cần key (LLM giả, ảnh giả)
+## Try it without a key (fake LLM, fake photos)
 
 ```bash
 cd chapter-06-ai-coding-pair-programming/taskflow-app/tools/question-generator
@@ -29,77 +31,79 @@ python3 -m qgen.cli plan --test 1
 python3 -m qgen.cli generate --tests 1-2 --mock --out out --work work
 ```
 
-Chế độ `--mock` chỉ để thử pipeline; nội dung câu hỏi không có nghĩa thật.
+`--mock` only exercises the pipeline. The question text is meaningless.
 
-## Chạy thật
+## Real run
 
-Chỉ cần Python 3.10+ (phần sinh đề không dùng thư viện ngoài). Đặt key bằng biến môi trường, **không dán key vào chat
-hay commit vào Git**:
+You only need Python 3.10+ (the generation part uses no third-party libraries). Set keys with environment variables.
+**Never paste a key into a chat or commit it to Git.**
 
-| Biến | Ý nghĩa |
+| Variable | Meaning |
 |---|---|
-| `QGEN_API_KEY` | key của dịch vụ LLM |
-| `QGEN_BASE_URL` | mặc định Google AI Studio (`https://generativelanguage.googleapis.com/v1beta/openai`); Groq: `https://api.groq.com/openai/v1`; Ollama: `http://localhost:11434/v1` |
-| `QGEN_MODEL` | tên model, mặc định `gemini-3.8-flash` (kiểm tra tên model hiện có trên trang nhà cung cấp) |
-| `QGEN_RPM` | số lượt gọi tối đa mỗi phút, mặc định 10; chỉnh theo hạn mức của gói bạn dùng |
-| `PEXELS_API_KEY` | (không bắt buộc) key Pexels để lấy ảnh Part 1 |
+| `QGEN_API_KEY` | Key of the LLM service |
+| `QGEN_BASE_URL` | Defaults to Google AI Studio (`https://generativelanguage.googleapis.com/v1beta/openai`); Groq: `https://api.groq.com/openai/v1`; Ollama: `http://localhost:11434/v1` |
+| `QGEN_MODEL` | Model name, default `gemini-3.8-flash` (check the current model names on the provider's site) |
+| `QGEN_RPM` | Maximum calls per minute, default 10; adjust to your plan's quota |
+| `PEXELS_API_KEY` | (optional) Pexels key for Part 1 photos |
 
 ```bash
 export QGEN_API_KEY=...        # Windows PowerShell: $env:QGEN_API_KEY="..."
 python3 -m qgen.cli generate --tests 1-3
 ```
 
-Ước lượng số lượt gọi cho mỗi đề: khoảng 59 lượt sinh + 200 lượt giải mù (mỗi câu một lượt) = khoảng 260 lượt, chưa tính
-sinh lại. Với `QGEN_RPM=10` là khoảng 26 phút mỗi đề. `--no-verify` bỏ bước giải mù (nhanh gấp khoảng 4 lần nhưng đáp án
-kém chắc chắn hơn). Hạn mức miễn phí theo ngày của từng nhà cung cấp có thể không đủ cho nhiều đề trong một ngày; nếu
-bị chặn, chạy lại hôm sau, cache sẽ giữ phần đã làm.
+Estimated calls per Test: about 59 generation calls plus 200 blind-solve calls (one per question), roughly 260 calls,
+not counting regeneration. With `QGEN_RPM=10` that is about 26 minutes per Test. `--no-verify` skips the blind solve
+(about 4 times faster, but the answer keys are less reliable). A provider's free daily quota may not be enough for many
+Tests in one day. If you are blocked, run again the next day; the cache keeps what is already done.
 
-### Ảnh Part 1: ba nguồn
+### Part 1 photos: three sources
 
-| Nguồn | Cách dùng |
+| Source | How to use it |
 |---|---|
-| Openverse (mặc định khi không có key Pexels) | Không cần key. Ảnh Creative Commons cho phép dùng thương mại. `python3 -m qgen.cli generate --tests 1 --photo-source openverse` |
-| Pexels | Đặt `PEXELS_API_KEY`. Chú thích ảnh tốt hơn. Việc cấp key mới có thể tạm dừng. |
-| Thư mục ảnh của bạn | `--photo-source local --photos-dir D:\anh` với thư mục chứa ảnh và file `captions.json` dạng `{"a.jpg": "two men carrying boxes in a warehouse"}`. Cần ít nhất 6 ảnh mỗi đề. |
+| Openverse (default when there is no Pexels key) | No key needed. Creative Commons photos that allow commercial use. `python3 -m qgen.cli generate --tests 1 --photo-source openverse` |
+| Pexels | Set `PEXELS_API_KEY`. Better photo captions. Issuing new keys may be paused. |
+| Your own photo folder | `--photo-source local --photos-dir D:\photos`, with a folder of photos and a `captions.json` like `{"a.jpg": "two men carrying boxes in a warehouse"}`. You need at least 6 photos per Test. |
 
-Chú thích ảnh Openverse do người đăng đặt nên có thể không sát; AI viết câu mô tả dựa trên chú thích đó. Hãy xem ảnh
-trong `report-XX.html` và loại hoặc sinh lại đề nếu ảnh không khớp câu đúng. Ảnh được lưu ở `frontend/public/part1/`.
+Openverse captions are written by the uploader, so they may not match closely; the AI writes the description sentences
+from those captions. Check the photos in `report-XX.html` and drop or regenerate the Test if a photo does not match
+the correct sentence. Photos are saved in `frontend/public/part1/`.
 
-### Audio (Kokoro TTS, chạy offline, giấy phép Apache-2.0)
+### Audio (Kokoro TTS, runs offline, Apache-2.0 license)
 
 ```bash
-pip install kokoro-onnx soundfile numpy      # cần thêm ffmpeg trong PATH
+pip install kokoro-onnx soundfile numpy      # ffmpeg must also be on PATH
 mkdir models && cd models
-# tải kokoro-v1.0.onnx (khoảng 325 MB) và voices-v1.0.bin từ trang Releases của github.com/thewh1teagle/kokoro-onnx
+# download kokoro-v1.0.onnx (about 325 MB) and voices-v1.0.bin from the Releases page of github.com/thewh1teagle/kokoro-onnx
 cd .. && python3 -m qgen.cli generate --tests 1 --audio
 ```
 
-File mp3 ghi vào `frontend/public/audio/test-XX/`, ảnh vào `frontend/public/part1/`; trong JSON là đường dẫn
-`/audio/...` và `/part1/...` để Vite phục vụ. Mỗi đề cần khoảng 3-4 MB audio và ảnh. Có nên đưa các file này vào Git hay
-chỉ sinh khi build là quyết định của nhóm.
+The mp3 files are written to `frontend/public/audio/test-XX/` and the photos to `frontend/public/part1/`. In the JSON
+they appear as `/audio/...` and `/part1/...` paths that Vite serves. Each Test needs about 3-4 MB of audio and photos.
+Whether to commit these files to Git or only generate them at build time is the team's decision.
 
-#### Nghe thử và đổi giọng đọc
+#### Listen to samples and change the voice
 
 ```bash
-python3 -m qgen.cli tts-sample --out out/tts-sample    # 8 file mp3 mẫu: hội thoại, Part 1, Part 2, bài nói (giọng Mỹ và Anh)
-python3 -m qgen.cli generate --tests 1 --audio --redo-audio   # tạo lại toàn bộ mp3 của đề sau khi đổi giọng
+python3 -m qgen.cli tts-sample --out out/tts-sample    # 8 sample mp3 files: conversation, Part 1, Part 2, talk (US and UK accents)
+python3 -m qgen.cli generate --tests 1 --audio --redo-audio   # regenerate all mp3 files of a Test after changing the voice
 ```
 
-Giọng nằm trong `qgen/tts.py`: bảng `POOLS` (danh sách giọng theo giới tính và giọng vùng), `BASE_SPEED`/`OPTION_SPEED`
-(tốc độ), `TURN_GAP`/`OPTION_GAP`/`SENTENCE_GAP` (quãng nghỉ). Chỉ dùng giọng gốc của Kokoro, không trộn giọng, vì trộn với giọng
-chất lượng thấp làm tiếng nghe rè. Mặc định mp3 mono 80 kbps, chuẩn hoá -16 LUFS.
+The voices are set in `qgen/tts.py`: the `POOLS` table (voices by gender and accent), `BASE_SPEED`/`OPTION_SPEED`
+(speed), and `TURN_GAP`/`OPTION_GAP`/`SENTENCE_GAP` (pauses). Use only the original Kokoro voices and do not blend them,
+because blending with low-quality voices makes the sound harsh. By default the mp3 is mono, 80 kbps, normalised to -16 LUFS.
 
-### Nạp vào ứng dụng
+### Import into the app
 
 ```bash
-python3 -m qgen.cli publish --out out            # chép test-XX.json vào backend/.../resources/question-bank/generated/
+python3 -m qgen.cli publish --out out            # copies test-XX.json to backend/.../resources/question-bank/generated/
 ENGCOACH_IMPORT_GENERATED_TESTS=true mvn spring-boot:run
 ```
 
-Importer bỏ qua đề đã có cùng tiêu đề nên chạy lại nhiều lần không tạo trùng.
+The importer skips a Test that already has the same title, so running it many times does not create duplicates.
 
-Sau khi sinh lại audio hoặc ảnh, đề cũ trong cơ sở dữ liệu vẫn giữ bản cũ (không có `audioUrl`, trang làm bài sẽ đọc bằng
-giọng của trình duyệt). Bật thêm chế độ làm mới để cập nhật đề đã có tại chỗ, giữ nguyên id câu hỏi và lượt làm bài cũ:
+After regenerating audio or photos, the old Test in the database keeps its old version (no `audioUrl`, so the test page
+reads it with the browser voice). Turn on refresh mode to update an existing Test in place, keeping question ids and
+old attempts:
 
 ```powershell
 $env:ENGCOACH_IMPORT_GENERATED_TESTS="true"
@@ -107,14 +111,16 @@ $env:ENGCOACH_REFRESH_GENERATED_TESTS="true"
 mvn spring-boot:run
 ```
 
-Chế độ này yêu cầu số câu trong file bằng số câu đang có trong cơ sở dữ liệu; nếu khác, xóa đề cũ rồi nạp lại.
+This mode requires the number of questions in the file to equal the number already in the database. If they differ,
+delete the old Test and import it again.
 
-## Kiểm duyệt
+## Review
 
-Mở `out/report-XX.html` để đọc từng bài, đáp án đúng được tô xanh, giải thích tiếng Việt và cảnh báo. Câu hỏi do AI
-viết nên **cần người xem lại** trước khi đưa cho người học; giải mù giảm nhưng không loại bỏ hoàn toàn lỗi.
+Open `out/report-XX.html` to read every text. The correct answer is highlighted in green, with Vietnamese explanations
+and warnings. The questions are written by AI, so **a person must review them** before learners see them. Blind solve
+reduces errors but does not remove them completely.
 
-## Nguồn ảnh và ghi công
+## Photo sources and credits
 
-Ảnh Part 1 lấy từ Openverse hoặc Pexels (giấy phép cho dùng thương mại; ảnh CC BY cần ghi công). Dòng ghi công và liên kết ảnh được lưu trong
-`provenance.image_credits` của mỗi `test-XX.json`.
+Part 1 photos come from Openverse or Pexels (licenses that allow commercial use; CC BY photos need attribution).
+The credit line and link of each photo are stored in `provenance.image_credits` of every `test-XX.json`.
