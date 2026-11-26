@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { getAttempt, saveAnswer, submitAttempt } from "../api/attempts.js";
+import { deleteAttempt, getAttempt, saveAnswer, startToeicTest, submitAttempt } from "../api/attempts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 // S7b. Everything comes from the API: GET /attempts/{id} returns the
@@ -38,20 +38,33 @@ function buildSteps(questions) {
   return steps;
 }
 
-function playQuestionAudio(text) {
+// Speaks the text with the browser voice. `onEnd` runs when the voice has finished (or could not start).
+// Returns false when the browser has no speech support.
+function playQuestionAudio(text, onEnd) {
   if (typeof window === "undefined" || !window.speechSynthesis || typeof window.SpeechSynthesisUtterance !== "function") {
-    return;
+    return false;
   }
   window.speechSynthesis.cancel();
   const spokenText = text.replace(/(?:^|\s)[MW]:\s*/g, " ");
   const utterance = new window.SpeechSynthesisUtterance(spokenText);
   utterance.lang = "en-US";
   utterance.rate = 0.92;
+  if (onEnd) {
+    utterance.onend = () => onEnd(true);
+    utterance.onerror = () => onEnd(false);
+  }
   window.speechSynthesis.speak(utterance);
+  return true;
+}
+
+function stopSpeech() {
+  if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
 }
 
 // Exam mode (TEST attempts): each listening audio can be played once, like the real TOEIC.
-// The "already played" mark is kept in localStorage so a page refresh cannot be used to hear it again.
+// The audio counts as heard only when it has played to the end. If the learner leaves the question or the page
+// while it is playing, nothing was heard, so the play is given back. The "heard" mark is kept in localStorage
+// (per attempt and question) so a page refresh cannot be used to hear a finished audio again.
 function readPlayed(key) {
   try {
     return window.localStorage.getItem(key) === "1";
@@ -71,9 +84,6 @@ function writePlayed(key, played) {
 
 function usePlayedOnce(key) {
   const [played, setPlayed] = useState(() => readPlayed(key));
-  useEffect(() => {
-    setPlayed(readPlayed(key));
-  }, [key]);
   function mark(value) {
     writePlayed(key, value);
     setPlayed(value);
@@ -81,45 +91,62 @@ function usePlayedOnce(key) {
   return [played, mark];
 }
 
-// Audio file played once: no controls, no pause, no replay.
+function playButtonText(played, playing, idleText) {
+  if (playing) return "Playing…";
+  if (played) return "Audio has been played";
+  return idleText;
+}
+
+// Audio file played once: no controls, no pause, no replay. Rendered with key={storageKey}, so every question
+// gets its own player and its own state.
 function OnceAudio({ src, storageKey, label }) {
   const audioRef = useRef(null);
   const [played, mark] = usePlayedOnce(storageKey);
   const [playing, setPlaying] = useState(false);
 
+  // Leaving the question stops the sound.
+  useEffect(() => {
+    const element = audioRef.current;
+    return () => {
+      if (element && typeof element.pause === "function") element.pause();
+    };
+  }, []);
+
+  function giveBack() {
+    setPlaying(false);
+  }
+
   function start() {
     const element = audioRef.current;
     if (!element || played || playing) return;
-    mark(true);
     setPlaying(true);
     try {
       const result = element.play();
-      if (result && typeof result.catch === "function") {
-        result.catch(() => {
-          // The browser refused to play, so the learner has not heard it: give the play back.
-          mark(false);
-          setPlaying(false);
-        });
-      }
+      if (result && typeof result.catch === "function") result.catch(giveBack);
     } catch (error) {
-      mark(false);
-      setPlaying(false);
+      giveBack();
     }
   }
 
-  let buttonText = "Play audio (one time only)";
-  if (playing) buttonText = "Playing…";
-  else if (played) buttonText = "Audio has been played";
-
   return (
     <div className="question-media-audio">
-      <audio ref={audioRef} preload="none" src={src} aria-label={label} onEnded={() => setPlaying(false)}>
+      <audio
+        ref={audioRef}
+        preload="none"
+        src={src}
+        aria-label={label}
+        onEnded={() => {
+          mark(true);
+          setPlaying(false);
+        }}
+        onError={giveBack}
+      >
         Your browser does not support audio playback.
       </audio>
-      <button type="button" className="btn btn-secondary" disabled={played || playing} onClick={start}>
-        {buttonText}
+      <button type="button" className="audio-play" disabled={played || playing} onClick={start}>
+        {playButtonText(played, playing, "Play audio (one time only)")}
       </button>
-      <span className="muted-label">Exam mode: you can listen only once.</span>
+      <span className="audio-note">Exam mode: you can listen only once.</span>
     </div>
   );
 }
@@ -127,21 +154,31 @@ function OnceAudio({ src, storageKey, label }) {
 // Browser-voice fallback (no audio file) with the same one-time rule.
 function OnceSpeech({ text, storageKey, label }) {
   const [played, mark] = usePlayedOnce(storageKey);
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => stopSpeech, []);
+
+  function start() {
+    setPlaying(true);
+    const supported = playQuestionAudio(text, (finished) => {
+      if (finished) mark(true);
+      setPlaying(false);
+    });
+    if (!supported) setPlaying(false);
+  }
+
   return (
     <div className="question-media-audio">
       <button
         type="button"
-        className="btn btn-secondary"
-        disabled={played}
+        className="audio-play"
+        disabled={played || playing}
         aria-label={played ? "Audio has been played" : label}
-        onClick={() => {
-          mark(true);
-          playQuestionAudio(text);
-        }}
+        onClick={start}
       >
-        {played ? "Audio has been played" : "Play listening audio (one time only)"}
+        {playButtonText(played, playing, "Play listening audio (one time only)")}
       </button>
-      <span className="muted-label">Exam mode: you can listen only once.</span>
+      <span className="audio-note">Exam mode: you can listen only once.</span>
     </div>
   );
 }
@@ -167,6 +204,7 @@ export default function TestPage() {
   const [remainingSeconds, setRemainingSeconds] = useState(null);
   const submissionLock = useRef(false);
   const autoSubmitTriggered = useRef(false);
+  const [restart, setRestart] = useState({ status: "idle" }); // idle|confirming|busy|error
 
   useEffect(() => {
     let cancelled = false;
@@ -273,6 +311,21 @@ export default function TestPage() {
     return () => clearInterval(intervalId);
   }, [load.status, attempt, remainingSeconds, submitState.status]);
 
+  // Throw this attempt away (answers and audio plays included) and open a fresh one for the same Test and Parts.
+  async function startOver() {
+    setRestart({ status: "busy" });
+    try {
+      await Promise.all(Object.values(chains.current));
+      await deleteAttempt(token, attemptId);
+      const fresh = await startToeicTest(token, attempt.testId, attempt.selectedParts);
+      setRestart({ status: "idle" });
+      navigate(`/practice/${fresh.id}`);
+    } catch (err) {
+      if (err.status === 401) return signOut();
+      setRestart({ status: "error" });
+    }
+  }
+
   function startSubmit() {
     const unanswered = questions.filter((q) => answers[q.id] === undefined).length;
     if (unanswered > 0) setSubmitState({ status: "confirming" });
@@ -363,6 +416,28 @@ export default function TestPage() {
               Selected: {attempt.selectedParts.join(", ")}
             </p>
           )}
+          {attempt.type === "TEST" && attempt.status === "IN_PROGRESS" && attempt.testId != null && (
+            <div className="restart-test">
+              {restart.status === "confirming" || restart.status === "busy" ? (
+                <div className="restart-confirm" role="group" aria-label="Confirm start over">
+                  <span>Start over? Your answers and audio plays for this attempt will be cleared.</span>
+                  <button type="button" className="btn btn-secondary" disabled={restart.status === "busy"} onClick={startOver}>
+                    {restart.status === "busy" ? "Starting…" : "Yes, start over"}
+                  </button>
+                  <button type="button" className="link-btn" disabled={restart.status === "busy"} onClick={() => setRestart({ status: "idle" })}>
+                    Keep going
+                  </button>
+                </div>
+              ) : (
+                <button type="button" className="link-btn" onClick={() => setRestart({ status: "confirming" })}>
+                  Start over
+                </button>
+              )}
+              {restart.status === "error" && (
+                <span className="error-msg" role="alert">We couldn't restart the test. Please try again.</span>
+              )}
+            </div>
+          )}
         </div>
         {["MOCK_TEST", "TEST"].includes(attempt.type) && remainingSeconds !== null && attempt.status === "IN_PROGRESS" && (
           <div
@@ -401,21 +476,8 @@ export default function TestPage() {
         </div>
       )}
 
-      <nav aria-label="Questions" className="q-nav">
-        {questions.map((q, i) => (
-          <button
-            key={q.id}
-            type="button"
-            className="q-dot"
-            aria-current={stepOfQuestion[i] === stepIndex ? "step" : undefined}
-            aria-label={`Question ${i + 1}${answers[q.id] !== undefined ? ", answered" : ""}`}
-            data-answered={answers[q.id] !== undefined}
-            onClick={() => setIndex(stepOfQuestion[i])}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </nav>
+      <div className="exam-layout">
+      <div className="exam-main">
 
       <div className="card question-card">
         {readingPassage && (
@@ -434,6 +496,7 @@ export default function TestPage() {
         )}
         {examMode && question.audioUrl && (
           <OnceAudio
+            key={playedKey}
             src={question.audioUrl}
             storageKey={playedKey}
             label={firstNumber === lastNumber ? `Audio for question ${firstNumber}` : `Audio for questions ${firstNumber} to ${lastNumber}`}
@@ -441,6 +504,7 @@ export default function TestPage() {
         )}
         {examMode && !question.audioUrl && listeningText && (
           <OnceSpeech
+            key={playedKey}
             text={listeningText}
             storageKey={playedKey}
             label={question.groupType ? `Play listening audio for ${question.groupType.toLowerCase()}` : "Play listening audio"}
@@ -450,13 +514,13 @@ export default function TestPage() {
           <div className="question-media-audio">
             <button
               type="button"
-              className="btn btn-secondary"
+              className="audio-play"
               onClick={() => playQuestionAudio(listeningText)}
               aria-label={question.groupType ? `Play listening audio for ${question.groupType.toLowerCase()}` : "Play listening audio"}
             >
               Play listening audio
             </button>
-            <span className="muted-label">Computer-generated voice</span>
+            <span className="audio-note">Computer-generated voice</span>
           </div>
         )}
         {!examMode && question.audioUrl && (
@@ -484,7 +548,7 @@ export default function TestPage() {
                   </span>
                   {!lettersOnly && <span className="q-prompt">{q.prompt}</span>}
                 </legend>
-                <div className={lettersOnly ? "q-letter-row" : undefined}>
+                <div className={lettersOnly ? "q-letter-row" : "q-options"}>
                   {q.options.map((opt, i) => (
                     <label key={i} className={`q-option${lettersOnly ? " q-option--letter" : ""}`}>
                       <input
@@ -591,6 +655,28 @@ export default function TestPage() {
           )}
         </div>
       )}
+      </div>
+      <aside className="exam-side" aria-label="Question navigator">
+        <p className="exam-side-title">Questions</p>
+        <p className="exam-side-count">{answeredCount} / {questions.length} done</p>
+        <div className="exam-side-progress" aria-hidden="true"><span style={{ width: `${questions.length ? (answeredCount / questions.length) * 100 : 0}%` }} /></div>
+      <nav aria-label="Questions" className="q-nav">
+        {questions.map((q, i) => (
+          <button
+            key={q.id}
+            type="button"
+            className="q-dot"
+            aria-current={stepOfQuestion[i] === stepIndex ? "step" : undefined}
+            aria-label={`Question ${i + 1}${answers[q.id] !== undefined ? ", answered" : ""}`}
+            data-answered={answers[q.id] !== undefined}
+            onClick={() => setIndex(stepOfQuestion[i])}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </nav>
+      </aside>
+      </div>
     </>
   );
 }

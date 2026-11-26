@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { listWords } from "../api/vocab.js";
 import { getMistakes, listAttempts, startPartPractice, startMockTest, startToeicTest } from "../api/attempts.js";
 import { request } from "../api/client.js";
 import { listParts } from "../api/parts.js";
@@ -27,6 +28,7 @@ export default function DashboardPage() {
   const [testStartError, setTestStartError] = useState("");
   const [stats, setStats] = useState({ status: "loading", attempts: [] });
   const [statsReload, setStatsReload] = useState(0);
+  const [wordsToLearn, setWordsToLearn] = useState(null); // number of vocabulary words still being learned; null until loaded or if it fails
   const [mistakeCount, setMistakeCount] = useState(null); // null until loaded; stays null if the call fails
 
   useEffect(() => {
@@ -77,6 +79,15 @@ export default function DashboardPage() {
     let cancelled = false;
     getMistakes(token).then((data) => {
       if (!cancelled && typeof data?.total === "number") setMistakeCount(data.total);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [token, statsReload]);
+
+  // The Vocabulary card is an extra: if this call fails the card still opens the page.
+  useEffect(() => {
+    let cancelled = false;
+    listWords(token).then((data) => {
+      if (!cancelled && typeof data?.learningCount === "number") setWordsToLearn(data.learningCount);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [token, statsReload]);
@@ -185,6 +196,9 @@ export default function DashboardPage() {
           </button>
           <button className="quick-card" type="button" onClick={() => navigate("/mistakes")}>
             <span className="quick-icon quick-red" aria-hidden="true">↺</span><strong>Review Mistakes</strong><p>Go back over the questions you got wrong and practise them again.</p><small>{mistakeCount === null ? "FIX WHAT YOU MISSED" : mistakeCount === 0 ? "NO MISTAKES YET" : `${mistakeCount} ${mistakeCount === 1 ? "QUESTION" : "QUESTIONS"} TO REVIEW`}</small>
+          </button>
+          <button className="quick-card" type="button" onClick={() => navigate("/vocabulary")}>
+            <span className="quick-icon quick-gold" aria-hidden="true">Aa</span><strong>Vocabulary</strong><p>Save new words and study them as flashcards.</p><small>{wordsToLearn === null ? "YOUR WORD NOTEBOOK" : wordsToLearn === 0 ? "NO WORDS TO LEARN" : `${wordsToLearn} ${wordsToLearn === 1 ? "WORD" : "WORDS"} TO LEARN`}</small>
           </button>
         </div>
       </section>

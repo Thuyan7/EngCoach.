@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getMistakes, startMistakePractice } from "../api/attempts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import WordPicker from "../components/WordPicker.jsx";
 
 const letter = (i) => String.fromCharCode(65 + i);
 
@@ -128,26 +129,35 @@ export default function MistakesPage() {
 function MistakeCard({ item }) {
   const question = item.question;
   const context = question.groupContent || question.passage;
+  // For listening questions the audio script and the group text are often the same words: show them once.
+  const showContext = context && context !== question.audioText;
   return (
     <div className="explain-card incorrect">
-      <p className="q">{item.part}</p>
-      {question.imageUrl && <img className="mistake-image" src={question.imageUrl} alt="Photo for this question" />}
-      {context && <p className="body mistake-context">{context}</p>}
-      {question.audioText && <p className="body mistake-context"><strong>Audio script:</strong> {question.audioText}</p>}
-      <p className="body prompt">{question.prompt}</p>
-      <ul className="mistake-options">
-        {question.options.map((option, index) => {
-          const isCorrect = option === question.correctOption;
-          const isChosen = option === item.chosenOption;
-          const tag = isCorrect ? " (correct answer)" : isChosen ? " (your answer)" : "";
-          return (
-            <li key={index} className={isCorrect ? "is-correct" : isChosen ? "is-chosen" : ""}>
-              {letter(index)}. {option}{tag}
-            </li>
-          );
-        })}
-      </ul>
-      {item.explanationText && <p className="body explanation-text">{item.explanationText}</p>}
+      <WordPicker questionId={question.id}>
+        <p className="q">{item.part}</p>
+        <div className={question.imageUrl ? "mistake-grid has-image" : "mistake-grid"}>
+          {question.imageUrl && <img className="mistake-image" src={question.imageUrl} alt="Photo for this question" />}
+          <div className="mistake-body">
+            {showContext && <p className="body mistake-context">{context}</p>}
+            {question.audioText && <p className="mistake-label">Audio script</p>}
+            {question.audioText && <p className="body mistake-context">{question.audioText}</p>}
+            <p className="body prompt">{question.prompt}</p>
+            <ul className="mistake-options">
+              {question.options.map((option, index) => {
+                const isCorrect = option === question.correctOption;
+                const isChosen = option === item.chosenOption;
+                const tag = isCorrect ? " (correct answer)" : isChosen ? " (your answer)" : "";
+                return (
+                  <li key={index} className={isCorrect ? "is-correct" : isChosen ? "is-chosen" : ""}>
+                    {letter(index)}. {option}{tag}
+                  </li>
+                );
+              })}
+            </ul>
+            {item.explanationText && <p className="body explanation-text">{item.explanationText}</p>}
+          </div>
+        </div>
+      </WordPicker>
     </div>
   );
 }

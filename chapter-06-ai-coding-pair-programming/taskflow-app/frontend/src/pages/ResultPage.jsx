@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { getAttempt, getAttemptScore, retryExplanation, submitAttempt } from "../api/attempts.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import WordPicker from "../components/WordPicker.jsx";
 import { EstimateCards, PartBars, validParts } from "../components/ScoreInsights.jsx";
 
 const letter = (i) => String.fromCharCode(65 + i);
@@ -188,9 +189,10 @@ export default function ResultPage() {
         </div>
       ) : (
         <ul className="explain-list">
-          {reviewQuestions.map(({ question, number, answer }) => (
+          {reviewQuestions.map(({ question, number, answer }, position) => (
             <li key={question.id}>
               <ReviewCard
+                showContext={isFirstOfGroup(reviewQuestions, position)}
                 question={question}
                 number={number}
                 answer={answer}
@@ -211,7 +213,14 @@ export default function ResultPage() {
   );
 }
 
-function ReviewCard({ question, number, answer, retry, onRetry }) {
+// The shared text (script or passage) of a group is shown once, on the first question of the group.
+function isFirstOfGroup(items, position) {
+  const { question } = items[position];
+  if (question.groupId == null) return true;
+  return position === 0 || items[position - 1].question.groupId !== question.groupId;
+}
+
+function ReviewCard({ question, number, answer, retry, onRetry, showContext }) {
   const chosen = answer?.chosenOption;
   const chosenIndex = chosen == null ? -1 : question.options.indexOf(chosen);
   const correct = answer?.isCorrect === true;
@@ -227,32 +236,39 @@ function ReviewCard({ question, number, answer, retry, onRetry }) {
 
   return (
     <div className={`explain-card ${cardClass}`}>
-      <p className="q">{heading}</p>
-      <p className="body prompt">{question.prompt}</p>
-      <p className="body answer-line">
-        <strong>Your answer:</strong>{" "}
-        {unanswered ? "Not answered" : `${chosenIndex >= 0 ? `${letter(chosenIndex)}. ` : ""}${chosen}`}
-      </p>
-      <p className="body answer-line correct-answer">
-        <strong>Correct answer:</strong>{" "}
-        {correctOption == null
-          ? "Not available"
-          : `${correctIndex >= 0 ? `${letter(correctIndex)}. ` : ""}${correctOption}`}
-      </p>
-      {hasExplanation && <p className="body explanation-text">{answer.explanationText}</p>}
-      {unavailable && (
-        <>
-          <p className="body">The explanation for this question is unavailable right now.</p>
-          {retry?.status === "failed" && (
-            <p className="field-error" role="alert">
-              Still unavailable. Please try again in a moment.
-            </p>
-          )}
-          <button type="button" className="link-btn" disabled={retry?.status === "retrying"} onClick={onRetry}>
-            {retry?.status === "retrying" ? "Retrying…" : "Retry"}
-          </button>
-        </>
-      )}
+      <WordPicker questionId={question.id}>
+        <p className="q">{heading}</p>
+        {showContext && question.audioText && <p className="mistake-label">Audio script</p>}
+        {showContext && question.audioText && <p className="body mistake-context">{question.audioText}</p>}
+        {showContext && (question.groupContent || question.passage) && !question.audioText && (
+          <p className="body mistake-context">{question.groupContent || question.passage}</p>
+        )}
+        <p className="body prompt">{question.prompt}</p>
+        <p className="body answer-line">
+          <strong>Your answer:</strong>{" "}
+          {unanswered ? "Not answered" : `${chosenIndex >= 0 ? `${letter(chosenIndex)}. ` : ""}${chosen}`}
+        </p>
+        <p className="body answer-line correct-answer">
+          <strong>Correct answer:</strong>{" "}
+          {correctOption == null
+            ? "Not available"
+            : `${correctIndex >= 0 ? `${letter(correctIndex)}. ` : ""}${correctOption}`}
+        </p>
+        {hasExplanation && <p className="body explanation-text">{answer.explanationText}</p>}
+        {unavailable && (
+          <>
+            <p className="body">The explanation for this question is unavailable right now.</p>
+            {retry?.status === "failed" && (
+              <p className="field-error" role="alert">
+                Still unavailable. Please try again in a moment.
+              </p>
+            )}
+            <button type="button" className="link-btn" disabled={retry?.status === "retrying"} onClick={onRetry}>
+              {retry?.status === "retrying" ? "Retrying…" : "Retry"}
+            </button>
+          </>
+        )}
+      </WordPicker>
     </div>
   );
 }

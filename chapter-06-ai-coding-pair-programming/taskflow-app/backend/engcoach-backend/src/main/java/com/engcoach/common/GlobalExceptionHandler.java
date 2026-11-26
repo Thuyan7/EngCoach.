@@ -142,6 +142,26 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(VocabWordNotFoundException.class)
+    public ProblemDetail handleVocabWordNotFound(VocabWordNotFoundException ex,
+                                                  HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "vocab-word-not-found"));
+        problem.setTitle("Vocabulary word not found");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
+    @ExceptionHandler(VocabWordAlreadyExistsException.class)
+    public ProblemDetail handleVocabWordAlreadyExists(VocabWordAlreadyExistsException ex,
+                                                       HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "vocab-word-already-exists"));
+        problem.setTitle("Word already saved");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidation(MethodArgumentNotValidException ex,
                                            HttpServletRequest request) {

@@ -5,6 +5,8 @@ import DashboardPage from "./pages/DashboardPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import MistakesPage from "./pages/MistakesPage.jsx";
 import ProgressPage from "./pages/ProgressPage.jsx";
+import VocabularyPage from "./pages/VocabularyPage.jsx";
+import FlashcardsPage from "./pages/FlashcardsPage.jsx";
 import ResultPage from "./pages/ResultPage.jsx";
 import TestPage from "./pages/TestPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -30,6 +32,8 @@ export default function App() {
         <Route path="/practice" element={<PracticePage />} />
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/mistakes" element={<MistakesPage />} />
+        <Route path="/vocabulary" element={<VocabularyPage />} />
+        <Route path="/vocabulary/review" element={<FlashcardsPage />} />
         {/* Not under /attempts: the dev proxy forwards /attempts/* to the API, so a refresh there would hit the backend, not this SPA. */}
         <Route path="/practice/:attemptId" element={<TestPage />} />
         <Route path="/result/:attemptId" element={<ResultPage />} />
