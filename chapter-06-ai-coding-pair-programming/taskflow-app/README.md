@@ -45,11 +45,14 @@ docs                       Documentation and design notes
 Requirements: JDK 21, Maven, Node.js 20, a running MySQL server.
 
 1. Create a MySQL database named `engcoach`.
-2. Start the backend (you must be inside `backend/engcoach-backend`):
+2. Start the backend with the `dev` profile (you must be inside `backend/engcoach-backend`).
+   The profile supplies the local database password, a development-only JWT secret and the
+   sample data. Without it the backend refuses to start unless `DB_PASSWORD` and `JWT_SECRET`
+   are set:
 
    ```powershell
    cd backend\engcoach-backend
-   mvn spring-boot:run
+   mvn spring-boot:run "-Dspring-boot.run.profiles=dev"
    ```
 
 3. Start the frontend in another window:
@@ -62,7 +65,7 @@ Requirements: JDK 21, Maven, Node.js 20, a running MySQL server.
 
 4. Open the address Vite prints, usually `http://localhost:5173`.
 
-On the first start the backend imports the generated Tests if they are available
+With the `dev` profile, the first start imports the generated Tests if they are available
 (see the `ENGCOACH_IMPORT_GENERATED_TESTS` variable).
 
 ## Backend environment variables
@@ -70,13 +73,14 @@ On the first start the backend imports the generated Tests if they are available
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `DB_URL` | `jdbc:mysql://localhost:3306/engcoach` | Database address |
-| `DB_USERNAME`, `DB_PASSWORD` | `root`, `1234` | Database account |
-| `JWT_SECRET` | dev value | Key used to sign JWTs. Must be changed for a real deployment |
+| `DB_USERNAME` | `root` | Database account |
+| `DB_PASSWORD` | none (`1234` in the `dev` profile) | Database password. Required outside the `dev` profile |
+| `JWT_SECRET` | none (a dev value in the `dev` profile) | Key used to sign JWTs, at least 32 characters. Required outside the `dev` profile |
 | `ANTHROPIC_API_KEY` | empty | Key for the AI explanations. When empty, explanations show as unavailable |
 | `ANTHROPIC_MODEL` | `claude-3-5-haiku-latest` | Model used for explanations |
-| `ENGCOACH_SEED_SAMPLE_QUESTIONS` | `true` | Load the sample questions |
-| `ENGCOACH_IMPORT_GENERATED_TESTS` | `true` | Import the Tests produced by the generator |
-| `ENGCOACH_REFRESH_GENERATED_TESTS` | `true` | Update a Test that already exists with the same title (use after regenerating audio) |
+| `ENGCOACH_SEED_SAMPLE_QUESTIONS` | `false` (`true` in the `dev` profile) | Load the sample questions |
+| `ENGCOACH_IMPORT_GENERATED_TESTS` | `false` (`true` in the `dev` profile) | Import the Tests produced by the generator |
+| `ENGCOACH_REFRESH_GENERATED_TESTS` | `false` (`true` in the `dev` profile) | Update a Test that already exists with the same title (use after regenerating audio) |
 | `PORT` | `8080` | Backend port |
 
 Never commit API keys or passwords. Set them as environment variables.
