@@ -17,7 +17,7 @@ Decision date: 2026-11-28. The owner accepted all 21 findings. Notes on what "ac
 
 | ID | Severity | Category | Title | Decision | Note for P7.3 |
 |----|----------|----------|-------|----------|---------------|
-| D1 | high | defect | Unsupported attempt type causes a 500 that is not RFC 9457 | accepted | Fix in code |
+| D1 | high | defect | Unsupported attempt type causes a 500 that is not RFC 9457 | accepted, closed in P7.3 | Fixed; see closure note under D1 |
 | R1 | high | risk | No CORS configuration in the backend | accepted | Fix in code |
 | R2 | high | risk | Submit calls the AI sequentially with no timeout | accepted | Fix in code (timeout and time budget, no async rewrite) |
 | R3 | medium | risk | Unsafe production defaults | accepted | Fix in code/config |
@@ -51,6 +51,7 @@ All findings were proposed with status `proposed` and then decided as shown abov
 - Suspected (not reproduced): the response is a 500 with Spring's default body instead of `application/problem+json`. Repro: `POST /attempts` with body `{"type":"FOO"}` and a valid token.
 - Related: architecture rule "RFC 9457 everywhere"; openapi `type` enum.
 - Smallest fix: replace the exception with a domain exception that has a 422 handler, or validate `type` in `StartAttemptRequest`.
+- Closure (P7.3, 2026-11-28): Closed. Reproduced in CI: the new regression test failed on the old code with `ServletException ... IllegalArgumentException: Unsupported attempt type.` (commit f24fce0, backend `Tests run: 51, Errors: 1`). Fix: `UnsupportedAttemptTypeException` plus a 422 handler (`https://engcoach.app/problems/unsupported-attempt-type`) in `GlobalExceptionHandler`; `AttemptsService` throws the new exception. Supported attempt types are unchanged. After the fix CI reported `Tests run: 126, Failures: 0, Errors: 0`, BUILD SUCCESS, frontend success (PR #20). Regression test: `AttemptsControllerTest.startAttempt_withUnsupportedType_returns422Problem`. `openapi.yaml` unchanged (422 problem already declared for `POST /attempts`; the `type` enum drift is tracked in L2). Verification was done through CI because Maven cannot run offline in this environment.
 
 #### D2 - Missing Test returns the wrong problem
 - Severity: low. Category: defect.
