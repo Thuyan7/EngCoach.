@@ -2,9 +2,11 @@ package com.engcoach.config;
 
 import com.engcoach.auth.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -12,6 +14,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * S1 + S2 + S3 + S4 scope.
@@ -64,11 +71,36 @@ public class SecurityConfig {
         return registration;
     }
 
+    /**
+     * CORS for a frontend served from another origin (Vercel -> Railway, ADR-001).
+     * Allowed origins come from {@code engcoach.cors.allowed-origins}
+     * (env {@code CORS_ALLOWED_ORIGINS}, comma separated). Left empty, no origin
+     * is allowed, which is what local development behind the Vite proxy needs.
+     * Authentication uses a Bearer header, not cookies, so credentials stay off.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${engcoach.cors.allowed-origins:}") List<String> allowedOrigins) {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        if (allowedOrigins.isEmpty()) {
+            return source;
+        }
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(allowedOrigins);
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(false);
+        configuration.setMaxAge(3600L);
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
                                             JwtAuthenticationFilter jwtAuthenticationFilter,
                                             ObjectMapper objectMapper) throws Exception {
         http
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
