@@ -193,6 +193,14 @@ Confirmed good points: correct answers are hidden until submit (`QuestionView`),
 - Deployment (Railway, Vercel, Dockerfile), real environment configuration, and secrets already exposed in history (the leaked Gemini key still needs rotation).
 - The frontend is JavaScript, not TypeScript, so $typescript-pro does not apply.
 
+## P7.2 - Runtime failure investigation
+
+Status: not executed (no trigger).
+
+P7.2 applies only to a reproducible runtime failure or an explicit evidence gap. On 2026-11-28 the owner reported no failure and supplied no reproduction steps, logs or observations. P7.1 produced only static, code-reading findings, and none of them was reproduced at runtime.
+
+No diagnosis was therefore written and no cause was assumed from a symptom. The findings that are still "suspected" (D1, R4, R6, R8, R11, L4) keep that label. If a real failure is observed later (wrong score, 401/403 at the wrong time, timer or submit race, data not persisted, UI stuck), P7.2 will be run for it and the diagnosis will be added under the related finding after the owner approves it.
+
 ## Next step
 
 P7.3 may refactor only the accepted findings. Suggested order: D1 and R4 (error shapes), R1, R2, R3, R5, R6, R7, R9, R10, then the low items. R8, R11 and Q1 need a confirmation or reproduction first.
