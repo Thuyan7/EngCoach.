@@ -18,6 +18,7 @@ import com.engcoach.common.AttemptTimeExpiredException;
 import com.engcoach.common.InvalidAnswerException;
 import com.engcoach.common.ExplanationRetryNotAllowedException;
 import com.engcoach.common.PartHasNoQuestionsException;
+import com.engcoach.common.UnsupportedAttemptTypeException;
 import com.engcoach.parts.Question;
 import com.engcoach.parts.QuestionRepository;
 import com.engcoach.tests.TestQuestion;
@@ -142,7 +143,7 @@ public class AttemptsService {
             return startMistakePractice(userId, request.getPart());
         }
         if (!"PART_PRACTICE".equals(type) && !"MOCK_TEST".equals(type)) {
-            throw new IllegalArgumentException("Unsupported attempt type.");
+            throw new UnsupportedAttemptTypeException();
         }
         String part = "PART_PRACTICE".equals(type) ? request.getPart() : null;
         Attempt existing = attemptRepository
