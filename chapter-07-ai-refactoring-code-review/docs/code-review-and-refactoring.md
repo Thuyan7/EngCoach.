@@ -18,7 +18,7 @@ Decision date: 2026-11-28. The owner accepted all 21 findings. Notes on what "ac
 | ID | Severity | Category | Title | Decision | Note for P7.3 |
 |----|----------|----------|-------|----------|---------------|
 | D1 | high | defect | Unsupported attempt type causes a 500 that is not RFC 9457 | accepted, closed in P7.3 | Fixed; see closure note under D1 |
-| R1 | high | risk | No CORS configuration in the backend | accepted | Fix in code |
+| R1 | high | risk | No CORS configuration in the backend | accepted, closed in P7.3 | Fixed; see closure note under R1 |
 | R2 | high | risk | Submit calls the AI sequentially with no timeout | accepted | Fix in code (timeout and time budget, no async rewrite) |
 | R3 | medium | risk | Unsafe production defaults | accepted | Fix in code/config |
 | R4 | medium | risk | No generic or DataIntegrityViolation handler | accepted, closed in P7.3 | Fixed; see closure note under R4 |
@@ -71,6 +71,8 @@ All findings were proposed with status `proposed` and then decided as shown abov
 - Impact: with the frontend and backend on different origins (for example Vercel and Railway) browsers block every request that carries `Authorization`. Local runs and CI stay green, so this is not caught.
 - Related: ADR-001 (deployment), implementation plan.
 - Smallest fix: a `CorsConfigurationSource` with allowed origins from an environment variable, or an explicit same-origin proxy decision for deployment.
+- Closure (P7.3, 2026-11-28): Closed. CI before the fix (PR #22): `Tests run: 136, Failures: 2`; the two tests for the allowed origin failed (preflight without a token was not answered with CORS headers), while the rejected-origin test and the default-off test passed. Fix: `SecurityConfig` has a `corsConfigurationSource` bean driven by `engcoach.cors.allowed-origins` (env `CORS_ALLOWED_ORIGINS`, comma separated, default empty) and enables `.cors(...)` in the security chain, so preflights are answered before JWT authentication. Allowed methods GET, POST, PUT, PATCH, DELETE, OPTIONS; headers Authorization and Content-Type; credentials off (Bearer header, no cookies). With the property empty no origin is allowed, as before. After the fix CI reported `Tests run: 136, Failures: 0, Errors: 0`, BUILD SUCCESS, frontend success. Regression tests: `config/CorsConfigTest` (3) and `config/CorsDisabledByDefaultTest` (1). Deployment note: set `CORS_ALLOWED_ORIGINS` on Railway to the frontend origin. Not verified with a real browser or deployment, only with MockMvc. The comment "Known gap: CORS" in `frontend/vite.config.js` is now outdated and was left unchanged (out of scope). `openapi.yaml` unchanged. Verification was done through CI because Maven cannot run offline in this environment.
+
 
 #### R2 - Submit calls the AI sequentially with no timeout
 - Severity: high. Category: risk.
