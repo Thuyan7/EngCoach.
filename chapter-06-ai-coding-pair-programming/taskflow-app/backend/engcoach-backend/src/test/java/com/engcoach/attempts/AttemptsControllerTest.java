@@ -1004,5 +1004,22 @@ class AttemptsControllerTest {
                 .andExpect(jsonPath("$.totalQuestions").value(2))
                 .andExpect(jsonPath("$.answers.length()").value(1));
     }
-}
 
+    // P7.3 / finding D1: an unknown attempt type must be a 422 RFC 9457 problem,
+    // not an unhandled IllegalArgumentException (500, non-problem body).
+    @Test
+    void startAttempt_withUnsupportedType_returns422Problem() throws Exception {
+        String token = registerAndGetToken("d1-unsupported-type@example.com");
+        String body = objectMapper.writeValueAsString(Map.of("type", "FOO"));
+
+        mockMvc.perform(post("/attempts").header("Authorization", "Bearer " + token)
+                        .contentType("application/json").content(body))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .content().contentTypeCompatibleWith("application/problem+json"))
+                .andExpect(jsonPath("$.type").value("https://engcoach.app/problems/unsupported-attempt-type"))
+                .andExpect(jsonPath("$.title").value("Unsupported attempt type"))
+                .andExpect(jsonPath("$.status").value(422))
+                .andExpect(jsonPath("$.instance").value("/attempts"));
+    }
+}
