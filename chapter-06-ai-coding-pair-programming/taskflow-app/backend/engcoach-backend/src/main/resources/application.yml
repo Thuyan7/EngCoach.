@@ -32,6 +32,10 @@ engcoach:
     # (e.g. this sandbox, or a dev machine with no key).
     api-key: ${ANTHROPIC_API_KEY:}
     model: ${ANTHROPIC_MODEL:claude-3-5-haiku-latest}
+    # R2: one call is cut off after `timeout`; one submit spends at most `submit-budget` on explanations,
+    # the rest stay UNAVAILABLE and can be retried.
+    timeout: ${ANTHROPIC_TIMEOUT:10s}
+    submit-budget: ${ANTHROPIC_SUBMIT_BUDGET:20s}
   question-bank:
     # Opt-in local-only starter data. Leave false for normal/production deployments.
     seed-samples: ${ENGCOACH_SEED_SAMPLE_QUESTIONS:true}
