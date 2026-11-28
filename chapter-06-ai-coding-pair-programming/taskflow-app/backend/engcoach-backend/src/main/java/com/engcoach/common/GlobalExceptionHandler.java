@@ -111,6 +111,17 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(UnsupportedAttemptTypeException.class)
+    public ProblemDetail handleUnsupportedAttemptType(UnsupportedAttemptTypeException ex,
+                                                        HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+        problem.setType(URI.create(PROBLEM_BASE + "unsupported-attempt-type"));
+        problem.setTitle("Unsupported attempt type");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
+    }
+
     @ExceptionHandler(PartHasNoQuestionsException.class)
     public ProblemDetail handlePartHasNoQuestions(PartHasNoQuestionsException ex,
                                                     HttpServletRequest request) {
