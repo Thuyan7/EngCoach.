@@ -4,9 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,12 +42,22 @@ public class AnthropicExplanationService {
     private final String apiKey;
     private final String model;
 
+    /**
+     * {@code timeout} is applied to connecting and to reading, so one slow call can never hang a request
+     * (finding R2). {@code baseUrl} defaults to the real API and is only changed in tests.
+     */
     public AnthropicExplanationService(@Value("${engcoach.anthropic.api-key:}") String apiKey,
-                                        @Value("${engcoach.anthropic.model:claude-3-5-haiku-latest}") String model) {
+                                        @Value("${engcoach.anthropic.model:claude-3-5-haiku-latest}") String model,
+                                        @Value("${engcoach.anthropic.base-url:https://api.anthropic.com}") String baseUrl,
+                                        @Value("${engcoach.anthropic.timeout:10s}") Duration timeout) {
         this.apiKey = apiKey;
         this.model = model;
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(timeout);
+        requestFactory.setReadTimeout(timeout);
         this.restClient = RestClient.builder()
-                .baseUrl("https://api.anthropic.com")
+                .baseUrl(baseUrl)
+                .requestFactory(requestFactory)
                 .build();
     }
 

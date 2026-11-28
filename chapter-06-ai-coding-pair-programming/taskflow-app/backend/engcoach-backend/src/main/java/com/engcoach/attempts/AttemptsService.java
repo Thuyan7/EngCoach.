@@ -107,6 +107,10 @@ public class AttemptsService {
     private final QuestionRepository questionRepository;
     private final AttemptGradingService attemptGradingService;
     private final AnthropicExplanationService explanationService;
+
+    /** How long one submit may spend generating explanations in total (finding R2). */
+    @org.springframework.beans.factory.annotation.Value("${engcoach.anthropic.submit-budget:20s}")
+    private java.time.Duration submitBudget = java.time.Duration.ofSeconds(20);
     private final ToeicTestRepository toeicTestRepository;
     private final TestPartRepository testPartRepository;
     private final TestQuestionRepository testQuestionRepository;
@@ -387,9 +391,17 @@ public class AttemptsService {
         AttemptGradingService.GradingResult result = attemptGradingService.gradeAndPersist(userId, attemptId);
 
         if (result.justGraded()) {
+            // Finding R2: once the time budget is spent the rest are left UNAVAILABLE
+            // (the retry endpoint can fill them in) instead of making the user wait.
+            long deadline = System.nanoTime() + submitBudget.toNanos();
             for (Answer answer : result.answers()) {
                 if (Boolean.FALSE.equals(answer.getIsCorrect())) {
-                    generateAndSaveExplanation(answer);
+                    if (System.nanoTime() >= deadline) {
+                        attemptGradingService.saveExplanationResult(
+                                answer.getId(), null, Answer.EXPLANATION_STATUS_UNAVAILABLE);
+                    } else {
+                        generateAndSaveExplanation(answer);
+                    }
                 }
             }
         }

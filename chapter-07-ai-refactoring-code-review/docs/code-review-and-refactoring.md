@@ -19,7 +19,7 @@ Decision date: 2026-11-28. The owner accepted all 21 findings. Notes on what "ac
 |----|----------|----------|-------|----------|---------------|
 | D1 | high | defect | Unsupported attempt type causes a 500 that is not RFC 9457 | accepted, closed in P7.3 | Fixed; see closure note under D1 |
 | R1 | high | risk | No CORS configuration in the backend | accepted, closed in P7.3 | Fixed; see closure note under R1 |
-| R2 | high | risk | Submit calls the AI sequentially with no timeout | accepted | Fix in code (timeout and time budget, no async rewrite) |
+| R2 | high | risk | Submit calls the AI sequentially with no timeout | accepted, closed in P7.3 | Fixed; see closure note under R2 |
 | R3 | medium | risk | Unsafe production defaults | accepted | Fix in code/config |
 | R4 | medium | risk | No generic or DataIntegrityViolation handler | accepted, closed in P7.3 | Fixed; see closure note under R4 |
 | R5 | medium | risk | Register race on duplicate email | accepted | Fix in code |
@@ -80,6 +80,8 @@ All findings were proposed with status `proposed` and then decided as shown abov
 - Impact: submit time grows with the number of wrong answers, and one hanging call hangs the request.
 - Related: approved decisions #2 and #7 (explanation outside the transaction, `UNAVAILABLE` on failure); feature spec "auto-score + explanation".
 - Smallest fix: set timeouts on the `RestClient` and a total time budget; on expiry mark the explanation `UNAVAILABLE` so the existing retry endpoint handles it. No asynchronous rewrite.
+- Closure (P7.3, 2026-11-28): Closed. CI before the fix (PR #23): `Tests run: 138, Failures: 2`; both new tests failed because the AI endpoint was not configurable (the fake server received 0 calls), so this red proves the missing seam, not the hang itself; the missing timeout was confirmed by reading `AnthropicExplanationService.java:47-49`. Fix: the `RestClient` now has connect and read timeouts (`engcoach.anthropic.timeout`, env `ANTHROPIC_TIMEOUT`, default 10 s), and `submitAttempt` stops calling the AI once `engcoach.anthropic.submit-budget` (env `ANTHROPIC_SUBMIT_BUDGET`, default 20 s) is spent; the remaining wrong answers are saved as `UNAVAILABLE` and can be filled in with the existing retry endpoint. Worst case for one submit is about 30 s (20 s budget plus one last call of up to 10 s); the two defaults are the implementer's choice and can be changed. Added `engcoach.anthropic.base-url` (default the real API) so tests can use a local fake server. Grading, scoring, response shape and the retry endpoint are unchanged. After the fix CI reported `Tests run: 138, Failures: 0, Errors: 0`, BUILD SUCCESS, frontend success. Regression tests: `attempts/ExplanationTimeoutTest` (2). `openapi.yaml` unchanged. Verification was done through CI because Maven cannot run offline in this environment; not tested against the real Anthropic API.
+
 
 #### R3 - Unsafe production defaults
 - Severity: medium. Category: risk.
