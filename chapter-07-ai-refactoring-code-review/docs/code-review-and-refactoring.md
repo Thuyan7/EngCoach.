@@ -21,7 +21,7 @@ Decision date: 2026-11-28. The owner accepted all 21 findings. Notes on what "ac
 | R1 | high | risk | No CORS configuration in the backend | accepted | Fix in code |
 | R2 | high | risk | Submit calls the AI sequentially with no timeout | accepted | Fix in code (timeout and time budget, no async rewrite) |
 | R3 | medium | risk | Unsafe production defaults | accepted | Fix in code/config |
-| R4 | medium | risk | No generic or DataIntegrityViolation handler | accepted | Fix in code |
+| R4 | medium | risk | No generic or DataIntegrityViolation handler | accepted, closed in P7.3 | Fixed; see closure note under R4 |
 | R5 | medium | risk | Register race on duplicate email | accepted | Fix in code |
 | R6 | medium | risk | Answer save race, no unique (attempt_id, question_id) | accepted | Fix in code |
 | R7 | medium | risk | No indexes or foreign keys on core tables | accepted | Indexes in code; foreign keys only if they stay minimal |
@@ -90,6 +90,8 @@ All findings were proposed with status `proposed` and then decided as shown abov
 - Evidence: `(java)common/GlobalExceptionHandler.java` has no handler for `Exception`, `DataIntegrityViolationException` or `HttpMessageNotReadableException`. Suspected: malformed JSON and database errors return Spring's default body, not problem+json.
 - Related: "RFC 9457 everywhere, no ad-hoc shapes".
 - Smallest fix: add these handlers returning `ProblemDetail`; the generic 500 must not leak internals.
+- Closure (P7.3, 2026-11-28): Closed. CI before the fix (PR #21): `Tests run: 132, Failures: 1, Errors: 2`; exactly the three new tests failed (malformed JSON, constraint violation, unexpected exception), the three behavior-preservation tests passed. Fix: `GlobalExceptionHandler` now extends `ResponseEntityExceptionHandler`; the 422 validation handler became an override with the same body; added 400 `.../malformed-request`, 409 `.../data-conflict` (database message never returned) and a generic 500 `.../internal-error` (details only in the log); Spring Security exceptions are re-thrown so 401/403 still come from the security filters. Intended behavior change: Spring MVC's own errors (405, 415, type mismatch) now also have problem+json bodies, with unchanged statuses. After the fix CI reported `Tests run: 132, Failures: 0, Errors: 0`, BUILD SUCCESS, frontend success. Regression tests: `common/ErrorHandlingTest` (6 tests). `openapi.yaml` unchanged; whether the new 400/409/500 responses should be declared is tracked in L2. Verification was done through CI because Maven cannot run offline in this environment.
+
 
 #### R5 - Register race
 - Severity: medium. Category: risk.
