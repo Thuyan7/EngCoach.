@@ -1,0 +1,14 @@
+# Local development only: activate with the "dev" profile (see README, "Run locally").
+# Never use this profile in a deployment: it has a public JWT secret and a weak database password,
+# and it loads sample data and overwrites imported Tests (finding R3).
+spring:
+  datasource:
+    password: ${DB_PASSWORD:1234}
+
+engcoach:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-before-any-real-deploy-32chars}
+  question-bank:
+    seed-samples: ${ENGCOACH_SEED_SAMPLE_QUESTIONS:true}
+    import-generated: ${ENGCOACH_IMPORT_GENERATED_TESTS:true}
+    refresh-generated: ${ENGCOACH_REFRESH_GENERATED_TESTS:true}

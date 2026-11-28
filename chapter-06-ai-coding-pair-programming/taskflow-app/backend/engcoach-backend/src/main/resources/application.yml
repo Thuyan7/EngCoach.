@@ -4,7 +4,9 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/engcoach}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:1234}
+    # No default on purpose (finding R3): a missing DB_PASSWORD stops the application at startup.
+    # Local development gets 1234 from the dev profile (application-dev.yml).
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       # update is fine for an academic MVP with a single small team; revisit
@@ -17,9 +19,9 @@ spring:
 
 engcoach:
   jwt:
-    # MUST be overridden via the JWT_SECRET env var in Railway (ADR-001).
-    # This default is for local dev only — do not deploy with it.
-    secret: ${JWT_SECRET:dev-only-secret-change-me-before-any-real-deploy-32chars}
+    # No default on purpose (finding R3, ADR-001): a missing JWT_SECRET stops the application at startup.
+    # Local development gets a dev-only secret from the dev profile (application-dev.yml).
+    secret: ${JWT_SECRET}
   cors:
     # Comma-separated frontend origins allowed to call the API from a browser,
     # e.g. https://engcoach.vercel.app. Empty = none (local dev uses the Vite proxy).
@@ -37,12 +39,13 @@ engcoach:
     timeout: ${ANTHROPIC_TIMEOUT:10s}
     submit-budget: ${ANTHROPIC_SUBMIT_BUDGET:20s}
   question-bank:
-    # Opt-in local-only starter data. Leave false for normal/production deployments.
-    seed-samples: ${ENGCOACH_SEED_SAMPLE_QUESTIONS:true}
+    # All three are off by default (finding R3); the dev profile turns them on for local development.
+    # Opt-in local-only starter data.
+    seed-samples: ${ENGCOACH_SEED_SAMPLE_QUESTIONS:false}
     # Opt-in: nạp các đề test-*.json do tools/question-generator sinh ra (bỏ qua đề đã có cùng tiêu đề).
-    import-generated: ${ENGCOACH_IMPORT_GENERATED_TESTS:true}
+    import-generated: ${ENGCOACH_IMPORT_GENERATED_TESTS:false}
     # Opt-in: đề đã có cùng tiêu đề thì cập nhật nội dung/audio/ảnh tại chỗ thay vì bỏ qua (dùng sau khi sinh lại audio).
-    refresh-generated: ${ENGCOACH_REFRESH_GENERATED_TESTS:true}
+    refresh-generated: ${ENGCOACH_REFRESH_GENERATED_TESTS:false}
 
 server:
   port: ${PORT:8080}
